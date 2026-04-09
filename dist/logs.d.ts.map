@@ -1,0 +1,1 @@
+{"version":3,"file":"logs.d.ts","sourceRoot":"","sources":["../src/logs.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,0BAA0B,CAAC;AACzD,OAAO,EACL,cAAc,EAEf,MAAM,yBAAyB,CAAC;AAEjC,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,YAAY,CAAC;AAEjD,wBAAgB,SAAS,CACvB,QAAQ,EAAE,QAAQ,EAClB,MAAM,EAAE,cAAc,GACrB,cAAc,CAShB"}

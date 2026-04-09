@@ -1,0 +1,1 @@
+{"version":3,"file":"tracing.d.ts","sourceRoot":"","sources":["../src/tracing.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,0BAA0B,CAAC;AACzD,OAAO,EAAE,iBAAiB,EAAE,MAAM,8BAA8B,CAAC;AAOjE,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,YAAY,CAAC;AAEjD,wBAAgB,YAAY,CAC1B,QAAQ,EAAE,QAAQ,EAClB,MAAM,EAAE,cAAc,GACrB,iBAAiB,CAuCnB"}
