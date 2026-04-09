@@ -63,6 +63,9 @@ importers:
         specifier: ^1.30.0
         version: 1.40.0
     devDependencies:
+      '@mark1russell7/grafana-infra':
+        specifier: github:mark1russell7/grafana-infra
+        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/15a16901727ddb7026086d7d8586d8bcd1cbc376
       typescript:
         specifier: ^5.9.0
         version: 5.9.3
@@ -77,6 +80,10 @@ packages:
 
   '@grafana/faro-web-tracing@2.3.1':
     resolution: {integrity: sha512-l4oCDDc294zwg/hQIttmWolfNCsGpju2ac+rRPPcbR1b4BGKwo8zY0YzqpkZ/zTyHB3KaeWSeSMdvAnZDvuHWg==}
+
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/15a16901727ddb7026086d7d8586d8bcd1cbc376':
+    resolution: {tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/15a16901727ddb7026086d7d8586d8bcd1cbc376}
+    version: 0.0.0
 
   '@opentelemetry/api-logs@0.213.0':
     resolution: {integrity: sha512-zRM5/Qj6G84Ej3F1yt33xBVY/3tnMxtL1fiDIxYbDWYaZ/eudVw3/PBiZ8G7JwUxXxjW8gU4g6LnOyfGKYHYgw==}
@@ -385,6 +392,8 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.40.0
     transitivePeerDependencies:
       - supports-color
+
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/15a16901727ddb7026086d7d8586d8bcd1cbc376': {}
 
   '@opentelemetry/api-logs@0.213.0':
     dependencies:
