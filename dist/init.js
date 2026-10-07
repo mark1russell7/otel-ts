@@ -6,18 +6,21 @@ import { setupTracing } from "./tracing.js";
 import { setupMetrics } from "./metrics.js";
 import { setupLogs } from "./logs.js";
 import { setupFaro } from "./faro.js";
-import { registerShutdownHandlers } from "./shutdown.js";
+import { registerLifecycleHandlers } from "./lifecycle.js";
+import { hasDom } from "./env.js";
 import { DEFAULT_OTLP_ENDPOINT, DEFAULT_SERVICE_NAME, DEFAULT_SERVICE_VERSION, SESSION_TTL_MS, } from "./constants.js";
 function resolveConfig(config = {}) {
     return {
         endpoint: config.endpoint ?? DEFAULT_OTLP_ENDPOINT,
         serviceName: config.serviceName ?? DEFAULT_SERVICE_NAME,
         serviceVersion: config.serviceVersion ?? DEFAULT_SERVICE_VERSION,
+        serviceInstanceId: config.serviceInstanceId,
         resourceAttributes: config.resourceAttributes ?? {},
         tracing: config.tracing ?? true,
         propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
         metrics: config.metrics ?? true,
         metricsExportIntervalMs: config.metricsExportIntervalMs ?? 60_000,
+        metricsTemporality: config.metricsTemporality ?? "cumulative",
         logs: config.logs ?? true,
         instrumentDocumentLoad: config.instrumentDocumentLoad ?? true,
         instrumentFetch: config.instrumentFetch ?? true,
@@ -49,13 +52,29 @@ export function init(config) {
         ? setupLogs(resource, resolved)
         : new LoggerProvider();
     providers.push(loggerProvider);
-    if (resolved.faro) {
+    // Faro instruments the page (errors, web vitals, views) and needs a DOM
+    const faro = resolved.faro && hasDom();
+    if (faro) {
         setupFaro(resolved);
     }
-    const shutdownAll = async () => {
-        await Promise.allSettled(providers.map((p) => p.shutdown()));
+    let shutdownPromise;
+    const forceFlush = async () => {
+        // Shut-down providers can't flush; wait for their final flush instead
+        if (shutdownPromise)
+            return shutdownPromise;
+        await Promise.allSettled(providers.map((p) => p.forceFlush()));
     };
-    registerShutdownHandlers(shutdownAll);
+    const shutdown = () => {
+        shutdownPromise ??= (async () => {
+            removeLifecycleHandlers();
+            await Promise.allSettled(providers.map((p) => p.shutdown()));
+        })();
+        return shutdownPromise;
+    };
+    const removeLifecycleHandlers = registerLifecycleHandlers({
+        flush: forceFlush,
+        shutdown,
+    });
     if (resolved.debug) {
         console.log("[otel-ts] Initialized", {
             endpoint: resolved.endpoint,
@@ -64,11 +83,12 @@ export function init(config) {
             tracing: resolved.tracing,
             metrics: resolved.metrics,
             logs: resolved.logs,
-            faro: resolved.faro,
+            faro,
         });
     }
     return {
-        shutdown: shutdownAll,
+        shutdown,
+        forceFlush,
         getSessionId: () => sessionId,
         getMeter: (name) => meterProvider.getMeter(name),
         getLogger: (name) => loggerProvider.getLogger(name),

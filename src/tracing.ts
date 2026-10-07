@@ -7,11 +7,15 @@ import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations
 import { LongTaskInstrumentation } from "@opentelemetry/instrumentation-long-task";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import type { ResolvedConfig } from "./types.js";
+import { hasDom } from "./env.js";
 
 export function setupTracing(
   resource: Resource,
   config: ResolvedConfig,
 ): WebTracerProvider {
+  // Document-load and user-interaction need a DOM; skip them in Web Workers
+  const dom = hasDom();
+
   const exporter = new OTLPTraceExporter({
     url: `${config.endpoint}/v1/traces`,
   });
@@ -29,7 +33,7 @@ export function setupTracing(
     instrumentations: [
       getWebAutoInstrumentations({
         "@opentelemetry/instrumentation-document-load": {
-          enabled: config.instrumentDocumentLoad,
+          enabled: config.instrumentDocumentLoad && dom,
         },
         "@opentelemetry/instrumentation-fetch": {
           enabled: config.instrumentFetch,
@@ -40,7 +44,7 @@ export function setupTracing(
           propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls,
         },
         "@opentelemetry/instrumentation-user-interaction": {
-          enabled: config.instrumentUserInteraction,
+          enabled: config.instrumentUserInteraction && dom,
         },
       }),
       ...(config.instrumentLongTask

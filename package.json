@@ -23,7 +23,8 @@
     "clean": "rm -rf dist .tsbuildinfo",
     "infra:up": "cd node_modules/@mark1russell7/grafana-infra && docker compose up -d",
     "infra:down": "cd node_modules/@mark1russell7/grafana-infra && docker compose down",
-    "infra:logs": "cd node_modules/@mark1russell7/grafana-infra && docker compose logs -f"
+    "infra:logs": "cd node_modules/@mark1russell7/grafana-infra && docker compose logs -f",
+    "test": "vitest run --environment happy-dom"
   },
   "dependencies": {
     "@grafana/faro-web-sdk": "^2.3.0",
@@ -43,10 +44,12 @@
     "@opentelemetry/sdk-metrics": "^2.6.0",
     "@opentelemetry/sdk-trace-base": "^2.6.0",
     "@opentelemetry/sdk-trace-web": "^2.2.0",
-    "@opentelemetry/semantic-conventions": "^1.30.0"
+    "@opentelemetry/semantic-conventions": "^1.40.0"
   },
   "devDependencies": {
     "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra",
-    "typescript": "^5.9.0"
+    "happy-dom": "^20.14.5",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.11"
   }
 }

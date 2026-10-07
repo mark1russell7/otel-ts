@@ -2,7 +2,11 @@
 // Types
 // =============================================================================
 
-export type { OtelTsConfig, OtelTsInstance } from "./types.js";
+export type {
+  MetricsTemporality,
+  OtelTsConfig,
+  OtelTsInstance,
+} from "./types.js";
 
 // =============================================================================
 // Init

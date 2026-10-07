@@ -7,7 +7,8 @@ import { setupTracing } from "./tracing.js";
 import { setupMetrics } from "./metrics.js";
 import { setupLogs } from "./logs.js";
 import { setupFaro } from "./faro.js";
-import { registerShutdownHandlers } from "./shutdown.js";
+import { registerLifecycleHandlers } from "./lifecycle.js";
+import { hasDom } from "./env.js";
 import {
   DEFAULT_OTLP_ENDPOINT,
   DEFAULT_SERVICE_NAME,
@@ -20,11 +21,13 @@ function resolveConfig(config: OtelTsConfig = {}): ResolvedConfig {
     endpoint: config.endpoint ?? DEFAULT_OTLP_ENDPOINT,
     serviceName: config.serviceName ?? DEFAULT_SERVICE_NAME,
     serviceVersion: config.serviceVersion ?? DEFAULT_SERVICE_VERSION,
+    serviceInstanceId: config.serviceInstanceId,
     resourceAttributes: config.resourceAttributes ?? {},
     tracing: config.tracing ?? true,
     propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
     metrics: config.metrics ?? true,
     metricsExportIntervalMs: config.metricsExportIntervalMs ?? 60_000,
+    metricsTemporality: config.metricsTemporality ?? "cumulative",
     logs: config.logs ?? true,
     instrumentDocumentLoad: config.instrumentDocumentLoad ?? true,
     instrumentFetch: config.instrumentFetch ?? true,
@@ -47,7 +50,10 @@ export function init(config?: OtelTsConfig): OtelTsInstance {
     : crypto.randomUUID();
 
   const resource = buildResource(resolved, sessionId);
-  const providers: Array<{ shutdown(): Promise<void> }> = [];
+  const providers: Array<{
+    forceFlush(): Promise<void>;
+    shutdown(): Promise<void>;
+  }> = [];
 
   if (resolved.tracing) {
     providers.push(setupTracing(resource, resolved));
@@ -65,15 +71,33 @@ export function init(config?: OtelTsConfig): OtelTsInstance {
 
   providers.push(loggerProvider);
 
-  if (resolved.faro) {
+  // Faro instruments the page (errors, web vitals, views) and needs a DOM
+  const faro = resolved.faro && hasDom();
+
+  if (faro) {
     setupFaro(resolved);
   }
 
-  const shutdownAll = async (): Promise<void> => {
-    await Promise.allSettled(providers.map((p) => p.shutdown()));
+  let shutdownPromise: Promise<void> | undefined;
+
+  const forceFlush = async (): Promise<void> => {
+    // Shut-down providers can't flush; wait for their final flush instead
+    if (shutdownPromise) return shutdownPromise;
+    await Promise.allSettled(providers.map((p) => p.forceFlush()));
   };
 
-  registerShutdownHandlers(shutdownAll);
+  const shutdown = (): Promise<void> => {
+    shutdownPromise ??= (async () => {
+      removeLifecycleHandlers();
+      await Promise.allSettled(providers.map((p) => p.shutdown()));
+    })();
+    return shutdownPromise;
+  };
+
+  const removeLifecycleHandlers = registerLifecycleHandlers({
+    flush: forceFlush,
+    shutdown,
+  });
 
   if (resolved.debug) {
     console.log("[otel-ts] Initialized", {
@@ -83,12 +107,13 @@ export function init(config?: OtelTsConfig): OtelTsInstance {
       tracing: resolved.tracing,
       metrics: resolved.metrics,
       logs: resolved.logs,
-      faro: resolved.faro,
+      faro,
     });
   }
 
   return {
-    shutdown: shutdownAll,
+    shutdown,
+    forceFlush,
     getSessionId: () => sessionId,
     getMeter: (name: string) => meterProvider.getMeter(name),
     getLogger: (name: string) => loggerProvider.getLogger(name),

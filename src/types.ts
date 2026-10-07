@@ -1,3 +1,5 @@
+export type MetricsTemporality = "cumulative" | "delta";
+
 export interface OtelTsConfig {
   /** OTLP HTTP endpoint. Default: "http://localhost:4318" */
   endpoint?: string;
@@ -7,6 +9,9 @@ export interface OtelTsConfig {
 
   /** Service version. Default: "0.0.0" */
   serviceVersion?: string;
+
+  /** Sets the `service.instance.id` resource attribute. Default: not set */
+  serviceInstanceId?: string;
 
   /** Additional resource attributes */
   resourceAttributes?: Record<string, string>;
@@ -27,6 +32,14 @@ export interface OtelTsConfig {
   /** Metrics export interval in ms. Default: 60000 */
   metricsExportIntervalMs?: number;
 
+  /**
+   * Aggregation temporality requested from the OTLP metrics exporter.
+   * "cumulative" exports running totals; "delta" exports counters and
+   * histograms as the change since the previous export (up-down counters stay
+   * cumulative). Default: "cumulative"
+   */
+  metricsTemporality?: MetricsTemporality;
+
   // --- Logs ---
 
   /** Enable logs. Default: true */
@@ -34,7 +47,7 @@ export interface OtelTsConfig {
 
   // --- Auto-Instrumentations ---
 
-  /** Enable document-load instrumentation. Default: true */
+  /** Enable document-load instrumentation. Default: true. Needs a DOM. */
   instrumentDocumentLoad?: boolean;
 
   /** Enable fetch instrumentation. Default: true */
@@ -43,7 +56,7 @@ export interface OtelTsConfig {
   /** Enable XMLHttpRequest instrumentation. Default: true */
   instrumentXhr?: boolean;
 
-  /** Enable user-interaction instrumentation. Default: true */
+  /** Enable user-interaction instrumentation. Default: true. Needs a DOM. */
   instrumentUserInteraction?: boolean;
 
   /** Enable long-task instrumentation. Default: true */
@@ -51,7 +64,7 @@ export interface OtelTsConfig {
 
   // --- Faro ---
 
-  /** Enable Grafana Faro integration. Default: true */
+  /** Enable Grafana Faro integration. Default: true. Needs a DOM. */
   faro?: boolean;
 
   /** Faro collector URL. Omit for local OTLP-only mode. */
@@ -75,11 +88,13 @@ export interface ResolvedConfig {
   endpoint: string;
   serviceName: string;
   serviceVersion: string;
+  serviceInstanceId: string | undefined;
   resourceAttributes: Record<string, string>;
   tracing: boolean;
   propagateTraceHeaderCorsUrls: Array<string | RegExp>;
   metrics: boolean;
   metricsExportIntervalMs: number;
+  metricsTemporality: MetricsTemporality;
   logs: boolean;
   instrumentDocumentLoad: boolean;
   instrumentFetch: boolean;
@@ -94,8 +109,17 @@ export interface ResolvedConfig {
 }
 
 export interface OtelTsInstance {
-  /** Shut down all providers, flush pending telemetry */
+  /**
+   * Flush pending telemetry and shut down all providers. Runs once; later
+   * calls return the same promise.
+   */
   shutdown(): Promise<void>;
+
+  /**
+   * Export pending telemetry now; providers keep running. Also runs
+   * automatically whenever the page is hidden.
+   */
+  forceFlush(): Promise<void>;
 
   /** Get the current session ID */
   getSessionId(): string;
