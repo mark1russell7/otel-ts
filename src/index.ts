@@ -3,6 +3,7 @@
 // =============================================================================
 
 export type {
+  HistogramAggregation,
   MetricsTemporality,
   OtelTsConfig,
   OtelTsInstance,
@@ -15,6 +16,12 @@ export type {
 export { init } from "./init.js";
 
 // =============================================================================
+// Identity
+// =============================================================================
+
+export { createInstanceId } from "./id.js";
+
+// =============================================================================
 // Session
 // =============================================================================
 
@@ -25,6 +32,7 @@ export { getOrCreateSessionId } from "./session.js";
 // =============================================================================
 
 export {
+  DEFAULT_METRICS_EXPORT_INTERVAL_MS,
   DEFAULT_OTLP_ENDPOINT,
   DEFAULT_SERVICE_NAME,
   DEFAULT_SERVICE_VERSION,

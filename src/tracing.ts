@@ -8,10 +8,15 @@ import { LongTaskInstrumentation } from "@opentelemetry/instrumentation-long-tas
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import type { ResolvedConfig } from "./types.js";
 import { hasDom } from "./env.js";
+import {
+  createSessionSpanProcessor,
+  type SessionIdReader,
+} from "./session-processors.js";
 
 export function setupTracing(
   resource: Resource,
   config: ResolvedConfig,
+  getSessionId: SessionIdReader,
 ): WebTracerProvider {
   // Document-load and user-interaction need a DOM; skip them in Web Workers
   const dom = hasDom();
@@ -22,7 +27,10 @@ export function setupTracing(
 
   const provider = new WebTracerProvider({
     resource,
-    spanProcessors: [new BatchSpanProcessor(exporter)],
+    spanProcessors: [
+      createSessionSpanProcessor(getSessionId),
+      new BatchSpanProcessor(exporter),
+    ],
   });
 
   provider.register({

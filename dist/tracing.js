@@ -6,7 +6,8 @@ import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations
 import { LongTaskInstrumentation } from "@opentelemetry/instrumentation-long-task";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { hasDom } from "./env.js";
-export function setupTracing(resource, config) {
+import { createSessionSpanProcessor, } from "./session-processors.js";
+export function setupTracing(resource, config, getSessionId) {
     // Document-load and user-interaction need a DOM; skip them in Web Workers
     const dom = hasDom();
     const exporter = new OTLPTraceExporter({
@@ -14,7 +15,10 @@ export function setupTracing(resource, config) {
     });
     const provider = new WebTracerProvider({
         resource,
-        spanProcessors: [new BatchSpanProcessor(exporter)],
+        spanProcessors: [
+            createSessionSpanProcessor(getSessionId),
+            new BatchSpanProcessor(exporter),
+        ],
     });
     provider.register({
         contextManager: new ZoneContextManager(),

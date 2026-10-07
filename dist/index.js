@@ -6,11 +6,15 @@
 // =============================================================================
 export { init } from "./init.js";
 // =============================================================================
+// Identity
+// =============================================================================
+export { createInstanceId } from "./id.js";
+// =============================================================================
 // Session
 // =============================================================================
 export { getOrCreateSessionId } from "./session.js";
 // =============================================================================
 // Constants
 // =============================================================================
-export { DEFAULT_OTLP_ENDPOINT, DEFAULT_SERVICE_NAME, DEFAULT_SERVICE_VERSION, } from "./constants.js";
+export { DEFAULT_METRICS_EXPORT_INTERVAL_MS, DEFAULT_OTLP_ENDPOINT, DEFAULT_SERVICE_NAME, DEFAULT_SERVICE_VERSION, } from "./constants.js";
 //# sourceMappingURL=index.js.map

@@ -1,7 +1,12 @@
 import { initializeFaro, getWebInstrumentations, } from "@grafana/faro-web-sdk";
 import { TracingInstrumentation } from "@grafana/faro-web-tracing";
-export function setupFaro(config) {
+/**
+ * Starts Faro, sending to `url`. Without a URL (or transports) Faro has
+ * nowhere to send data and logs an error, so `init()` skips it then.
+ */
+export function setupFaro(config, url) {
     return initializeFaro({
+        url,
         app: {
             name: config.faroAppName ?? config.serviceName,
             version: config.serviceVersion,
@@ -14,7 +19,6 @@ export function setupFaro(config) {
             }),
             new TracingInstrumentation(),
         ],
-        ...(config.faroCollectorUrl ? { url: config.faroCollectorUrl } : {}),
     });
 }
 //# sourceMappingURL=faro.js.map
