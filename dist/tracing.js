@@ -5,13 +5,20 @@ import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
 import { LongTaskInstrumentation } from "@opentelemetry/instrumentation-long-task";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
-export function setupTracing(resource, config) {
+import { hasDom } from "./env.js";
+import { createSessionSpanProcessor, } from "./session-processors.js";
+export function setupTracing(resource, config, getSessionId) {
+    // Document-load and user-interaction need a DOM; skip them in Web Workers
+    const dom = hasDom();
     const exporter = new OTLPTraceExporter({
         url: `${config.endpoint}/v1/traces`,
     });
     const provider = new WebTracerProvider({
         resource,
-        spanProcessors: [new BatchSpanProcessor(exporter)],
+        spanProcessors: [
+            createSessionSpanProcessor(getSessionId),
+            new BatchSpanProcessor(exporter),
+        ],
     });
     provider.register({
         contextManager: new ZoneContextManager(),
@@ -20,7 +27,7 @@ export function setupTracing(resource, config) {
         instrumentations: [
             getWebAutoInstrumentations({
                 "@opentelemetry/instrumentation-document-load": {
-                    enabled: config.instrumentDocumentLoad,
+                    enabled: config.instrumentDocumentLoad && dom,
                 },
                 "@opentelemetry/instrumentation-fetch": {
                     enabled: config.instrumentFetch,
@@ -31,7 +38,7 @@ export function setupTracing(resource, config) {
                     propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls,
                 },
                 "@opentelemetry/instrumentation-user-interaction": {
-                    enabled: config.instrumentUserInteraction,
+                    enabled: config.instrumentUserInteraction && dom,
                 },
             }),
             ...(config.instrumentLongTask

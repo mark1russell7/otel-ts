@@ -1,0 +1,1 @@
+{"version":3,"file":"before-flush.d.ts","sourceRoot":"","sources":["../src/before-flush.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,mBAAmB,GAAG,MAAM,IAAI,CAAC;AAE7C,MAAM,WAAW,oBAAoB;IACnC,2DAA2D;IAC3D,GAAG,CAAC,QAAQ,EAAE,mBAAmB,GAAG,MAAM,IAAI,CAAC;IAE/C;;;OAGG;IACH,GAAG,IAAI,IAAI,CAAC;CACb;AAED;;;;;;GAMG;AACH,wBAAgB,0BAA0B,IAAI,oBAAoB,CAwCjE"}
