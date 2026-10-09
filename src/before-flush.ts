@@ -1,14 +1,17 @@
-export type BeforeFlushListener = () => void;
+import type { FlushCause } from "./types.js";
+
+export type BeforeFlushListener = (cause: FlushCause) => void;
 
 export interface BeforeFlushListeners {
   /** Adds a listener. @returns A function that removes it */
   add(listener: BeforeFlushListener): () => void;
 
   /**
-   * Calls every listener synchronously, in registration order. A listener
-   * that throws does not stop the others; the first error is logged.
+   * Calls every listener synchronously, in registration order, with the
+   * cause of the flush. A listener that throws does not stop the others; the
+   * first error is logged.
    */
-  run(): void;
+  run(cause?: FlushCause): void;
 }
 
 /**
@@ -33,7 +36,7 @@ export function createBeforeFlushListeners(): BeforeFlushListeners {
       };
     },
 
-    run() {
+    run(cause = {}) {
       // A listener that flushes again must not start another round
       if (running) return;
       running = true;
@@ -42,7 +45,7 @@ export function createBeforeFlushListeners(): BeforeFlushListeners {
         // A snapshot: listeners may add or remove listeners
         for (const { listener } of [...entries]) {
           try {
-            listener();
+            listener(cause);
           } catch (error) {
             if (!errorLogged) {
               errorLogged = true;

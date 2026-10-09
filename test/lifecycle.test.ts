@@ -60,6 +60,17 @@ describe("registerLifecycleHandlers", () => {
     expect(handlers.shutdown).not.toHaveBeenCalled();
   });
 
+  it("gives each handler the event that started it", () => {
+    register();
+
+    setVisibility("hidden");
+    hidePage(true);
+    hidePage(false);
+
+    expect(handlers.flush.mock.calls.map(([cause]) => (cause as { event: Event }).event.type)).toEqual(["visibilitychange", "pagehide"]);
+    expect((handlers.shutdown.mock.calls[0]![0] as { event: Event }).event.type).toBe("pagehide");
+  });
+
   it("listens to visibilitychange and pagehide, never beforeunload or unload", () => {
     const onWindow = vi.spyOn(window, "addEventListener");
     const onDocument = vi.spyOn(document, "addEventListener");

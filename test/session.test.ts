@@ -168,13 +168,18 @@ describe("createSessionTracker", () => {
   });
 
   it("keeps the session in memory when sessionStorage is full", () => {
-    // The global Storage is Node's own here, not happy-dom's
-    const storagePrototype = Object.getPrototypeOf(sessionStorage) as Storage;
-    const setItem = vi
-      .spyOn(storagePrototype, "setItem")
-      .mockImplementation(() => {
-        throw new DOMException("Quota exceeded", "QuotaExceededError");
-      });
+    // A full storage of its own: the global Storage is Node's own in Node 25
+    // and happy-dom's in Node 24, and a spy on one prototype misses the other
+    const stored = new Map<string, string>();
+    const setItem = vi.fn((): void => {
+      throw new DOMException("Quota exceeded", "QuotaExceededError");
+    });
+    vi.stubGlobal("sessionStorage", {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem,
+      removeItem: (key: string) => stored.delete(key),
+      clear: () => stored.clear(),
+    });
     const getSessionId = createSessionTracker(TTL_MS);
     const sessionId = getSessionId();
 

@@ -12,24 +12,25 @@ import { hasDom } from "./env.js";
  * ineligible for the back/forward cache, and `beforeunload` also fires when the
  * user cancels the navigation.
  *
- * Registers nothing where there is no DOM (e.g. in a Web Worker).
+ * Each handler gets the event that started it, for the before-flush
+ * listeners. Registers nothing where there is no DOM (e.g. in a Web Worker).
  *
  * @returns A function that removes the listeners
  */
 export function registerLifecycleHandlers(handlers) {
     if (!hasDom())
         return () => { };
-    const onVisibilityChange = () => {
+    const onVisibilityChange = (event) => {
         if (document.visibilityState === "hidden") {
-            void handlers.flush();
+            void handlers.flush({ event });
         }
     };
     const onPageHide = (event) => {
         if (event.persisted) {
-            void handlers.flush();
+            void handlers.flush({ event });
         }
         else {
-            void handlers.shutdown();
+            void handlers.shutdown({ event });
         }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);

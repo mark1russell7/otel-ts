@@ -3,6 +3,7 @@
 // =============================================================================
 
 export type {
+  FlushCause,
   HistogramAggregation,
   MetricsTemporality,
   OtelTsConfig,

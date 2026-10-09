@@ -218,6 +218,20 @@ describe("onBeforeFlush", () => {
     }
   });
 
+  it("gives listeners the page event that started the flush, and no event for a manual flush", async () => {
+    const otel = start();
+    const listener = vi.fn();
+    otel.onBeforeFlush(listener);
+
+    setVisibility("hidden");
+    await otel.forceFlush();
+    hidePage(false);
+
+    const causes = listener.mock.calls.map(([cause]) => cause as { event?: Event });
+    expect(causes.map((cause) => cause.event?.type)).toEqual(["visibilitychange", undefined, "pagehide"]);
+    expect((causes[2]!.event as Event & { persisted: boolean }).persisted).toBe(false);
+  });
+
   it("runs listeners on every page hide", () => {
     const listener = vi.fn();
     start().onBeforeFlush(listener);
