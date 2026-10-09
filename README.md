@@ -49,6 +49,7 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | `serviceName` | `string` | `"frontend-app"` | The `service.name` resource attribute. |
 | `serviceVersion` | `string` | `"0.0.0"` | The `service.version` resource attribute. |
 | `serviceInstanceId` | `string` | A new random UUID v4 for each `init()` call | The `service.instance.id` resource attribute. Refer to [Writer identity](#writer-identity). |
+| `browserAttributes` | `boolean` | `true` | Puts `browser.brands`, `browser.platform`, `browser.mobile`, `browser.language` and `user_agent.original` (semantic conventions) on the resource, from `navigator`. The attributes of `resourceAttributes` replace them when the key is the same. |
 | `resourceAttributes` | `Record<string, string>` | `{}` | More resource attributes. They replace the attributes above when the key is the same. |
 | `tracing` | `boolean` | `true` | Starts the trace provider. |
 | `propagateTraceHeaderCorsUrls` | `Array<string \| RegExp>` | All origins | The origins that get trace context headers. |

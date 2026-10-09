@@ -26,6 +26,14 @@ export interface OtelTsConfig {
   /** Additional resource attributes */
   resourceAttributes?: Record<string, string>;
 
+  /**
+   * Put the browser attributes of the semantic conventions on the resource:
+   * `browser.brands`, `browser.platform`, `browser.mobile`,
+   * `browser.language` and `user_agent.original`, from `navigator`.
+   * Default: true
+   */
+  browserAttributes?: boolean;
+
   // --- Tracing ---
 
   /** Enable tracing. Default: true */
@@ -129,6 +137,7 @@ export interface ResolvedConfig {
   serviceVersion: string;
   serviceInstanceId: string;
   resourceAttributes: Record<string, string>;
+  browserAttributes: boolean;
   tracing: boolean;
   propagateTraceHeaderCorsUrls: Array<string | RegExp>;
   metrics: boolean;
