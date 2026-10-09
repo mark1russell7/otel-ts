@@ -372,6 +372,26 @@ describe("init Faro", () => {
   });
 });
 
+describe("init browser attributes", () => {
+  it("puts the browser attributes on each resource by default", () => {
+    start();
+
+    const { tracing, metrics, logs } = resources();
+    for (const resource of [tracing, metrics, logs]) {
+      expect(resource.attributes["user_agent.original"]).toBe(navigator.userAgent);
+      expect(resource.attributes["browser.language"]).toBe(navigator.language);
+    }
+  });
+
+  it("leaves them out with browserAttributes: false, and the config attributes have priority", () => {
+    start({ browserAttributes: false });
+    expect(resources().metrics.attributes["user_agent.original"]).toBeUndefined();
+
+    start({ resourceAttributes: { "browser.language": "x-test" } });
+    expect(resources().metrics.attributes["browser.language"]).toBe("x-test");
+  });
+});
+
 describe("init service.instance.id", () => {
   it("sets service.instance.id from serviceInstanceId", () => {
     start({ serviceInstanceId: "checkout-7f3a" });

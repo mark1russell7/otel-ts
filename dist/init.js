@@ -20,6 +20,7 @@ function resolveConfig(config = {}) {
         // an empty `instance` label, which is the same as none, so replace it too.
         serviceInstanceId: config.serviceInstanceId || createInstanceId(),
         resourceAttributes: config.resourceAttributes ?? {},
+        browserAttributes: config.browserAttributes ?? true,
         tracing: config.tracing ?? true,
         propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
         metrics: config.metrics ?? true,
