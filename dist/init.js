@@ -76,16 +76,16 @@ export function init(config) {
     // values they record are in it whatever order pagehide listeners run in
     const beforeFlush = createBeforeFlushListeners();
     let shutdownPromise;
-    const forceFlush = async () => {
+    const forceFlush = async (cause = {}) => {
         // Shut-down providers can't flush; wait for their final flush instead
         if (shutdownPromise)
             return shutdownPromise;
-        beforeFlush.run();
+        beforeFlush.run(cause);
         await Promise.allSettled(providers.map((p) => p.forceFlush()));
     };
-    const shutdown = () => {
+    const shutdown = (cause = {}) => {
         if (!shutdownPromise) {
-            beforeFlush.run();
+            beforeFlush.run(cause);
             // ??= in case a listener called shutdown() itself
             shutdownPromise ??= (async () => {
                 removeLifecycleHandlers();
@@ -111,8 +111,9 @@ export function init(config) {
         });
     }
     return {
-        shutdown,
-        forceFlush,
+        // A call of the app has no page event
+        shutdown: () => shutdown(),
+        forceFlush: () => forceFlush(),
         onBeforeFlush: (listener) => beforeFlush.add(listener),
         getSessionId,
         getMeter: (name) => meterProvider.getMeter(name),

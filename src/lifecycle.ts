@@ -1,11 +1,12 @@
 import { hasDom } from "./env.js";
+import type { FlushCause } from "./types.js";
 
 export interface LifecycleHandlers {
   /** Export pending telemetry; providers keep running */
-  flush(): Promise<void>;
+  flush(cause: FlushCause): Promise<void>;
 
   /** Final flush, then stop all providers */
-  shutdown(): Promise<void>;
+  shutdown(cause: FlushCause): Promise<void>;
 }
 
 /**
@@ -21,7 +22,8 @@ export interface LifecycleHandlers {
  * ineligible for the back/forward cache, and `beforeunload` also fires when the
  * user cancels the navigation.
  *
- * Registers nothing where there is no DOM (e.g. in a Web Worker).
+ * Each handler gets the event that started it, for the before-flush
+ * listeners. Registers nothing where there is no DOM (e.g. in a Web Worker).
  *
  * @returns A function that removes the listeners
  */
@@ -30,17 +32,17 @@ export function registerLifecycleHandlers(
 ): () => void {
   if (!hasDom()) return () => {};
 
-  const onVisibilityChange = (): void => {
+  const onVisibilityChange = (event: Event): void => {
     if (document.visibilityState === "hidden") {
-      void handlers.flush();
+      void handlers.flush({ event });
     }
   };
 
   const onPageHide = (event: PageTransitionEvent): void => {
     if (event.persisted) {
-      void handlers.flush();
+      void handlers.flush({ event });
     } else {
-      void handlers.shutdown();
+      void handlers.shutdown({ event });
     }
   };
 

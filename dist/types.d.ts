@@ -109,6 +109,15 @@ export interface ResolvedConfig {
     sessionTracking: boolean;
     debug: boolean;
 }
+/** What started a flush */
+export interface FlushCause {
+    /**
+     * The page event that started the flush: `visibilitychange` (the page is
+     * hidden) or `pagehide`. Undefined for a call of `forceFlush()` or
+     * `shutdown()`.
+     */
+    readonly event?: Event;
+}
 export interface OtelTsInstance {
     /**
      * Flush pending telemetry and shut down all providers. Runs once; later
@@ -130,9 +139,14 @@ export interface OtelTsInstance {
      * flush, and only the first error is logged. They don't run after
      * shutdown, and a returned promise isn't awaited.
      *
+     * The listener gets the cause of the flush. For a page hide it has the
+     * `visibilitychange` or `pagehide` event, so a listener can handle that
+     * event before the flush even when its own listener of that event would
+     * run too late, as in Chromium.
+     *
      * @returns A function that removes the listener
      */
-    onBeforeFlush(listener: () => void): () => void;
+    onBeforeFlush(listener: (cause: FlushCause) => void): () => void;
     /**
      * Get the current session ID: the value the next log record or span gets.
      * Counts as activity, like emitting a log record or starting a span.

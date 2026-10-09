@@ -74,7 +74,7 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | --- | --- |
 | `forceFlush(): Promise<void>` | Exports all pending telemetry now. The providers continue to run. |
 | `shutdown(): Promise<void>` | Exports all pending telemetry and stops all providers. A second call returns the same promise. |
-| `onBeforeFlush(listener: () => void): () => void` | Adds a function that runs before each flush. Refer to [Record values before a flush](#record-values-before-a-flush). |
+| `onBeforeFlush(listener: (cause: FlushCause) => void): () => void` | Adds a function that runs before each flush. It gets the page event that started the flush, if any. Refer to [Record values before a flush](#record-values-before-a-flush). |
 | `getSessionId(): string` | Returns the current session ID. |
 | `getMeter(name: string): Meter` | Returns a `Meter` for counters, histograms and gauges. |
 | `getLogger(name: string): Logger` | Returns a `Logger` for log records. |
@@ -177,8 +177,10 @@ import { createBrowserDeps, setupAllMonitors } from "@lag/core";
 
 const otel = init({ serviceName: "checkout-web" });
 const monitors = setupAllMonitors(createBrowserDeps(window, { /* options */ }));
-otel.onBeforeFlush(() => monitors.flush());
+otel.onBeforeFlush((cause) => monitors.flush(cause.event));
 ```
+
+The listener gets the cause of the flush. For a page hide, `cause.event` is the `visibilitychange` or `pagehide` event. A monitor that records its values in its own `pagehide` listener can handle that event in the listener. In Chromium, its own listener can run after the stop. For a call of `forceFlush()` or `shutdown()`, `cause.event` is undefined.
 
 The library calls each listener synchronously before each flush. These flushes include each page hide and the stop at `pagehide`. They also include each `forceFlush()` call and the first `shutdown()` call.
 

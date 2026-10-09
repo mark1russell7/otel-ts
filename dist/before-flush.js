@@ -18,7 +18,7 @@ export function createBeforeFlushListeners() {
                 entries.delete(entry);
             };
         },
-        run() {
+        run(cause = {}) {
             // A listener that flushes again must not start another round
             if (running)
                 return;
@@ -27,7 +27,7 @@ export function createBeforeFlushListeners() {
                 // A snapshot: listeners may add or remove listeners
                 for (const { listener } of [...entries]) {
                     try {
-                        listener();
+                        listener(cause);
                     }
                     catch (error) {
                         if (!errorLogged) {

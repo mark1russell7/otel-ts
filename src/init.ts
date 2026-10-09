@@ -1,6 +1,6 @@
 import { MeterProvider } from "@opentelemetry/sdk-metrics";
 import { LoggerProvider } from "@opentelemetry/sdk-logs";
-import type { OtelTsConfig, OtelTsInstance, ResolvedConfig } from "./types.js";
+import type { FlushCause, OtelTsConfig, OtelTsInstance, ResolvedConfig } from "./types.js";
 import { buildResource } from "./resource.js";
 import { createSessionTracker } from "./session.js";
 import type { SessionIdReader } from "./session-processors.js";
@@ -104,16 +104,16 @@ export function init(config?: OtelTsConfig): OtelTsInstance {
   const beforeFlush = createBeforeFlushListeners();
   let shutdownPromise: Promise<void> | undefined;
 
-  const forceFlush = async (): Promise<void> => {
+  const forceFlush = async (cause: FlushCause = {}): Promise<void> => {
     // Shut-down providers can't flush; wait for their final flush instead
     if (shutdownPromise) return shutdownPromise;
-    beforeFlush.run();
+    beforeFlush.run(cause);
     await Promise.allSettled(providers.map((p) => p.forceFlush()));
   };
 
-  const shutdown = (): Promise<void> => {
+  const shutdown = (cause: FlushCause = {}): Promise<void> => {
     if (!shutdownPromise) {
-      beforeFlush.run();
+      beforeFlush.run(cause);
       // ??= in case a listener called shutdown() itself
       shutdownPromise ??= (async () => {
         removeLifecycleHandlers();
@@ -142,8 +142,9 @@ export function init(config?: OtelTsConfig): OtelTsInstance {
   }
 
   return {
-    shutdown,
-    forceFlush,
+    // A call of the app has no page event
+    shutdown: () => shutdown(),
+    forceFlush: () => forceFlush(),
     onBeforeFlush: (listener) => beforeFlush.add(listener),
     getSessionId,
     getMeter: (name: string) => meterProvider.getMeter(name),
