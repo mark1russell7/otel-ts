@@ -1,4 +1,16 @@
+import type { ContextManager } from "@opentelemetry/api";
 export type MetricsTemporality = "cumulative" | "delta";
+/**
+ * The context manager of the tracer provider:
+ * - "zone": `ZoneContextManager` (Zone.js). It keeps the active span across
+ *   `await`, timers and events, but Zone.js patches `Promise`, the timers and
+ *   the event listeners of the page.
+ * - "stack": `StackContextManager`. It patches nothing, and it keeps the
+ *   active span only in synchronous code.
+ * - A `ContextManager` instance, for example the manager of
+ *   `async-browser-context/opentelemetry`.
+ */
+export type ContextManagerOption = "zone" | "stack" | ContextManager;
 /** How histogram instruments aggregate their measurements */
 export type HistogramAggregation = "explicit" | "exponential";
 export interface OtelTsConfig {
@@ -28,6 +40,8 @@ export interface OtelTsConfig {
     browserAttributes?: boolean;
     /** Enable tracing. Default: true */
     tracing?: boolean;
+    /** The context manager of the tracer provider. Default: "zone" */
+    contextManager?: ContextManagerOption;
     /** Propagate trace context to these origins. Default: all origins */
     propagateTraceHeaderCorsUrls?: Array<string | RegExp>;
     /** Enable metrics. Default: true */
@@ -100,6 +114,7 @@ export interface ResolvedConfig {
     resourceAttributes: Record<string, string>;
     browserAttributes: boolean;
     tracing: boolean;
+    contextManager: ContextManagerOption;
     propagateTraceHeaderCorsUrls: Array<string | RegExp>;
     metrics: boolean;
     metricsExportIntervalMs: number;

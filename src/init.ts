@@ -31,6 +31,7 @@ function resolveConfig(config: OtelTsConfig = {}): ResolvedConfig {
     resourceAttributes: config.resourceAttributes ?? {},
     browserAttributes: config.browserAttributes ?? true,
     tracing: config.tracing ?? true,
+    contextManager: config.contextManager ?? "zone",
     propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
     metrics: config.metrics ?? true,
     metricsExportIntervalMs:

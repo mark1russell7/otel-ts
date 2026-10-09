@@ -1,4 +1,4 @@
-export type { FlushCause, HistogramAggregation, MetricsTemporality, OtelTsConfig, OtelTsInstance, } from "./types.js";
+export type { ContextManagerOption, FlushCause, HistogramAggregation, MetricsTemporality, OtelTsConfig, OtelTsInstance, } from "./types.js";
 export { init } from "./init.js";
 export { createInstanceId } from "./id.js";
 export { getOrCreateSessionId } from "./session.js";

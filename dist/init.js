@@ -22,6 +22,7 @@ function resolveConfig(config = {}) {
         resourceAttributes: config.resourceAttributes ?? {},
         browserAttributes: config.browserAttributes ?? true,
         tracing: config.tracing ?? true,
+        contextManager: config.contextManager ?? "zone",
         propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
         metrics: config.metrics ?? true,
         metricsExportIntervalMs: config.metricsExportIntervalMs ?? DEFAULT_METRICS_EXPORT_INTERVAL_MS,
