@@ -49,6 +49,7 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | `serviceName` | `string` | `"frontend-app"` | The `service.name` resource attribute. |
 | `serviceVersion` | `string` | `"0.0.0"` | The `service.version` resource attribute. |
 | `serviceInstanceId` | `string` | A new random UUID v4 for each `init()` call | The `service.instance.id` resource attribute. Refer to [Writer identity](#writer-identity). |
+| `contextManager` | `"zone" \| "stack" \| ContextManager` | `"zone"` | The context manager of the tracer provider. `"zone"` (Zone.js) keeps the active span across `await`, timers and events, but it patches `Promise`, the timers and the event listeners of the page. `"stack"` patches nothing and keeps the span only in synchronous code. Or give a `ContextManager`, for example the one of `async-browser-context/opentelemetry`. |
 | `browserAttributes` | `boolean` | `true` | Puts `browser.brands`, `browser.platform`, `browser.mobile`, `browser.language` and `user_agent.original` (semantic conventions) on the resource, from `navigator`. The attributes of `resourceAttributes` replace them when the key is the same. |
 | `resourceAttributes` | `Record<string, string>` | `{}` | More resource attributes. They replace the attributes above when the key is the same. |
 | `tracing` | `boolean` | `true` | Starts the trace provider. |

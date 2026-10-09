@@ -372,6 +372,16 @@ describe("init Faro", () => {
   });
 });
 
+describe("init contextManager", () => {
+  it("gives the tracing setup the Zone.js manager by default, and the choice of the app", () => {
+    start();
+    expect(vi.mocked(setupTracing).mock.lastCall![1].contextManager).toBe("zone");
+
+    start({ contextManager: "stack" });
+    expect(vi.mocked(setupTracing).mock.lastCall![1].contextManager).toBe("stack");
+  });
+});
+
 describe("init browser attributes", () => {
   it("puts the browser attributes on each resource by default", () => {
     start();
