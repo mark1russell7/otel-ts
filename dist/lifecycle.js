@@ -1,43 +1,39 @@
+import { getPageLifecycle } from "page-lifecycle-tracker";
 import { hasDom } from "./env.js";
 /**
- * Exports telemetry before the page can be frozen or discarded:
+ * Exports telemetry before the page can be frozen or discarded. The handlers
+ * subscribe to the lifecycle tracker that the page shares
+ * (`getPageLifecycle()` of page-lifecycle-tracker), in its `export` phase:
  *
- * - `visibilitychange` to hidden: flush. Happens on every tab switch, and the
- *   user may come back, so providers keep running.
- * - `pagehide` with `persisted`: the page is entering the back/forward cache
- *   and may be restored, so flush only.
- * - `pagehide` without `persisted`: the page is being discarded, so shut down.
+ * - to `hidden`: flush. Happens on every tab switch, and the user may come
+ *   back, so providers keep running.
+ * - to `frozen` (a freeze, or `pagehide` into the back/forward cache): flush,
+ *   because the page may be restored.
+ * - to `terminated` (`pagehide` without `persisted`): shut down.
  *
- * `beforeunload` and `unload` are deliberately not used: they can make the page
- * ineligible for the back/forward cache, and `beforeunload` also fires when the
- * user cancels the navigation.
+ * A subscriber in the `export` phase runs after every subscriber in the
+ * `observe` phase of the same transition, so values that monitoring libraries
+ * record at the end of the page (on the same shared tracker) go out in that
+ * flush, whatever order the scripts registered in. Before, otel-ts listened
+ * to `pagehide` itself, and Chromium runs window listeners in registration
+ * order: it shut down before monitors that registered later recorded.
  *
- * Each handler gets the event that started it, for the before-flush
- * listeners. Registers nothing where there is no DOM (e.g. in a Web Worker).
+ * The tracker does not use `beforeunload` or `unload`: they can make the page
+ * ineligible for the back/forward cache. Registers nothing where there is no
+ * DOM (e.g. in a Web Worker).
  *
- * @returns A function that removes the listeners
+ * @returns A function that removes the subscription
  */
 export function registerLifecycleHandlers(handlers) {
     if (!hasDom())
         return () => { };
-    const onVisibilityChange = (event) => {
-        if (document.visibilityState === "hidden") {
-            void handlers.flush({ event });
+    return getPageLifecycle().subscribe((transition) => {
+        if (transition.to === "hidden" || transition.to === "frozen") {
+            void handlers.flush({ transition });
         }
-    };
-    const onPageHide = (event) => {
-        if (event.persisted) {
-            void handlers.flush({ event });
+        else if (transition.to === "terminated") {
+            void handlers.shutdown({ transition });
         }
-        else {
-            void handlers.shutdown({ event });
-        }
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("pagehide", onPageHide);
-    return () => {
-        document.removeEventListener("visibilitychange", onVisibilityChange);
-        window.removeEventListener("pagehide", onPageHide);
-    };
+    }, { phase: "export" });
 }
 //# sourceMappingURL=lifecycle.js.map

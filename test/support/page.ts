@@ -22,3 +22,10 @@ export function hidePage(persisted: boolean): void {
   Object.defineProperty(event, "persisted", { value: persisted });
   window.dispatchEvent(event);
 }
+
+/** Simulates `pageshow`: `persisted` is true when the page comes back from the back/forward cache. */
+export function showPage(persisted: boolean): void {
+  const event = new Event("pageshow");
+  Object.defineProperty(event, "persisted", { value: persisted });
+  window.dispatchEvent(event);
+}
