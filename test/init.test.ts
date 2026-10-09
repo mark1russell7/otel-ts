@@ -7,7 +7,8 @@ import { setupMetrics } from "../src/metrics.js";
 import { setupLogs } from "../src/logs.js";
 import { setupFaro } from "../src/faro.js";
 import { SESSION_STORAGE_KEY, SESSION_TTL_MS } from "../src/constants.js";
-import { hidePage, resetVisibility, setVisibility } from "./support/page.js";
+import { hidePage, resetVisibility, setVisibility, showPage } from "./support/page.js";
+import { getPageLifecycle, resetSharedPageLifecycle } from "page-lifecycle-tracker";
 import { UUID_V4 } from "./support/uuid.js";
 
 const providers = vi.hoisted(() => {
@@ -45,6 +46,8 @@ function start(config?: OtelTsConfig): OtelTsInstance {
 afterEach(async () => {
   await instance?.shutdown();
   instance = undefined;
+  // The shared lifecycle tracker of the page: each test starts with a new one
+  resetSharedPageLifecycle();
   resetVisibility();
   vi.unstubAllGlobals();
   vi.useRealTimers();
@@ -133,18 +136,36 @@ describe("init lifecycle", () => {
     }
   });
 
-  it("removes its page listeners on shutdown", async () => {
-    const offWindow = vi.spyOn(window, "removeEventListener");
-    const offDocument = vi.spyOn(document, "removeEventListener");
+  it("subscribes to the shared lifecycle tracker in the export phase, and unsubscribes on shutdown", async () => {
+    const tracker = getPageLifecycle();
+    const subscribe = tracker.subscribe.bind(tracker);
+    const unsubscribed = vi.fn();
+    const phases: unknown[] = [];
+    vi.spyOn(tracker, "subscribe").mockImplementation((listener, options) => {
+      phases.push(options?.phase);
+      const off = subscribe(listener, options);
+      return () => {
+        unsubscribed();
+        off();
+      };
+    });
     const otel = start();
 
     await otel.shutdown();
 
-    const events = [...offWindow.mock.calls, ...offDocument.mock.calls].map(
-      ([type]) => type,
-    );
-    expect(events).toContain("visibilitychange");
-    expect(events).toContain("pagehide");
+    expect(phases).toEqual(["export"]);
+    expect(unsubscribed).toHaveBeenCalledOnce();
+  });
+
+  it("flushes after the monitors of the page recorded the end of the page, whatever the order of the scripts", () => {
+    const order: string[] = [];
+    start().onBeforeFlush(() => order.push("before flush"));
+    // A monitoring library that subscribes after otel-ts, in the default observe phase
+    getPageLifecycle().subscribe(({ to }) => order.push(`monitor: ${to}`));
+
+    hidePage(false);
+
+    expect(order).toEqual(["monitor: terminated", "before flush"]);
   });
 
   it("does not flush providers after shutting down", async () => {
@@ -171,6 +192,7 @@ describe("init lifecycle", () => {
     }
 
     // Restored from the cache, then hidden again
+    showPage(true);
     setVisibility("hidden");
 
     for (const provider of allProviders) {
@@ -218,7 +240,7 @@ describe("onBeforeFlush", () => {
     }
   });
 
-  it("gives listeners the page event that started the flush, and no event for a manual flush", async () => {
+  it("gives listeners the lifecycle transition that started the flush, and no transition for a manual flush", async () => {
     const otel = start();
     const listener = vi.fn();
     otel.onBeforeFlush(listener);
@@ -227,9 +249,9 @@ describe("onBeforeFlush", () => {
     await otel.forceFlush();
     hidePage(false);
 
-    const causes = listener.mock.calls.map(([cause]) => cause as { event?: Event });
-    expect(causes.map((cause) => cause.event?.type)).toEqual(["visibilitychange", undefined, "pagehide"]);
-    expect((causes[2]!.event as Event & { persisted: boolean }).persisted).toBe(false);
+    const causes = listener.mock.calls.map(([cause]) => cause as { transition?: { to: string; trigger: string } });
+    expect(causes.map((cause) => cause.transition?.to)).toEqual(["hidden", undefined, "terminated"]);
+    expect(causes[2]!.transition?.trigger).toBe("pagehide");
   });
 
   it("runs listeners on every page hide", () => {

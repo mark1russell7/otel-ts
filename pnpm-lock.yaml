@@ -62,6 +62,9 @@ importers:
       '@opentelemetry/semantic-conventions':
         specifier: ^1.40.0
         version: 1.40.0
+      page-lifecycle-tracker:
+        specifier: ^0.1.0
+        version: 0.1.0
     devDependencies:
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
@@ -622,6 +625,9 @@ packages:
   obug@2.2.1:
     resolution: {integrity: sha512-XrsrhT5sybtKI6wakr2SPOlGZWWYbUXZ7a0jT8/QOeAPau+1X/bSegNe5YR75oJmEZQbKningirmGOEJCIk61Q==}
     engines: {node: '>=12.20.0'}
+
+  page-lifecycle-tracker@0.1.0:
+    resolution: {integrity: sha512-nhISB4DKdWYgqxWPLVIDkUCbNVjRSXrZTmviX6s8R4NplsiL2E6pzvEC/d4+DJKCgqt8j3p67W1iOLxDfgPMYQ==}
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
@@ -1325,6 +1331,8 @@ snapshots:
   nanoid@3.3.20: {}
 
   obug@2.2.1: {}
+
+  page-lifecycle-tracker@0.1.0: {}
 
   pathe@2.0.3: {}
 

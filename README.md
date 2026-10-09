@@ -76,7 +76,7 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | --- | --- |
 | `forceFlush(): Promise<void>` | Exports all pending telemetry now. The providers continue to run. |
 | `shutdown(): Promise<void>` | Exports all pending telemetry and stops all providers. A second call returns the same promise. |
-| `onBeforeFlush(listener: (cause: FlushCause) => void): () => void` | Adds a function that runs before each flush. It gets the page event that started the flush, if any. Refer to [Record values before a flush](#record-values-before-a-flush). |
+| `onBeforeFlush(listener: (cause: FlushCause) => void): () => void` | Adds a function that runs before each flush. It gets the lifecycle transition that started the flush, if any. Refer to [Record values before a flush](#record-values-before-a-flush). |
 | `getSessionId(): string` | Returns the current session ID. |
 | `getMeter(name: string): Meter` | Returns a `Meter` for counters, histograms and gauges. |
 | `getLogger(name: string): Logger` | Returns a `Logger` for log records. |
@@ -159,19 +159,21 @@ By default, the exporter requests cumulative temporality. In its default configu
 
 ## Page lifecycle
 
-The library listens to two page events:
+The library follows the state of the page with [`page-lifecycle-tracker`](https://github.com/mark1russell7/page-lifecycle-tracker). It uses the tracker that the page shares (`getPageLifecycle()`), and it subscribes in the `export` phase:
 
-- `visibilitychange` to `hidden`: The library flushes all telemetry. This event occurs at each tab switch. The providers continue to run.
-- `pagehide` with `persisted` set to `true`: The page goes into the back/forward cache. The library flushes all telemetry.
-- `pagehide` with `persisted` set to `false`: The browser discards the page. The library stops all providers.
+- To `hidden`: The library flushes all telemetry. This transition occurs at each tab switch. The providers continue to run.
+- To `frozen`: The browser freezes the page, or the page goes into the back/forward cache (`pagehide` with `persisted`). The library flushes all telemetry.
+- To `terminated`: The browser discards the page (`pagehide` without `persisted`). The library stops all providers.
 
-The library does not listen to `beforeunload` or `unload`. These events can prevent the back/forward cache.
+The tracker does not listen to `beforeunload` or `unload`. These events can prevent the back/forward cache.
 
 ### Record values before a flush
 
-Some monitors record their values at `pagehide`. An example is the final Web Vitals of a page. The order of `pagehide` listeners is not the same in all browsers. Chromium calls `window` listeners in registration order. Firefox and WebKit call capture listeners first. Thus, the library can stop before your listener records its values. Then you lose these values.
+Some monitors record their values at the end of the page. An example is the final Web Vitals of a page. The order of `pagehide` listeners is not the same in all browsers. Chromium calls `window` listeners in registration order. Thus, a library that stops in its own `pagehide` listener can stop before a monitor records its values.
 
-To prevent this problem, record the values in an `onBeforeFlush()` listener:
+This library flushes in the `export` phase of the shared lifecycle tracker. A monitor that subscribes to the same tracker in the `observe` phase records its values first, whatever the order of the scripts. `@lag/core` does this by default.
+
+Values that a monitor keeps until a checkpoint can go out in each flush. Record them in an `onBeforeFlush()` listener:
 
 ```ts
 import { init } from "@mark1russell7/otel-ts";
@@ -179,10 +181,10 @@ import { createBrowserDeps, setupAllMonitors } from "@lag/core";
 
 const otel = init({ serviceName: "checkout-web" });
 const monitors = setupAllMonitors(createBrowserDeps(window, { /* options */ }));
-otel.onBeforeFlush((cause) => monitors.flush(cause.event));
+otel.onBeforeFlush(() => monitors.flush());
 ```
 
-The listener gets the cause of the flush. For a page hide, `cause.event` is the `visibilitychange` or `pagehide` event. A monitor that records its values in its own `pagehide` listener can handle that event in the listener. In Chromium, its own listener can run after the stop. For a call of `forceFlush()` or `shutdown()`, `cause.event` is undefined.
+The listener gets the cause of the flush. For a page hide, `cause.transition` is the transition of the lifecycle state. For a call of `forceFlush()` or `shutdown()`, `cause.transition` is undefined.
 
 The library calls each listener synchronously before each flush. These flushes include each page hide and the stop at `pagehide`. They also include each `forceFlush()` call and the first `shutdown()` call.
 

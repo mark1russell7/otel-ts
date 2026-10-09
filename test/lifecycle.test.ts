@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { registerLifecycleHandlers } from "../src/lifecycle.js";
 import { hidePage, resetVisibility, setVisibility } from "./support/page.js";
+import { resetSharedPageLifecycle } from "page-lifecycle-tracker";
 
 describe("registerLifecycleHandlers", () => {
   const handlers = {
@@ -17,6 +18,7 @@ describe("registerLifecycleHandlers", () => {
 
   afterEach(() => {
     for (const remove of removers.splice(0)) remove();
+    resetSharedPageLifecycle();
     resetVisibility();
     vi.restoreAllMocks();
     vi.clearAllMocks();
@@ -60,27 +62,29 @@ describe("registerLifecycleHandlers", () => {
     expect(handlers.shutdown).not.toHaveBeenCalled();
   });
 
-  it("gives each handler the event that started it", () => {
+  it("gives each handler the transition that started it", () => {
     register();
 
     setVisibility("hidden");
     hidePage(true);
     hidePage(false);
 
-    expect(handlers.flush.mock.calls.map(([cause]) => (cause as { event: Event }).event.type)).toEqual(["visibilitychange", "pagehide"]);
-    expect((handlers.shutdown.mock.calls[0]![0] as { event: Event }).event.type).toBe("pagehide");
+    type Cause = { transition: { to: string; trigger: string } };
+    expect(handlers.flush.mock.calls.map(([cause]) => (cause as Cause).transition.to)).toEqual(["hidden", "frozen"]);
+    expect((handlers.shutdown.mock.calls[0]![0] as Cause).transition).toMatchObject({ to: "terminated", trigger: "pagehide" });
   });
 
-  it("listens to visibilitychange and pagehide, never beforeunload or unload", () => {
+  it("listens through the shared tracker to visibilitychange and pagehide, never to beforeunload or unload", () => {
     const onWindow = vi.spyOn(window, "addEventListener");
     const onDocument = vi.spyOn(document, "addEventListener");
 
     register();
 
-    expect(onDocument.mock.calls.map(([type]) => type)).toEqual([
-      "visibilitychange",
-    ]);
-    expect(onWindow.mock.calls.map(([type]) => type)).toEqual(["pagehide"]);
+    // The shared lifecycle tracker listens: also to freeze, resume, focus, blur and pageshow
+    const events = [...onWindow.mock.calls, ...onDocument.mock.calls].map(([type]) => type);
+    expect(events).toEqual(expect.arrayContaining(["visibilitychange", "pagehide", "pageshow"]));
+    expect(events).not.toContain("beforeunload");
+    expect(events).not.toContain("unload");
   });
 
   it("stops listening once removed", () => {

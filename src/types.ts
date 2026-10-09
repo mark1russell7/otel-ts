@@ -1,4 +1,5 @@
 import type { ContextManager } from "@opentelemetry/api";
+import type { StateTransition } from "page-lifecycle-tracker";
 
 export type MetricsTemporality = "cumulative" | "delta";
 
@@ -178,9 +179,15 @@ export interface ResolvedConfig {
 /** What started a flush */
 export interface FlushCause {
   /**
-   * The page event that started the flush: `visibilitychange` (the page is
-   * hidden) or `pagehide`. Undefined for a call of `forceFlush()` or
-   * `shutdown()`.
+   * The lifecycle transition that started the flush: to `hidden`, `frozen`
+   * or `terminated` (page-lifecycle-tracker). Undefined for a call of
+   * `forceFlush()` or `shutdown()`.
+   */
+  readonly transition?: StateTransition;
+  /**
+   * @deprecated otel-ts no longer passes the page event. It flushes in the
+   * `export` phase of the shared lifecycle tracker, after the monitors of the
+   * page recorded the transition, so a listener does not need the event.
    */
   readonly event?: Event;
 }
