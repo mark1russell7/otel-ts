@@ -6,6 +6,10 @@ import { createSessionTracker } from "./session.js";
 import type { SessionIdReader } from "./session-processors.js";
 import { createInstanceId, randomUuid } from "./id.js";
 import { setupTracing } from "./tracing.js";
+import {
+  createContextManager,
+  type EntryContextManagers,
+} from "./context-manager.js";
 import { setupMetrics } from "./metrics.js";
 import { setupLogs } from "./logs.js";
 import { setupFaro } from "./faro.js";
@@ -20,7 +24,10 @@ import {
   SESSION_TTL_MS,
 } from "./constants.js";
 
-function resolveConfig(config: OtelTsConfig = {}): ResolvedConfig {
+function resolveConfig(
+  config: OtelTsConfig = {},
+  managers: EntryContextManagers,
+): ResolvedConfig {
   return {
     endpoint: config.endpoint ?? DEFAULT_OTLP_ENDPOINT,
     serviceName: config.serviceName ?? DEFAULT_SERVICE_NAME,
@@ -31,7 +38,7 @@ function resolveConfig(config: OtelTsConfig = {}): ResolvedConfig {
     resourceAttributes: config.resourceAttributes ?? {},
     browserAttributes: config.browserAttributes ?? true,
     tracing: config.tracing ?? true,
-    contextManager: config.contextManager ?? "zone",
+    contextManager: config.contextManager ?? managers.defaultName,
     propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
     metrics: config.metrics ?? true,
     metricsExportIntervalMs:
@@ -60,8 +67,21 @@ function createSessionIdReader(sessionTracking: boolean): SessionIdReader {
   return () => sessionId;
 }
 
-export function init(config?: OtelTsConfig): OtelTsInstance {
-  const resolved = resolveConfig(config);
+/**
+ * The `init()` of each entry. `managers` are the context managers of the
+ * entry: the entry imports at most one context library.
+ */
+export function initWith(
+  managers: EntryContextManagers,
+  config?: OtelTsConfig,
+): OtelTsInstance {
+  const resolved = resolveConfig(config, managers);
+
+  // First, so that a manager that the entry does not have throws before
+  // anything starts
+  const contextManager = resolved.tracing
+    ? createContextManager(resolved.contextManager, managers)
+    : undefined;
 
   // Read again for every log record and span, so they follow rotations
   const getSessionId = createSessionIdReader(resolved.sessionTracking);
@@ -76,8 +96,10 @@ export function init(config?: OtelTsConfig): OtelTsInstance {
     shutdown(): Promise<void>;
   }> = [];
 
-  if (resolved.tracing) {
-    providers.push(setupTracing(resource, resolved, getSessionId));
+  if (contextManager) {
+    providers.push(
+      setupTracing(resource, resolved, getSessionId, contextManager),
+    );
   }
 
   const meterProvider = resolved.metrics

@@ -5,7 +5,7 @@ import type { ReadableLogRecord } from "@opentelemetry/sdk-logs";
 import type { ResourceMetrics } from "@opentelemetry/sdk-metrics";
 import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
 import type { OtelTsConfig, OtelTsInstance } from "../src/index.js";
-import { init } from "../src/init.js";
+import { init } from "../src/index.js";
 import { SESSION_TTL_MS } from "../src/constants.js";
 import { FakeExporter, exportedTo } from "./support/fake-exporter.js";
 import { hidePage, resetVisibility, setVisibility } from "./support/page.js";

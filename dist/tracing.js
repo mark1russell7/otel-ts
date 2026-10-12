@@ -1,21 +1,12 @@
-import { StackContextManager, WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
 import { LongTaskInstrumentation } from "@opentelemetry/instrumentation-long-task";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { hasDom } from "./env.js";
 import { createSessionSpanProcessor, } from "./session-processors.js";
-/** The context manager for the `contextManager` option */
-export function createContextManager(option) {
-    if (option === "zone")
-        return new ZoneContextManager();
-    if (option === "stack")
-        return new StackContextManager();
-    return option;
-}
-export function setupTracing(resource, config, getSessionId) {
+export function setupTracing(resource, config, getSessionId, contextManager) {
     // Document-load and user-interaction need a DOM; skip them in Web Workers
     const dom = hasDom();
     const exporter = new OTLPTraceExporter({
@@ -28,9 +19,7 @@ export function setupTracing(resource, config, getSessionId) {
             new BatchSpanProcessor(exporter),
         ],
     });
-    provider.register({
-        contextManager: createContextManager(config.contextManager),
-    });
+    provider.register({ contextManager });
     registerInstrumentations({
         instrumentations: [
             getWebAutoInstrumentations({

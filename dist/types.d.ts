@@ -2,19 +2,35 @@ import type { ContextManager } from "@opentelemetry/api";
 import type { StateTransition } from "page-lifecycle-tracker";
 export type MetricsTemporality = "cumulative" | "delta";
 /**
- * The context manager of the tracer provider:
- * - "zone": `ZoneContextManager` (Zone.js). It keeps the active span across
- *   `await`, timers and events, but Zone.js patches `Promise`, the timers and
- *   the event listeners of the page.
- * - "stack": `StackContextManager`. It patches nothing, and it keeps the
- *   active span only in synchronous code.
- * - A `ContextManager` instance, for example the manager of
- *   `async-browser-context/opentelemetry`.
+ * The names of the context managers of otel-ts. Each entry has some of them:
+ * - "async": the `AsyncContextManager` of async-browser-context. Only in
+ *   `@mark1russell7/otel-ts`, where it is the default. Its runtime patches
+ *   `Promise.prototype.then`, the timers, the event listeners and other
+ *   callback APIs, so their callbacks keep the active span. After a native
+ *   `await`, the span stays only in code that the Vite plugin or the Babel
+ *   preset of async-browser-context transforms. On Node.js, it uses the
+ *   native `AsyncLocalStorage`.
+ * - "zone": `ZoneContextManager` (zone.js). Only in
+ *   `@mark1russell7/otel-ts/zone`, where it is the default. It keeps the
+ *   active span across timers, events and `then` callbacks, but not after a
+ *   native `await`.
+ * - "stack": `StackContextManager`. In each entry, and the default of
+ *   `@mark1russell7/otel-ts/core`. It patches nothing, and it keeps the active
+ *   span only in synchronous code.
  */
-export type ContextManagerOption = "zone" | "stack" | ContextManager;
+export type ContextManagerName = "async" | "stack" | "zone";
+/**
+ * A value of the `contextManager` option: a name, or a `ContextManager`
+ * instance of the app. `Name` is the names that the entry has.
+ */
+export type ContextManagerOption<Name extends ContextManagerName = ContextManagerName> = Name | ContextManager;
 /** How histogram instruments aggregate their measurements */
 export type HistogramAggregation = "explicit" | "exponential";
-export interface OtelTsConfig {
+/**
+ * The configuration of `init()`. `Name` is the context manager names that the
+ * entry has. Each entry exports `OtelTsConfig` with its own names.
+ */
+export interface OtelTsConfig<Name extends ContextManagerName = ContextManagerName> {
     /** OTLP HTTP endpoint. Default: "http://localhost:4318" */
     endpoint?: string;
     /** Service name for resource identification. Default: "frontend-app" */
@@ -41,8 +57,12 @@ export interface OtelTsConfig {
     browserAttributes?: boolean;
     /** Enable tracing. Default: true */
     tracing?: boolean;
-    /** The context manager of the tracer provider. Default: "zone" */
-    contextManager?: ContextManagerOption;
+    /**
+     * The context manager of the tracer provider. Default: "async" in
+     * `@mark1russell7/otel-ts`, "zone" in `@mark1russell7/otel-ts/zone` and
+     * "stack" in `@mark1russell7/otel-ts/core`.
+     */
+    contextManager?: ContextManagerOption<Name>;
     /** Propagate trace context to these origins. Default: all origins */
     propagateTraceHeaderCorsUrls?: Array<string | RegExp>;
     /** Enable metrics. Default: true */

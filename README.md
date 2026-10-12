@@ -38,6 +38,7 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 - It flushes all telemetry each time the page becomes hidden.
 - It stops all providers when the browser discards the page.
 - It starts Grafana Faro only when you set `faroCollectorUrl`.
+- It keeps the active span with async-browser-context. To use zone.js or no context library, import `init` from another entry. Refer to [Context manager](#context-manager).
 
 `init()` also runs in Web Workers. There, it does not start the parts that need a DOM.
 
@@ -49,7 +50,7 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | `serviceName` | `string` | `"frontend-app"` | The `service.name` resource attribute. |
 | `serviceVersion` | `string` | `"0.0.0"` | The `service.version` resource attribute. |
 | `serviceInstanceId` | `string` | A new random UUID v4 for each `init()` call | The `service.instance.id` resource attribute. Refer to [Writer identity](#writer-identity). |
-| `contextManager` | `"zone" \| "stack" \| ContextManager` | `"zone"` | The context manager of the tracer provider. `"zone"` (Zone.js) keeps the active span across `await`, timers and events, but it patches `Promise`, the timers and the event listeners of the page. `"stack"` patches nothing and keeps the span only in synchronous code. Or give a `ContextManager`, for example the one of `async-browser-context/opentelemetry`. |
+| `contextManager` | `"async" \| "stack" \| ContextManager` | `"async"` | The context manager of the tracer provider. The zone and core entries have other values. Refer to [Context manager](#context-manager). |
 | `browserAttributes` | `boolean` | `true` | Puts `browser.brands`, `browser.platform`, `browser.mobile`, `browser.language` and `user_agent.original` (semantic conventions) on the resource, from `navigator`. The attributes of `resourceAttributes` replace them when the key is the same. |
 | `resourceAttributes` | `Record<string, string>` | `{}` | More resource attributes. They replace the attributes above when the key is the same. |
 | `tracing` | `boolean` | `true` | Starts the trace provider. |
@@ -80,6 +81,104 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | `getSessionId(): string` | Returns the current session ID. |
 | `getMeter(name: string): Meter` | Returns a `Meter` for counters, histograms and gauges. |
 | `getLogger(name: string): Logger` | Returns a `Logger` for log records. |
+
+## Context manager
+
+The context manager keeps the active span. A span that starts while a span is active gets the active span as its parent. Set the manager with the `contextManager` option.
+
+zone.js and async-browser-context patch the same functions with different rules. Thus, they cannot share a page. The package has three entries, and each entry loads one context library or none:
+
+| Entry | Context library | `contextManager` values | Default |
+| --- | --- | --- | --- |
+| `@mark1russell7/otel-ts` | [async-browser-context](https://github.com/mark1russell7/AsyncBrowserContext) | `"async"`, `"stack"`, a `ContextManager` | `"async"` |
+| `@mark1russell7/otel-ts/zone` | zone.js | `"zone"`, `"stack"`, a `ContextManager` | `"zone"` |
+| `@mark1russell7/otel-ts/core` | None | `"stack"`, a `ContextManager` | `"stack"` |
+
+Each entry exports the same API. Only `init()` and the types `OtelTsConfig` and `ContextManagerOption` are different. Import from one entry in an app.
+
+If you give a name that the entry does not have, `init()` throws an error before it starts. The error tells you which entry has the name. For example, `"zone"` in `@mark1russell7/otel-ts` gives this error:
+
+```text
+[otel-ts] contextManager: "zone" is not available in "@mark1russell7/otel-ts". This entry loads async-browser-context, and zone.js and async-browser-context cannot share a page: they patch the same functions with different rules. Import init from "@mark1russell7/otel-ts/zone" in place of "@mark1russell7/otel-ts".
+```
+
+| Manager | Where the active span stays |
+| --- | --- |
+| `"async"` | In synchronous code and in the callbacks of the patched APIs. With the transform, also after `await`. |
+| `"zone"` | In synchronous code and in the callbacks of the patched APIs. Not after a native `await`. |
+| `"stack"` | Only in synchronous code. A timer callback, a `then` callback and an event listener get no active span. |
+| A `ContextManager` | As your manager operates. |
+
+### The default: async-browser-context
+
+`@mark1russell7/otel-ts` imports async-browser-context. When it loads, its runtime patches `Promise.prototype.then`, the timers, the event listeners, the observers and other callback APIs. Thus, a callback gets the active span of the code that registered it:
+
+- A timer callback, for example of `setTimeout` or `requestAnimationFrame`.
+- A `then`, `catch` or `finally` callback.
+- An event listener. If the code that dispatches the event has no active span, the listener gets the span of the `addEventListener()` call. This is also true for a click of the user.
+
+Import `@mark1russell7/otel-ts` before the other modules of the entry file. Code that keeps a reference to `setTimeout` or to another patched function before the runtime loads does not get the active span.
+
+The runtime patches the page also when you set `"stack"` in this entry. For a page without patches, use `@mark1russell7/otel-ts/core`.
+
+Profilers and the Long Animation Frames API of Chromium show the wrapper `asyncBrowserContextWrapper` of the runtime in place of the callback. With zone.js, they show the wrapper functions of zone.js.
+
+On Node.js, the `node` export condition of async-browser-context selects the native `AsyncLocalStorage`. Nothing is patched, and the active span stays also after `await`. Server-side rendering and tests in Node.js get this entry. A bundler gives a Web Worker the browser runtime, which does not need a DOM.
+
+### Keep the span after `await`
+
+A native `await` does not use code that a library can patch. Thus, without a transform, the code after an `await` gets no active span. The Vite plugin and the Babel preset of async-browser-context change each async function. Then the runtime sets the active span again after each `await`.
+
+1. Add async-browser-context to the dependencies of the app. The transformed code imports `async-browser-context/runtime`, and with pnpm, a module can import only the dependencies of its own package. Use the version range of otel-ts, so that the package manager installs one copy:
+
+   ```bash
+   pnpm add async-browser-context@^0.2.2
+   ```
+
+2. Add the Vite plugin to `vite.config.ts`:
+
+   ```ts
+   import { defineConfig } from "vite";
+   import { asyncContext } from "async-browser-context/vite";
+
+   export default defineConfig({
+     plugins: [asyncContext()],
+   });
+   ```
+
+   For other build tools, put the Babel preset `async-browser-context/babel-preset` last in the `presets` list. The [build tools guide](https://mark1russell7.github.io/AsyncBrowserContext/docs/guides/build-tools) gives the setup for webpack, Rollup, esbuild and Next.js.
+
+The transform adds a small cost to each `await` step. The plugin has the options `include` and `exclude`. Use them to transform only the code that needs the active span after `await`. Code without the transform does not get the span of a different operation: after its own `await`, it gets no active span.
+
+Firefox has a fast path for an `await` of a promise. A patch of `Promise.prototype.then` stops this fast path. Thus, with the runtime, each `await` of a promise takes approximately 0.8 µs more in Firefox, also in code without the transform. The patch of zone.js has the same cost. An `await` of a value that is not a promise does not change. If your app awaits many promises in hot code, measure it in Firefox.
+
+Lag's experiment E8 compared the runtime without the transform with zone.js in Chromium, Firefox and WebKit. The runtime kept the active span in each case where zone.js kept it. It used less main-thread time, and it is smaller (5.7 KiB against 12.9 KiB with gzip). The [E8 results](https://mark1russell7.github.io/lag/research/local-experiments) give all the numbers.
+
+### Use zone.js
+
+Import `init` from the zone entry:
+
+```ts
+import { init } from "@mark1russell7/otel-ts/zone";
+
+const otel = init();
+```
+
+The zone entry loads zone.js through `@opentelemetry/context-zone`. zone.js patches `Promise`, the timers and the event listeners of the page when it loads. The zone entry does not import async-browser-context.
+
+`@opentelemetry/context-zone` is a dependency of otel-ts, not a peer dependency. Thus, the zone entry needs no other install, and its version agrees with the OpenTelemetry SDK of otel-ts. The package uses only disk space: a bundle gets zone.js only through the zone entry.
+
+### Use no context library
+
+Import `init` from the core entry:
+
+```ts
+import { init } from "@mark1russell7/otel-ts/core";
+
+const otel = init();
+```
+
+The core entry imports no context library, and it patches nothing. Its default is `"stack"`: the `StackContextManager` of OpenTelemetry. You can also give your own `ContextManager`.
 
 ## Writer identity
 
@@ -210,6 +309,8 @@ const otel = init({ faroCollectorUrl: "https://faro.example.com/collect" });
 
 You can call `init()` in a Web Worker. The library does not use `window` or `document` there. It does not start Faro, document-load spans or user-interaction spans. It does not add page listeners. Call `forceFlush()` or `shutdown()` yourself before the worker stops.
 
+The context managers also operate in a worker. In `@mark1russell7/otel-ts`, the runtime of async-browser-context patches the timers and the promises of the worker.
+
 ## Development
 
 ```bash
@@ -218,5 +319,10 @@ pnpm run build
 pnpm run typecheck
 pnpm test
 ```
+
+`pnpm test` starts two Vitest projects:
+
+- `browser runtime`: The tests in happy-dom. The project gives async-browser-context the browser runtime, as a browser does.
+- `node`: The tests in `test/node/`. Node.js gives async-browser-context the native `AsyncLocalStorage`.
 
 Consumers install the package from GitHub. Thus, rebuild `dist/` after each change to `src/`. Then commit `dist/`.
