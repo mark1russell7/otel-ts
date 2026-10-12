@@ -11,7 +11,7 @@ import {
   type ResourceMetrics,
 } from "@opentelemetry/sdk-metrics";
 import type { OtelTsConfig, OtelTsInstance } from "../src/index.js";
-import { init } from "../src/init.js";
+import { init } from "../src/index.js";
 
 const exporter = vi.hoisted(() => ({
   /** Called with the options of every OTLPMetricExporter created */

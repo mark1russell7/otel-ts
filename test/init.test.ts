@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Resource } from "@opentelemetry/resources";
 import type { OtelTsConfig, OtelTsInstance } from "../src/index.js";
-import { init } from "../src/init.js";
+import { init } from "../src/index.js";
 import { setupTracing } from "../src/tracing.js";
 import { setupMetrics } from "../src/metrics.js";
 import { setupLogs } from "../src/logs.js";
@@ -12,7 +12,7 @@ import { getPageLifecycle, resetSharedPageLifecycle } from "page-lifecycle-track
 import { UUID_V4 } from "./support/uuid.js";
 import { StackContextManager } from "@opentelemetry/sdk-trace-web";
 import { AsyncContextManager } from "async-browser-context/opentelemetry";
-import { ZONE_NOT_LOADED } from "../src/context-manager.js";
+import { unavailableMessage } from "../src/context-manager.js";
 
 const providers = vi.hoisted(() => {
   const fakeProvider = () => ({
@@ -408,10 +408,12 @@ describe("init contextManager", () => {
     expect(vi.mocked(setupTracing).mock.lastCall![3]).toBeInstanceOf(StackContextManager);
   });
 
-  it("throws for zone without the zone entry, before it starts a provider or a listener", () => {
+  it("throws for zone, before it starts a provider or a listener", () => {
     const listeners = vi.spyOn(window, "addEventListener");
+    // Not in the type of this entry, but a JavaScript app can give it
+    const zone = { contextManager: "zone" } as unknown as OtelTsConfig;
 
-    expect(() => start({ contextManager: "zone" })).toThrow(ZONE_NOT_LOADED);
+    expect(() => start(zone)).toThrow(unavailableMessage("zone", "main"));
 
     expect(setupTracing).not.toHaveBeenCalled();
     expect(setupMetrics).not.toHaveBeenCalled();
@@ -421,7 +423,7 @@ describe("init contextManager", () => {
   });
 
   it("does not make a context manager when tracing is off", () => {
-    start({ contextManager: "zone", tracing: false });
+    start({ contextManager: "zone", tracing: false } as unknown as OtelTsConfig);
 
     expect(setupTracing).not.toHaveBeenCalled();
   });

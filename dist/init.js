@@ -4,7 +4,7 @@ import { buildResource } from "./resource.js";
 import { createSessionTracker } from "./session.js";
 import { createInstanceId, randomUuid } from "./id.js";
 import { setupTracing } from "./tracing.js";
-import { createContextManager } from "./context-manager.js";
+import { createContextManager, } from "./context-manager.js";
 import { setupMetrics } from "./metrics.js";
 import { setupLogs } from "./logs.js";
 import { setupFaro } from "./faro.js";
@@ -12,7 +12,7 @@ import { registerLifecycleHandlers } from "./lifecycle.js";
 import { createBeforeFlushListeners } from "./before-flush.js";
 import { hasDom } from "./env.js";
 import { DEFAULT_METRICS_EXPORT_INTERVAL_MS, DEFAULT_OTLP_ENDPOINT, DEFAULT_SERVICE_NAME, DEFAULT_SERVICE_VERSION, SESSION_TTL_MS, } from "./constants.js";
-function resolveConfig(config = {}) {
+function resolveConfig(config = {}, managers) {
     return {
         endpoint: config.endpoint ?? DEFAULT_OTLP_ENDPOINT,
         serviceName: config.serviceName ?? DEFAULT_SERVICE_NAME,
@@ -23,7 +23,7 @@ function resolveConfig(config = {}) {
         resourceAttributes: config.resourceAttributes ?? {},
         browserAttributes: config.browserAttributes ?? true,
         tracing: config.tracing ?? true,
-        contextManager: config.contextManager ?? "async",
+        contextManager: config.contextManager ?? managers.defaultName,
         propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
         metrics: config.metrics ?? true,
         metricsExportIntervalMs: config.metricsExportIntervalMs ?? DEFAULT_METRICS_EXPORT_INTERVAL_MS,
@@ -49,11 +49,16 @@ function createSessionIdReader(sessionTracking) {
     const sessionId = randomUuid();
     return () => sessionId;
 }
-export function init(config) {
-    const resolved = resolveConfig(config);
-    // First, so that "zone" without its entry throws before anything starts
+/**
+ * The `init()` of each entry. `managers` are the context managers of the
+ * entry: the entry imports at most one context library.
+ */
+export function initWith(managers, config) {
+    const resolved = resolveConfig(config, managers);
+    // First, so that a manager that the entry does not have throws before
+    // anything starts
     const contextManager = resolved.tracing
-        ? createContextManager(resolved.contextManager)
+        ? createContextManager(resolved.contextManager, managers)
         : undefined;
     // Read again for every log record and span, so they follow rotations
     const getSessionId = createSessionIdReader(resolved.sessionTracking);

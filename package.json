@@ -14,16 +14,17 @@
     "./zone": {
       "types": "./dist/zone.d.ts",
       "import": "./dist/zone.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
     }
   },
   "files": [
     "dist",
     "src"
   ],
-  "sideEffects": [
-    "./dist/zone.js",
-    "./src/zone.ts"
-  ],
+  "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
@@ -52,7 +53,7 @@
     "@opentelemetry/sdk-trace-base": "^2.6.0",
     "@opentelemetry/sdk-trace-web": "^2.2.0",
     "@opentelemetry/semantic-conventions": "^1.40.0",
-    "async-browser-context": "^0.2.1",
+    "async-browser-context": "^0.2.2",
     "page-lifecycle-tracker": "^0.1.0"
   },
   "devDependencies": {

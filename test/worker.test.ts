@@ -10,7 +10,7 @@ import {
 } from "@opentelemetry/api";
 import { initializeFaro } from "@grafana/faro-web-sdk";
 import type { ReadableLogRecord } from "@opentelemetry/sdk-logs";
-import { init } from "../src/init.js";
+import { init } from "../src/index.js";
 import { getOrCreateSessionId } from "../src/session.js";
 import { SESSION_TTL_MS } from "../src/constants.js";
 import { FakeExporter, exportedTo } from "./support/fake-exporter.js";
