@@ -6,6 +6,7 @@ import { createSessionTracker } from "./session.js";
 import type { SessionIdReader } from "./session-processors.js";
 import { createInstanceId, randomUuid } from "./id.js";
 import { setupTracing } from "./tracing.js";
+import { createContextManager } from "./context-manager.js";
 import { setupMetrics } from "./metrics.js";
 import { setupLogs } from "./logs.js";
 import { setupFaro } from "./faro.js";
@@ -31,7 +32,7 @@ function resolveConfig(config: OtelTsConfig = {}): ResolvedConfig {
     resourceAttributes: config.resourceAttributes ?? {},
     browserAttributes: config.browserAttributes ?? true,
     tracing: config.tracing ?? true,
-    contextManager: config.contextManager ?? "zone",
+    contextManager: config.contextManager ?? "async",
     propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
     metrics: config.metrics ?? true,
     metricsExportIntervalMs:
@@ -63,6 +64,11 @@ function createSessionIdReader(sessionTracking: boolean): SessionIdReader {
 export function init(config?: OtelTsConfig): OtelTsInstance {
   const resolved = resolveConfig(config);
 
+  // First, so that "zone" without its entry throws before anything starts
+  const contextManager = resolved.tracing
+    ? createContextManager(resolved.contextManager)
+    : undefined;
+
   // Read again for every log record and span, so they follow rotations
   const getSessionId = createSessionIdReader(resolved.sessionTracking);
 
@@ -76,8 +82,10 @@ export function init(config?: OtelTsConfig): OtelTsInstance {
     shutdown(): Promise<void>;
   }> = [];
 
-  if (resolved.tracing) {
-    providers.push(setupTracing(resource, resolved, getSessionId));
+  if (contextManager) {
+    providers.push(
+      setupTracing(resource, resolved, getSessionId, contextManager),
+    );
   }
 
   const meterProvider = resolved.metrics

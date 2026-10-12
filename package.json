@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@mark1russell7/otel-ts",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Frontend observability in one init() call — OpenTelemetry + Grafana Faro for any TypeScript web app",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,13 +10,20 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./zone": {
+      "types": "./dist/zone.d.ts",
+      "import": "./dist/zone.js"
     }
   },
   "files": [
     "dist",
     "src"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/zone.js",
+    "./src/zone.ts"
+  ],
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
@@ -24,7 +31,7 @@
     "infra:up": "cd node_modules/@mark1russell7/grafana-infra && docker compose up -d",
     "infra:down": "cd node_modules/@mark1russell7/grafana-infra && docker compose down",
     "infra:logs": "cd node_modules/@mark1russell7/grafana-infra && docker compose logs -f",
-    "test": "vitest run --environment happy-dom"
+    "test": "vitest run"
   },
   "dependencies": {
     "@grafana/faro-web-sdk": "^2.3.0",
@@ -45,6 +52,7 @@
     "@opentelemetry/sdk-trace-base": "^2.6.0",
     "@opentelemetry/sdk-trace-web": "^2.2.0",
     "@opentelemetry/semantic-conventions": "^1.40.0",
+    "async-browser-context": "^0.2.1",
     "page-lifecycle-tracker": "^0.1.0"
   },
   "devDependencies": {

@@ -3,15 +3,21 @@ import type { StateTransition } from "page-lifecycle-tracker";
 export type MetricsTemporality = "cumulative" | "delta";
 /**
  * The context manager of the tracer provider:
- * - "zone": `ZoneContextManager` (Zone.js). It keeps the active span across
- *   `await`, timers and events, but Zone.js patches `Promise`, the timers and
- *   the event listeners of the page.
+ * - "async": the `AsyncContextManager` of async-browser-context. Its runtime
+ *   patches `Promise.prototype.then`, the timers, the event listeners and
+ *   other callback APIs, so their callbacks keep the active span. After a
+ *   native `await`, the span stays only in code that the Vite plugin or the
+ *   Babel preset of async-browser-context transforms. On Node.js, it uses the
+ *   native `AsyncLocalStorage`.
  * - "stack": `StackContextManager`. It patches nothing, and it keeps the
  *   active span only in synchronous code.
- * - A `ContextManager` instance, for example the manager of
- *   `async-browser-context/opentelemetry`.
+ * - "zone": `ZoneContextManager` (zone.js). It keeps the active span across
+ *   timers, events and `then` callbacks, but not after a native `await`.
+ *   zone.js patches `Promise`, the timers and the event listeners of the
+ *   page. Import `@mark1russell7/otel-ts/zone` first, or `init()` throws.
+ * - A `ContextManager` instance of the app.
  */
-export type ContextManagerOption = "zone" | "stack" | ContextManager;
+export type ContextManagerOption = "async" | "stack" | "zone" | ContextManager;
 /** How histogram instruments aggregate their measurements */
 export type HistogramAggregation = "explicit" | "exponential";
 export interface OtelTsConfig {
@@ -41,7 +47,10 @@ export interface OtelTsConfig {
     browserAttributes?: boolean;
     /** Enable tracing. Default: true */
     tracing?: boolean;
-    /** The context manager of the tracer provider. Default: "zone" */
+    /**
+     * The context manager of the tracer provider. Default: "async". For
+     * "zone", import `@mark1russell7/otel-ts/zone` first.
+     */
     contextManager?: ContextManagerOption;
     /** Propagate trace context to these origins. Default: all origins */
     propagateTraceHeaderCorsUrls?: Array<string | RegExp>;

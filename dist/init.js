@@ -4,6 +4,7 @@ import { buildResource } from "./resource.js";
 import { createSessionTracker } from "./session.js";
 import { createInstanceId, randomUuid } from "./id.js";
 import { setupTracing } from "./tracing.js";
+import { createContextManager } from "./context-manager.js";
 import { setupMetrics } from "./metrics.js";
 import { setupLogs } from "./logs.js";
 import { setupFaro } from "./faro.js";
@@ -22,7 +23,7 @@ function resolveConfig(config = {}) {
         resourceAttributes: config.resourceAttributes ?? {},
         browserAttributes: config.browserAttributes ?? true,
         tracing: config.tracing ?? true,
-        contextManager: config.contextManager ?? "zone",
+        contextManager: config.contextManager ?? "async",
         propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
         metrics: config.metrics ?? true,
         metricsExportIntervalMs: config.metricsExportIntervalMs ?? DEFAULT_METRICS_EXPORT_INTERVAL_MS,
@@ -50,6 +51,10 @@ function createSessionIdReader(sessionTracking) {
 }
 export function init(config) {
     const resolved = resolveConfig(config);
+    // First, so that "zone" without its entry throws before anything starts
+    const contextManager = resolved.tracing
+        ? createContextManager(resolved.contextManager)
+        : undefined;
     // Read again for every log record and span, so they follow rotations
     const getSessionId = createSessionIdReader(resolved.sessionTracking);
     // Start or resume the session now: a page load counts as activity
@@ -57,8 +62,8 @@ export function init(config) {
     // One resource, so metrics, logs and traces share the service.instance.id
     const resource = buildResource(resolved);
     const providers = [];
-    if (resolved.tracing) {
-        providers.push(setupTracing(resource, resolved, getSessionId));
+    if (contextManager) {
+        providers.push(setupTracing(resource, resolved, getSessionId, contextManager));
     }
     const meterProvider = resolved.metrics
         ? setupMetrics(resource, resolved)

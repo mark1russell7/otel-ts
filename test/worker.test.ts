@@ -6,6 +6,7 @@ import {
   DiagLogLevel,
   propagation,
   trace,
+  type Span,
 } from "@opentelemetry/api";
 import { initializeFaro } from "@grafana/faro-web-sdk";
 import type { ReadableLogRecord } from "@opentelemetry/sdk-logs";
@@ -130,6 +131,29 @@ describe("without a DOM (Web Worker)", () => {
     expect(ids[0]).toMatch(UUID);
     expect(ids[1]).toMatch(UUID);
     expect(ids[0]).not.toBe(ids[1]);
+  });
+
+  it("keeps the active span in timer and then callbacks with the default context manager", async () => {
+    // This project gives the browser runtime of async-browser-context, as a
+    // browser gives it to a worker: the runtime patches the globals of the
+    // worker, and it needs no DOM
+    const otel = init({ metrics: false, logs: false });
+    let parent!: Span;
+
+    const seen = await new Promise<Array<Span | undefined>>((resolve) => {
+      trace.getTracer("test").startActiveSpan("parent", (span) => {
+        parent = span;
+        void Promise.resolve()
+          .then(() => trace.getActiveSpan())
+          .then((inThen) => {
+            setTimeout(() => resolve([inThen, trace.getActiveSpan()]), 0);
+          });
+        span.end();
+      });
+    });
+    await otel.shutdown();
+
+    expect(seen).toEqual([parent, parent]);
   });
 
   it("creates a session ID without sessionStorage", () => {

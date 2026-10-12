@@ -10,6 +10,9 @@ import { SESSION_STORAGE_KEY, SESSION_TTL_MS } from "../src/constants.js";
 import { hidePage, resetVisibility, setVisibility, showPage } from "./support/page.js";
 import { getPageLifecycle, resetSharedPageLifecycle } from "page-lifecycle-tracker";
 import { UUID_V4 } from "./support/uuid.js";
+import { StackContextManager } from "@opentelemetry/sdk-trace-web";
+import { AsyncContextManager } from "async-browser-context/opentelemetry";
+import { ZONE_NOT_LOADED } from "../src/context-manager.js";
 
 const providers = vi.hoisted(() => {
   const fakeProvider = () => ({
@@ -395,12 +398,32 @@ describe("init Faro", () => {
 });
 
 describe("init contextManager", () => {
-  it("gives the tracing setup the Zone.js manager by default, and the choice of the app", () => {
+  it("gives the tracing setup the manager of async-browser-context by default, and the choice of the app", () => {
     start();
-    expect(vi.mocked(setupTracing).mock.lastCall![1].contextManager).toBe("zone");
+    expect(vi.mocked(setupTracing).mock.lastCall![1].contextManager).toBe("async");
+    expect(vi.mocked(setupTracing).mock.lastCall![3]).toBeInstanceOf(AsyncContextManager);
 
     start({ contextManager: "stack" });
     expect(vi.mocked(setupTracing).mock.lastCall![1].contextManager).toBe("stack");
+    expect(vi.mocked(setupTracing).mock.lastCall![3]).toBeInstanceOf(StackContextManager);
+  });
+
+  it("throws for zone without the zone entry, before it starts a provider or a listener", () => {
+    const listeners = vi.spyOn(window, "addEventListener");
+
+    expect(() => start({ contextManager: "zone" })).toThrow(ZONE_NOT_LOADED);
+
+    expect(setupTracing).not.toHaveBeenCalled();
+    expect(setupMetrics).not.toHaveBeenCalled();
+    expect(setupLogs).not.toHaveBeenCalled();
+    expect(listeners).not.toHaveBeenCalled();
+    expect(sessionStorage.length).toBe(0);
+  });
+
+  it("does not make a context manager when tracing is off", () => {
+    start({ contextManager: "zone", tracing: false });
+
+    expect(setupTracing).not.toHaveBeenCalled();
   });
 });
 

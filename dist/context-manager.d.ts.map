@@ -1,0 +1,1 @@
+{"version":3,"file":"context-manager.d.ts","sourceRoot":"","sources":["../src/context-manager.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,oBAAoB,CAAC;AAGzD,OAAO,KAAK,EAAE,oBAAoB,EAAE,MAAM,YAAY,CAAC;AAGvD,mEAAmE;AACnE,eAAO,MAAM,eAAe,QAGiC,CAAC;AAE9D;;;;GAIG;AACH,wBAAgB,oBAAoB,CAAC,MAAM,EAAE,oBAAoB,GAAG,cAAc,CAcjF"}

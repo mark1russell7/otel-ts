@@ -50,7 +50,7 @@ vi.mock("@opentelemetry/exporter-metrics-otlp-http", async (importOriginal) => {
   return { ...original, OTLPMetricExporter: InMemoryOTLPMetricExporter };
 });
 
-// Only metrics are under test; keep zone.js and Faro out
+// Only metrics are under test; keep the tracer provider and Faro out
 vi.mock("../src/tracing.js", () => ({ setupTracing: vi.fn() }));
 vi.mock("../src/faro.js", () => ({ setupFaro: vi.fn() }));
 
