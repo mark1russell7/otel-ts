@@ -363,6 +363,25 @@ const traceparent = echoes.take("orders", change.documentKey._id);
 
 `outgoingTraceparent()` gives the context of the active span when the SDK operates. Otherwise it gives the `traceparent` header of the request.
 
+### Apply a remote change in its trace
+
+A client gets the change with the `traceparent` of the write. `runInRemoteTrace()` runs the apply in a consumer span whose parent is that trace. Thus one trace shows the click, the write, the server and each client that applies the change:
+
+```ts
+import { runInRemoteTrace } from "@mark1russell7/otel-ts";
+
+socket.onChange((msg) =>
+  runInRemoteTrace(msg.traceparent, () => store.apply(msg), {
+    name: "realtime.echo",
+    attributes: { "app.collection": msg.collection },
+  }),
+);
+```
+
+- Without a valid `traceparent`, it only runs the function.
+- The span ends when the function returns, or when its promise settles. An error sets the status `ERROR` and passes through.
+- Each entry exports it: the browser entries and `@mark1russell7/otel-ts/node`.
+
 ### Make sure that the spans arrive
 
 A change of the load order breaks the instrumentations without an error: the service operates, and some spans are not there. The entry `@mark1russell7/otel-ts/node/testing` has a stand-in collector for a CI check:

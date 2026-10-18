@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@mark1russell7/otel-ts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Frontend observability in one init() call — OpenTelemetry + Grafana Faro for any TypeScript web app",
   "type": "module",
   "main": "./dist/index.js",
