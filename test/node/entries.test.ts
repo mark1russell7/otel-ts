@@ -67,11 +67,23 @@ describe("the module graph of each entry", () => {
     expect(packages.filter(isZone)).toEqual([]);
   });
 
+  it("the Node entries import no browser library", () => {
+    for (const entry of ["src/node.ts", "src/node-testing.ts"]) {
+      const packages = runtimePackages(entry);
+      const browser = packages.filter(
+        (name) => isAsyncBrowserContext(name) || isZone(name) || name.startsWith("@grafana/") || name.endsWith("-web"),
+      );
+      expect(browser, entry).toEqual([]);
+    }
+  });
+
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
       "./zone": { types: "./dist/zone.d.ts", import: "./dist/zone.js" },
       "./core": { types: "./dist/core.d.ts", import: "./dist/core.js" },
+      "./node": { types: "./dist/node.d.ts", import: "./dist/node.js" },
+      "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
     });
   });
 });

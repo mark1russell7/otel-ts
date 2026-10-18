@@ -311,6 +311,77 @@ You can call `init()` in a Web Worker. The library does not use `window` or `doc
 
 The context managers also operate in a worker. In `@mark1russell7/otel-ts`, the runtime of async-browser-context patches the timers and the promises of the worker.
 
+## Node.js services
+
+The entry `@mark1russell7/otel-ts/node` starts OpenTelemetry in a Node.js service. It is separate from the browser entries and imports no browser library.
+
+Install the SDK and the instrumentations in the service. The SDK is a peer dependency, so the service keeps one version line of the OpenTelemetry packages:
+
+```bash
+pnpm add @opentelemetry/sdk-node @opentelemetry/instrumentation @opentelemetry/instrumentation-http
+```
+
+Put the start in its own module:
+
+```ts
+// instrumentation.ts
+import { startNodeTelemetry } from "@mark1russell7/otel-ts/node";
+import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+
+export const telemetry = startNodeTelemetry({
+  serviceName: "my-service",
+  importMetaUrl: import.meta.url,
+  instrumentations: [new HttpInstrumentation()],
+});
+```
+
+Start the service with this module first:
+
+```bash
+node --import ./dist/instrumentation.js dist/server.js
+```
+
+The instrumentations patch a module when it loads, so this module must load before the modules of the service. In an ES module service, the CommonJS hook does not see a package that an ES module imports. When you give `importMetaUrl`, `startNodeTelemetry()` registers the loader hook of OpenTelemetry (`@opentelemetry/instrumentation/hook.mjs`) before the SDK starts. The hook then patches those imports too.
+
+`startNodeTelemetry()` starts nothing when `OTEL_EXPORTER_OTLP_ENDPOINT` has no value. Set `enabled` to change this. By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`.
+
+### The trace of a write, in its echo
+
+A change stream or a queue reports a write after its request ends, without the trace of the request. `createTraceEcho()` keeps the trace of each write for some seconds, and the handler of the echo takes it:
+
+```ts
+import { createTraceEcho, outgoingTraceparent } from "@mark1russell7/otel-ts/node";
+
+const echoes = createTraceEcho();
+
+// in the write handler
+echoes.remember("orders", order.id, outgoingTraceparent(req.headers.traceparent));
+
+// in the change-stream handler
+const traceparent = echoes.take("orders", change.documentKey._id);
+```
+
+`outgoingTraceparent()` gives the context of the active span when the SDK operates. Otherwise it gives the `traceparent` header of the request.
+
+### Make sure that the spans arrive
+
+A change of the load order breaks the instrumentations without an error: the service operates, and some spans are not there. The entry `@mark1russell7/otel-ts/node/testing` has a stand-in collector for a CI check:
+
+```ts
+import { startStubCollector } from "@mark1russell7/otel-ts/node/testing";
+
+const collector = await startStubCollector();
+// start the service with OTEL_EXPORTER_OTLP_ENDPOINT=collector.endpoint, then:
+const missing = await collector.waitFor(
+  ["@opentelemetry/instrumentation-http", "@opentelemetry/instrumentation-express"],
+  { poke: () => fetch("http://127.0.0.1:8080/health") },
+);
+await collector.close();
+if (missing.length > 0) throw new Error(`no spans from ${missing.join(", ")}`);
+```
+
+The collector reads OTLP/HTTP JSON, the format of `@opentelemetry/exporter-trace-otlp-http`.
+
 ## Development
 
 ```bash
