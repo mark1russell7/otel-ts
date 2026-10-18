@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.1
+
+### New
+
+- The entry `@mark1russell7/otel-ts/node`: `startNodeTelemetry()` starts OpenTelemetry in a Node.js service. It registers the ES module loader hook of OpenTelemetry before the SDK starts.
+- `createTraceEcho()` and `outgoingTraceparent()` in `@mark1russell7/otel-ts/node`: they carry the trace of a write to its echo from a change stream or a queue.
+- The entry `@mark1russell7/otel-ts/node/testing`: `startStubCollector()`, a stand-in OTLP collector for a CI check of the spans of a service.
+- The optional peer dependency `@opentelemetry/sdk-node`. Only the Node entry uses it.
+
+Refer to [Node.js services](README.md#nodejs-services).
+
 ## 0.1.0
 
 ### Breaking changes
