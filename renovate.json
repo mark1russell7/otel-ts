@@ -1,6 +1,38 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
+  "extends": ["config:recommended"],
+  "timezone": "America/New_York",
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "3 days",
+  "prConcurrentLimit": 3,
+  "packageRules": [
+    {
+      "description": "One PR for the minor updates of the runtime dependencies. They wait for a review.",
+      "matchUpdateTypes": ["minor"],
+      "groupName": "minor updates",
+      "groupSlug": "minor"
+    },
+    {
+      "description": "One PR for the patch updates. It merges itself when the checks pass.",
+      "matchUpdateTypes": ["patch"],
+      "groupName": "patch updates",
+      "groupSlug": "patch",
+      "automerge": true
+    },
+    {
+      "description": "One PR for the minor and patch updates of the development dependencies. It merges itself when the checks pass.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dev dependencies (minor and patch)",
+      "groupSlug": "dev-minor-patch",
+      "automerge": true
+    },
+    {
+      "description": "One PR for the GitHub Actions updates (patch ones merge themselves, by the rule above).",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "GitHub Actions",
+      "groupSlug": "github-actions"
+    }
   ]
 }
