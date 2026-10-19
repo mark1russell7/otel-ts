@@ -4,13 +4,13 @@ OpenTelemetry and Grafana Faro for TypeScript web apps, with one `init()` call.
 
 ## Install
 
-Install the package from GitHub:
+Install the package from npm:
 
 ```bash
-pnpm add github:mark1russell7/otel-ts
+pnpm add @mark1russell7/otel-ts
 ```
 
-The repository contains the compiled `dist/` folder. You do not need a build step.
+The npm package contains the compiled `dist/` folder. You do not need a build step.
 
 ## Quick start
 
@@ -415,4 +415,4 @@ pnpm test
 - `browser runtime`: The tests in happy-dom. The project gives async-browser-context the browser runtime, as a browser does.
 - `node`: The tests in `test/node/`. Node.js gives async-browser-context the native `AsyncLocalStorage`.
 
-Consumers install the package from GitHub. Thus, rebuild `dist/` after each change to `src/`. Then commit `dist/`.
+`pnpm run build` writes `dist/`. Git ignores `dist/`: the release workflow builds it from `src/` for each npm version (`RELEASING.md`).
