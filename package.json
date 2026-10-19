@@ -3,7 +3,16 @@
   "name": "@mark1russell7/otel-ts",
   "version": "0.1.2",
   "description": "Frontend observability in one init() call — OpenTelemetry + Grafana Faro for any TypeScript web app",
+  "homepage": "https://github.com/mark1russell7/otel-ts#readme",
+  "bugs": {
+    "url": "https://github.com/mark1russell7/otel-ts/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mark1russell7/otel-ts.git"
+  },
   "type": "module",
+  "packageManager": "pnpm@10.26.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
