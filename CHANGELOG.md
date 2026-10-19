@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+### Changed
+
+- The package has the MIT license: the file `LICENSE` and the field `license` in `package.json`. The code does not change.
+
 ## 0.1.2
 
 ### New
