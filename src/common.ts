@@ -29,6 +29,12 @@ export { createInstanceId } from "./id.js";
 export { getOrCreateSessionId } from "./session.js";
 
 // =============================================================================
+// The trace of a remote change
+// =============================================================================
+
+export { runInRemoteTrace, type RemoteTraceOptions } from "./trace-echo.js";
+
+// =============================================================================
 // Constants
 // =============================================================================
 

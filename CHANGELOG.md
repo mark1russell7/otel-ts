@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+### New
+
+- `runInRemoteTrace()` in each entry: it runs the apply of a remote change in a consumer span whose parent is the `traceparent` of the message. It is the client side of `createTraceEcho()`.
+
+Refer to [Apply a remote change in its trace](README.md#apply-a-remote-change-in-its-trace).
+
 ## 0.1.1
 
 ### New

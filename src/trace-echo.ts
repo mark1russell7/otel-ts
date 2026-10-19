@@ -8,7 +8,11 @@
  *
  * @packageDocumentation
  */
-import { context, propagation } from "@opentelemetry/api";
+import { context, defaultTextMapGetter, propagation, ROOT_CONTEXT, SpanKind, SpanStatusCode, trace, type Attributes, type Tracer } from "@opentelemetry/api";
+import { W3CTraceContextPropagator } from "@opentelemetry/core";
+
+/** The W3C propagator of runInRemoteTrace: it reads the traceparent also when no global propagator is set. */
+const W3C = new W3CTraceContextPropagator();
 
 const TRACEPARENT = /^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/;
 
@@ -67,4 +71,67 @@ export function createTraceEcho(options: { ttlMs?: number; maxEntries?: number }
       return pending.size;
     },
   };
+}
+
+/** The options of `runInRemoteTrace` */
+export interface RemoteTraceOptions {
+  /** The name of the span. Default: `remote.apply`. */
+  name?: string;
+  /** The attributes of the span, for example the collection and the kind of the change. */
+  attributes?: Attributes;
+  /** The tracer of the span. Default: the global tracer `@mark1russell7/otel-ts`. */
+  tracer?: Tracer;
+}
+
+/**
+ * The other end of the trace echo: run `fn` inside the trace that a message
+ * carries. A message (for example a change on a live connection) can carry the
+ * `traceparent` of the write that caused it. This function starts a consumer
+ * span whose parent is that trace, and runs `fn` with the span active. Thus one
+ * trace shows the action, the write, the server and each client that applies
+ * the change. Without a valid `traceparent`, it only runs `fn`.
+ *
+ * The span ends when `fn` returns, or when the promise of `fn` settles. An
+ * error of `fn` sets the status of the span to ERROR, and passes through.
+ *
+ * @example
+ * ```ts
+ * socket.onChange((msg) => runInRemoteTrace(msg.traceparent, () => store.apply(msg), {
+ *   name: "realtime.echo",
+ *   attributes: { "app.collection": msg.collection },
+ * }));
+ * ```
+ */
+export function runInRemoteTrace<T>(traceparent: string | undefined, fn: () => T, options: RemoteTraceOptions = {}): T {
+  if (!traceparent || !TRACEPARENT.test(traceparent)) return fn();
+  const parent = W3C.extract(ROOT_CONTEXT, { traceparent }, defaultTextMapGetter);
+  const tracer = options.tracer ?? trace.getTracer("@mark1russell7/otel-ts");
+  const span = tracer.startSpan(options.name ?? "remote.apply", { kind: SpanKind.CONSUMER, ...(options.attributes ? { attributes: options.attributes } : {}) }, parent);
+  const fail = (error: unknown): void => {
+    span.recordException(error instanceof Error ? error : String(error));
+    span.setStatus({ code: SpanStatusCode.ERROR });
+  };
+  let result: T;
+  try {
+    result = context.with(trace.setSpan(parent, span), fn);
+  } catch (error) {
+    fail(error);
+    span.end();
+    throw error;
+  }
+  if (result && typeof (result as { then?: unknown }).then === "function") {
+    return (result as unknown as Promise<unknown>).then(
+      (value) => {
+        span.end();
+        return value;
+      },
+      (error: unknown) => {
+        fail(error);
+        span.end();
+        throw error;
+      },
+    ) as T;
+  }
+  span.end();
+  return result;
 }

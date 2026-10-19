@@ -18,7 +18,7 @@
 import { register } from "node:module";
 import { NodeSDK, type NodeSDKConfiguration } from "@opentelemetry/sdk-node";
 
-export { outgoingTraceparent, createTraceEcho, type TraceEcho } from "./trace-echo.js";
+export { outgoingTraceparent, createTraceEcho, runInRemoteTrace, type RemoteTraceOptions, type TraceEcho } from "./trace-echo.js";
 
 /** The configuration of `startNodeTelemetry()` */
 export interface NodeTelemetryOptions {
