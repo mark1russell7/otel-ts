@@ -12,6 +12,10 @@ export { createInstanceId } from "./id.js";
 // =============================================================================
 export { getOrCreateSessionId } from "./session.js";
 // =============================================================================
+// The trace of a remote change
+// =============================================================================
+export { runInRemoteTrace } from "./trace-echo.js";
+// =============================================================================
 // Constants
 // =============================================================================
 export { DEFAULT_METRICS_EXPORT_INTERVAL_MS, DEFAULT_OTLP_ENDPOINT, DEFAULT_SERVICE_NAME, DEFAULT_SERVICE_VERSION, } from "./constants.js";

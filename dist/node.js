@@ -17,7 +17,7 @@
  */
 import { register } from "node:module";
 import { NodeSDK } from "@opentelemetry/sdk-node";
-export { outgoingTraceparent, createTraceEcho } from "./trace-echo.js";
+export { outgoingTraceparent, createTraceEcho, runInRemoteTrace } from "./trace-echo.js";
 /** Start OpenTelemetry for a Node service: the loader hook first, then the SDK. */
 export function startNodeTelemetry(options = {}) {
     const env = options.env ?? process.env;
