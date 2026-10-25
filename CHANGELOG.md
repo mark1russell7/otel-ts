@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+### Breaking changes
+
+- The default of `propagateTraceHeaderCorsUrls` is `[]`: the fetch and XHR instrumentations add the trace headers (`traceparent`) only to the requests to the origin of the page, as OpenTelemetry does. Before, the default was `[/.*/]`, so each cross-origin request got the headers. A server without `traceparent` in `Access-Control-Allow-Headers` refused the preflight, and the request of the app failed. The trace IDs also went to third parties.
+- To keep the trace of your own API on another origin, give its origin: `init({ propagateTraceHeaderCorsUrls: [/^https:\/\/api\.example\.com\//] })`. To get the old behavior, give `[/.*/]`.
+
+Refer to [Trace headers to other origins](README.md#trace-headers-to-other-origins).
+
 ## 0.1.4
 
 ### Fixed

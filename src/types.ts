@@ -80,7 +80,11 @@ export interface OtelTsConfig<Name extends ContextManagerName = ContextManagerNa
    */
   contextManager?: ContextManagerOption<Name>;
 
-  /** Propagate trace context to these origins. Default: all origins */
+  /**
+   * Propagate trace context to these other origins. Requests to the origin of
+   * the page always get it. Each origin in the list must allow the
+   * `traceparent` header in its CORS preflight. Default: none
+   */
   propagateTraceHeaderCorsUrls?: Array<string | RegExp>;
 
   // --- Metrics ---
