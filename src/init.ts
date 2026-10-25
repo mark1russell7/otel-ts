@@ -39,7 +39,10 @@ function resolveConfig(
     browserAttributes: config.browserAttributes ?? true,
     tracing: config.tracing ?? true,
     contextManager: config.contextManager ?? managers.defaultName,
-    propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [/.*/],
+    // The same origin only, as in OpenTelemetry. Before, all origins got the
+    // headers: a cross-origin request then needs a CORS preflight that allows
+    // `traceparent`, and a server without it refuses the request.
+    propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls ?? [],
     metrics: config.metrics ?? true,
     metricsExportIntervalMs:
       config.metricsExportIntervalMs ?? DEFAULT_METRICS_EXPORT_INTERVAL_MS,

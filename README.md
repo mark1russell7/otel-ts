@@ -54,7 +54,7 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | `browserAttributes` | `boolean` | `true` | Puts `browser.brands`, `browser.platform`, `browser.mobile`, `browser.language` and `user_agent.original` (semantic conventions) on the resource, from `navigator`. The attributes of `resourceAttributes` replace them when the key is the same. |
 | `resourceAttributes` | `Record<string, string>` | `{}` | More resource attributes. They replace the attributes above when the key is the same. |
 | `tracing` | `boolean` | `true` | Starts the trace provider. |
-| `propagateTraceHeaderCorsUrls` | `Array<string \| RegExp>` | All origins | The origins that get trace context headers. |
+| `propagateTraceHeaderCorsUrls` | `Array<string \| RegExp>` | `[]` (the origin of the page only) | The other origins that get trace context headers. Requests to the origin of the page always get them. Refer to [Trace headers to other origins](#trace-headers-to-other-origins). |
 | `metrics` | `boolean` | `true` | Starts the meter provider. |
 | `metricsExportIntervalMs` | `number` | `15000` | The time between two metric exports, in milliseconds. Refer to [Metric export](#metric-export). |
 | `metricsTemporality` | `"cumulative" \| "delta"` | `"cumulative"` | The aggregation temporality that the OTLP metric exporter requests. |
@@ -70,6 +70,18 @@ meter.createHistogram("checkout.duration", { unit: "ms" }).record(120);
 | `faroAppName` | `string` | The `serviceName` value | The Faro app name. |
 | `sessionTracking` | `boolean` | `true` | Keeps the session ID in `sessionStorage`. Refer to [Sessions](#sessions). |
 | `debug` | `boolean` | `false` | Writes the configuration to the console when `init()` runs. |
+
+### Trace headers to other origins
+
+The fetch and XHR instrumentations add the trace context headers (`traceparent`) to the requests to the origin of the page. A request to another origin gets them only when `propagateTraceHeaderCorsUrls` has a match for its URL. A custom header makes the browser send a CORS preflight, so each origin in the list must allow `traceparent` in `Access-Control-Allow-Headers`. Otherwise the browser refuses the request.
+
+To join the spans of your API on another origin to the trace of the page, give that origin:
+
+```ts
+init({ propagateTraceHeaderCorsUrls: [/^https:\/\/api\.example\.com\//] });
+```
+
+Before 0.2.0, the default was `[/.*/]`: each cross-origin request got the headers, and third-party servers without `traceparent` in their CORS headers refused the requests.
 
 ## The returned object
 
