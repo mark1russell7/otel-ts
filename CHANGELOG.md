@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4
+
+### Fixed
+
+- `startNodeTelemetry()`: at `SIGTERM` and `SIGINT`, a service without a listener of its own now ends after the flush. Before, the listener of `stopOnSignals` removed the default action of Node.js, so the service continued to run until `SIGKILL`, and Ctrl+C had to be pressed two times. The listener now raises the signal again after the flush when no other listener exists. A service with its own listener ends the process itself, as before.
+- The `shutdown()` of `startNodeTelemetry()`: a second call waits for the flush of the first call. Before, it returned at once.
+- The documentation of the option `env` tells that the SDK reads its exporter settings from `process.env`.
+
 ## 0.1.3
 
 ### Changed

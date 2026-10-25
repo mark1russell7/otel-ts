@@ -38,11 +38,23 @@ export interface NodeTelemetryOptions {
   metricReaders?: NodeSDKConfiguration["metricReaders"];
   /** On or off. Default: on when `OTEL_EXPORTER_OTLP_ENDPOINT` has a value. */
   enabled?: boolean;
-  /** Stop the SDK (and flush) at SIGTERM and SIGINT. Default: true. */
+  /**
+   * Stop the SDK (and flush) at SIGTERM and SIGINT. Default: true. When the
+   * service has no listener of its own for the signal, the process then ends
+   * with the signal, as it does without this option.
+   */
   stopOnSignals?: boolean;
-  /** The environment. Default: `process.env`. */
+  /**
+   * The environment that sets `enabled` and the service name. Default:
+   * `process.env`. The SDK reads its exporter settings (`OTEL_EXPORTER_OTLP_*`)
+   * from `process.env`, not from this object. To send the spans to an
+   * endpoint of this object, give `traceExporter`.
+   */
   env?: NodeJS.ProcessEnv;
 }
+
+/** The signals that stop the SDK when `stopOnSignals` is true */
+const STOP_SIGNALS = ["SIGTERM", "SIGINT"] as const;
 
 /** The result of `startNodeTelemetry()` */
 export interface NodeTelemetry {
@@ -73,17 +85,26 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
   });
   sdk.start();
 
-  let stopped = false;
-  const shutdown = async (): Promise<void> => {
-    if (stopped) return;
-    stopped = true;
-    await sdk.shutdown().catch(() => {
+  // One stop: a second call waits for the flush of the first
+  let stopping: Promise<void> | undefined;
+  const shutdown = (): Promise<void> =>
+    (stopping ??= sdk.shutdown().catch(() => {
       // a flush that fails at the stop loses its spans, and nothing else
-    });
-  };
+    }));
   if (options.stopOnSignals ?? true) {
-    process.once("SIGTERM", () => void shutdown());
-    process.once("SIGINT", () => void shutdown());
+    for (const signal of STOP_SIGNALS) {
+      // First in the list, so it sees each listener of the service before that listener runs
+      process.prependOnceListener(signal, () => {
+        // A listener for a signal removes the default action of Node.js, which ends the
+        // process. This listener is gone now. When the service has no listener of its own,
+        // raise the signal again after the flush: the default action then ends the process.
+        // Before, a service without a listener continued to run after SIGTERM or SIGINT.
+        const serviceListens = process.listenerCount(signal) > 0;
+        void shutdown().finally(() => {
+          if (!serviceListens) process.kill(process.pid, signal);
+        });
+      });
+    }
   }
   return { enabled: true, esmHook, shutdown };
 }

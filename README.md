@@ -343,7 +343,9 @@ node --import ./dist/instrumentation.js dist/server.js
 
 The instrumentations patch a module when it loads, so this module must load before the modules of the service. In an ES module service, the CommonJS hook does not see a package that an ES module imports. When you give `importMetaUrl`, `startNodeTelemetry()` registers the loader hook of OpenTelemetry (`@opentelemetry/instrumentation/hook.mjs`) before the SDK starts. The hook then patches those imports too.
 
-`startNodeTelemetry()` starts nothing when `OTEL_EXPORTER_OTLP_ENDPOINT` has no value. Set `enabled` to change this. By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`.
+`startNodeTelemetry()` starts nothing when `OTEL_EXPORTER_OTLP_ENDPOINT` has no value. Set `enabled` to change this. By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`. Then, when the service has no listener of its own for the signal, the process ends with the signal, as it does without `startNodeTelemetry()`. When the service has a listener, that listener ends the process. Set `stopOnSignals: false` to add no listener.
+
+The option `env` sets only `enabled` and the service name. The SDK reads its exporter settings (`OTEL_EXPORTER_OTLP_*`) from `process.env`. To send the spans to another endpoint, give `traceExporter`.
 
 ### The trace of a write, in its echo
 
