@@ -85,9 +85,9 @@
   },
   "devDependencies": {
     "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra",
-    "@opentelemetry/sdk-node": "~0.213.0",
+    "@opentelemetry/sdk-node": "~0.223.0",
     "@types/node": "^26.6.5",
-    "happy-dom": "^20.14.5",
+    "happy-dom": "^21.0.4",
     "typescript": "^5.9.0",
     "vitest": "^4.1.11"
   }
