@@ -1,0 +1,5 @@
+{
+  "order": "A-1042",
+  "items": 3,
+  "note": "This is a static file of this site. The demo fetches it so that the fetch span has a real response."
+}

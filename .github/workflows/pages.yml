@@ -1,0 +1,90 @@
+# Publishes the site of the repository to GitHub Pages at https://mark1russell7.github.io/otel-ts/, with
+# the shared Pages workflow of mark1russell7 (reusable-pages.yml of mark1russell7/template, its CI.md).
+# The Pages source of the repository is "GitHub Actions" (Settings > Pages).
+# The home page is the Vite app in site/: a live lab that runs the real init() of the package in the browser.
+# The site-pages action adds the Releases page and the Status page.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  # A pull request builds the site and runs the site check, with no deploy.
+  pull_request:
+  # One build each day, so the Status page shows the open pull requests and issues of the day
+  schedule:
+    - cron: "52 5 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+# One deployment at a time. A deployment in progress ends, and GitHub keeps only the newest deployment that waits.
+# Each pull request has its own group, and a newer push cancels its run.
+concurrency:
+  group: pages-${{ github.event_name == 'pull_request' && github.ref || 'deploy' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pages:
+    uses: mark1russell7/template/.github/workflows/reusable-pages.yml@21c4cb628bc2e0e1be5b21fa92fd3c688400ecab # main
+    # The build job of the shared workflow gets only the read permissions. Only its deploy job,
+    # which runs no code of the repository, writes to Pages.
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+      checks: read
+      statuses: read
+      pages: write
+      id-token: write
+    with:
+      # The site bundles the built package from the workspace, so the root builds first. The CI of the root has no
+      # site job, so this build also examines the site with its typecheck and its tests.
+      build: |
+        pnpm run build
+        pnpm --filter @otel-ts/site run typecheck
+        pnpm --filter @otel-ts/site run test
+        pnpm --filter @otel-ts/site run build
+      out: site/dist
+      env: '{"SITE_BASE": "/${{ github.event.repository.name }}"}'
+      # The site-pages action adds releases/, status/, data/releases.json and data/status.json to the built site.
+      site-pages: true
+      # The Status page shows the items of docs/ROADMAP.md, and the open pull requests and issues.
+      roadmap: docs/ROADMAP.md
+      packages: "@mark1russell7/otel-ts"
+      site-name: otel-ts
+      # The site check: a browser opens each page at 360, 400 and 1280 px, in light and dark, before the deploy.
+      # The probe presses the buttons of the lab and reads the payloads. The check reads the TypeScript source and
+      # removes its types. A failure stops the deploy.
+      site-check: true
+      site-check-pages: /,/releases/,/status/
+      site-check-probe: site/src/check-probe.ts
+      deploy: ${{ github.event_name != 'pull_request' }}
+
+  # This job examines the deployed site: the home page and the pages of site-pages.
+  # It starts no code of the repository and reads only the public site.
+  served:
+    needs: pages
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: The site has the home page and the site pages
+        shell: bash
+        env:
+          SITE: ${{ needs.pages.outputs.page-url }}
+        run: |
+          set -euo pipefail
+          for f in "" data/releases.json data/status.json releases/ status/; do
+            # A new deployment can take some seconds to be served, so each file gets 5 tries.
+            ok=0
+            for i in 1 2 3 4 5; do
+              if curl -fsS -o /dev/null "${SITE%/}/$f"; then ok=1; break; fi
+              sleep 10
+            done
+            if [ "$ok" != 1 ]; then echo "::error::The site has no /$f."; exit 1; fi
+            echo "The site has /$f."
+          done
+          curl -fsS "${SITE%/}/data/status.json" | node -e 'JSON.parse(require("node:fs").readFileSync(0, "utf8")); console.log("data/status.json is JSON.")'
+          curl -fsS "${SITE%/}/data/releases.json" | node -e 'JSON.parse(require("node:fs").readFileSync(0, "utf8")); console.log("data/releases.json is JSON.")'
