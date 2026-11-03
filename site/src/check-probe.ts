@@ -15,6 +15,9 @@ declare const $: (selector: string) => HTMLElement | null;
 declare const $$: (selector: string) => HTMLElement[];
 declare const click: (target: string | Element) => void;
 
+/** The check parses each URL, so a longer host name does not match. */
+const isAt = (url: string, origin: string): boolean => URL.canParse(url) && new URL(url).origin === origin;
+
 interface KeyValue {
   key: string;
   value?: { stringValue?: string; intValue?: string | number; doubleValue?: number };
@@ -120,7 +123,7 @@ click("#follow");
 
 // Another origin
 click("#act-other-origin");
-const otherSpan = await until(() => spans().find((span) => String(attr(span.attributes, "http.url")).includes("api.example.invalid")), SLOW);
+const otherSpan = await until(() => spans().find((span) => isAt(String(attr(span.attributes, "http.url")), "https://api.example.invalid")), SLOW);
 check("a call to another origin gives a fetch span", otherSpan !== undefined);
 click(`#waterfall [data-span="${otherSpan?.spanId}"]`);
 check("that request has no traceparent", await until(() => ($("#detail-traceparent")?.textContent ?? "").includes("no traceparent")), $("#detail-traceparent")?.textContent);
@@ -199,7 +202,7 @@ const rowId = Number(row?.dataset["export"]);
 if (row) click(row);
 const shown = lab.exports().find((capture) => capture.id === rowId);
 check("an export row shows the JSON of that export", await until(() => $("#payload")?.textContent === JSON.stringify(shown?.body, null, 2)), $("#payload")?.textContent?.slice(0, 120));
-check("the line above the payload names the collector", ($("#payload-line")?.textContent ?? "").includes("https://collector.invalid/v1/"), $("#payload-line")?.textContent);
+check("the line above the payload names the collector", ($("#payload-line")?.textContent ?? "").split(/\s+/).some((word) => isAt(word, "https://collector.invalid") && new URL(word).pathname.startsWith("/v1/")), $("#payload-line")?.textContent);
 const packet = $(".packet");
 if (packet) click(packet);
 check("a dot of the wire selects its export", await until(() => $(".packet.is-selected") !== null));
@@ -214,7 +217,7 @@ check("the session ID is on the span, not on the resource", attr(spanAttributes,
 // Nothing left the browser
 const entries = performance.getEntriesByType("resource").map((entry) => entry.name);
 check("the browser saw no request to another origin", entries.every((name) => new URL(name).origin === location.origin), entries);
-check("the browser saw no request to the collector", !entries.some((name) => name.includes("collector.invalid")), entries);
+check("the browser saw no request to the collector", !entries.some((name) => isAt(name, "https://collector.invalid")), entries);
 check("the status line shows the count of the browser", $("#stat-left")?.textContent === "0", $("#stat-left")?.textContent);
 check("the page tells that the data stays in the browser", /stays in your browser/.test($(".privacy")?.textContent ?? "") && /nothing goes to a server/.test($(".privacy")?.textContent ?? ""));
 check("the page shows the init() call that it ran", ($("#config")?.textContent ?? "").includes('endpoint: "https://collector.invalid"'));

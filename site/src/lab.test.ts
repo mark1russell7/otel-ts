@@ -10,7 +10,7 @@ import type { Lab } from "./lab.ts";
 import { decodeLogs, decodeMetrics, decodeSpans } from "./otlp.ts";
 import { createStore } from "./store.ts";
 import type { Capture } from "./store.ts";
-import { COLLECTOR, createWire, OTHER_ORIGIN } from "./wire.ts";
+import { COLLECTOR, createWire, isAt, OTHER_ORIGIN } from "./wire.ts";
 
 const ORDER_URL = `${location.origin}/demo/order.json`;
 
@@ -119,7 +119,7 @@ describe("the lab", () => {
   });
 
   it("makes no span for an export", () => {
-    expect(spans().filter((span) => String(span.attributes["http.url"]).startsWith(COLLECTOR))).toEqual([]);
+    expect(spans().filter((span) => isAt(String(span.attributes["http.url"]), COLLECTOR))).toEqual([]);
   });
 
   it("keeps the checkout span across the timers and the then callback", () => {

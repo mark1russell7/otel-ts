@@ -12,6 +12,11 @@ export const COLLECTOR = "https://collector.invalid";
 /** The API on another origin. This module answers its requests. */
 export const OTHER_ORIGIN = "https://api.example.invalid";
 
+/** This function tells if a URL is at an origin. It parses the URL, so a longer host name does not match. */
+export function isAt(url: string, origin: string): boolean {
+  return URL.canParse(url) && new URL(url).origin === origin;
+}
+
 /** One export, as the transport of the package gave it. */
 export interface ExportRecord {
   readonly id: number;
@@ -89,9 +94,9 @@ export function createWire(network: typeof globalThis.fetch): Wire {
 
   const inPage: typeof globalThis.fetch = (input, options) => {
     const url = input instanceof Request ? input.url : String(input);
-    if (url.startsWith(COLLECTOR)) return Promise.resolve(collect(url, options));
+    if (isAt(url, COLLECTOR)) return Promise.resolve(collect(url, options));
     const headers = new Headers(input instanceof Request ? input.headers : options?.headers);
-    const stubbed = url.startsWith(OTHER_ORIGIN);
+    const stubbed = isAt(url, OTHER_ORIGIN);
     const request: RequestRecord = { url, traceparent: headers.get("traceparent") ?? undefined, stubbed };
     for (const listener of requestListeners) listener(request);
     if (!stubbed) return network(input, options);
