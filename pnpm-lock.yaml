@@ -71,7 +71,7 @@ importers:
     devDependencies:
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
-        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/94a5c7dd4ed1cb6b02172018c44bc5bd7c6cc866
+        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/befbafec3b8fdfbf6fe3858e5da0ba503132d1e8
       '@opentelemetry/sdk-node':
         specifier: ~0.223.0
         version: 0.223.0(@opentelemetry/api@1.9.1)
@@ -94,8 +94,8 @@ importers:
         specifier: workspace:*
         version: link:..
       '@mark1russell7/site-pages':
-        specifier: ^0.1.10
-        version: 0.1.10
+        specifier: ^0.2.0
+        version: 0.2.0
       '@opentelemetry/api':
         specifier: ^1.9.0
         version: 1.9.1
@@ -256,12 +256,12 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/94a5c7dd4ed1cb6b02172018c44bc5bd7c6cc866':
-    resolution: {tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/94a5c7dd4ed1cb6b02172018c44bc5bd7c6cc866}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/befbafec3b8fdfbf6fe3858e5da0ba503132d1e8':
+    resolution: {tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/befbafec3b8fdfbf6fe3858e5da0ba503132d1e8}
     version: 0.0.0
 
-  '@mark1russell7/site-pages@0.1.10':
-    resolution: {integrity: sha512-dcMPqlWsxJ+fRvl5cZH01a+/94ujk5ogRfg5puO2JC7pvE5jq1IV48UrcbtP+zcS5r9zMUbvUVz74E9xQYY8FQ==}
+  '@mark1russell7/site-pages@0.2.0':
+    resolution: {integrity: sha512-dahr/WG5PFj/zrcTk/NvufB6N3Tswc60vvGregftq9nraEgeHhaEr+s0zr/gbcOrK7Cz2EHiyO5F2inHc2utYw==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1475,9 +1475,9 @@ snapshots:
 
   '@mark1russell7/cue@2.1.1': {}
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/94a5c7dd4ed1cb6b02172018c44bc5bd7c6cc866': {}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/befbafec3b8fdfbf6fe3858e5da0ba503132d1e8': {}
 
-  '@mark1russell7/site-pages@0.1.10': {}
+  '@mark1russell7/site-pages@0.2.0': {}
 
   '@opentelemetry/api-logs@0.213.0':
     dependencies:
