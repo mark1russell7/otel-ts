@@ -7,7 +7,7 @@
  * 4. The listeners of the action buttons start. A click on one of these buttons makes a real click span.
  */
 import "./style.css";
-import { byId, copyText, setupTheme } from "@mark1russell7/site-pages/chrome";
+import { byId, copyText, setupTheme, showBuild } from "@mark1russell7/site-pages/chrome";
 import { configText, labConfig, OPTION_VALUES, readOptions, startLab } from "./lab.ts";
 import type { ActionName, Lab, LabOptions } from "./lab.ts";
 import { formatMs } from "./otlp.ts";
@@ -35,7 +35,7 @@ const ACTIONS: readonly (readonly [string, ActionName])[] = [
 ];
 
 setupTheme(byId<HTMLButtonElement>("theme"), "otel-ts-theme");
-byId("build").textContent = `${__BUILD__.version}, build ${__BUILD__.sha}, ${__BUILD__.date}`;
+showBuild(byId("build"), __BUILD__, "mark1russell7/otel-ts");
 
 const store = createStore();
 const seenSpans = new Set<string>();
