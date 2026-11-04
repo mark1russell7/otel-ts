@@ -2,6 +2,8 @@
 
 OpenTelemetry and Grafana Faro for TypeScript web apps, with one `init()` call.
 
+Try the [live lab](https://mark1russell7.github.io/otel-ts/). It starts the real `init()` in your browser, and it shows each span, metric and log record as it leaves the package. The data stays in your browser.
+
 ## Install
 
 Install the package from npm:

@@ -1,0 +1,3 @@
+# The site of GitHub Pages is a private package of the workspace. The root is the published package.
+packages:
+  - "site"
