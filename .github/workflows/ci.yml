@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: mark1russell7/template/.github/workflows/reusable-ci.yml@4a8739dc941e85431513e15283fc52fd4374c440 # main
+    uses: mark1russell7/template/.github/workflows/reusable-ci.yml@e077054e0f2ebb8441e4bc525b56cf2acc2afb6f # main
     with:
       # build: tsc -b type-checks src and writes dist, as release.yml builds it.
       # test: the "browser runtime" project (happy-dom) and the "node" project.
