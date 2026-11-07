@@ -71,7 +71,7 @@ importers:
     devDependencies:
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
-        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/eea27bec0d221276c1d71110a1341e41f6473945
+        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/4d74d147d73e008401c09b889378d0c97c9c84b0
       '@opentelemetry/sdk-node':
         specifier: ~0.223.0
         version: 0.223.0(@opentelemetry/api@1.9.1)
@@ -95,7 +95,7 @@ importers:
         version: link:..
       '@mark1russell7/site-pages':
         specifier: ^0.3.4
-        version: 0.3.4
+        version: 0.3.5
       '@opentelemetry/api':
         specifier: ^1.9.0
         version: 1.9.1
@@ -268,8 +268,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/eea27bec0d221276c1d71110a1341e41f6473945':
-    resolution: {tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/eea27bec0d221276c1d71110a1341e41f6473945}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/4d74d147d73e008401c09b889378d0c97c9c84b0':
+    resolution: {tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/4d74d147d73e008401c09b889378d0c97c9c84b0}
     version: 0.0.0
 
   '@mark1russell7/rigor-generators@0.1.6':
@@ -280,8 +280,8 @@ packages:
     resolution: {integrity: sha512-dxr3UiAs64JXV3trXCaTRTesHqXEMUoVvDGIyrz0BWsAZERA/lrIQNUATFAuqnAWzdmbHUyi/5nzA4uPXTSTJw==}
     engines: {node: '>=22'}
 
-  '@mark1russell7/site-pages@0.3.4':
-    resolution: {integrity: sha512-xxYaeElE6/HvADgO+2yu00c7svWw0ICQ99iD/2rYQVTLEvRqn40MDzi0gnCk37/LakH443xwYVvRw/YeZhj4PQ==}
+  '@mark1russell7/site-pages@0.3.5':
+    resolution: {integrity: sha512-3/VryGHcANgpTwAdAeyWL08I2qpfyUoXCVBUYtzjRQDpGT4i/wCUgJpAziiJrhY5g8HDOOsKgP/9Nf+kGh0a7Q==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1506,7 +1506,7 @@ snapshots:
 
   '@mark1russell7/cue@2.1.1': {}
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/eea27bec0d221276c1d71110a1341e41f6473945': {}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/4d74d147d73e008401c09b889378d0c97c9c84b0': {}
 
   '@mark1russell7/rigor-generators@0.1.6': {}
 
@@ -1514,7 +1514,7 @@ snapshots:
     dependencies:
       '@mark1russell7/rigor-generators': 0.1.6
 
-  '@mark1russell7/site-pages@0.3.4':
+  '@mark1russell7/site-pages@0.3.5':
     dependencies:
       '@mark1russell7/rigor-statistics': 0.1.15
 
