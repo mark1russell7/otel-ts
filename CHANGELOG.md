@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0
+
+### Breaking changes
+
+- `startNodeTelemetry()` registers the context ids also when export is off (no `OTEL_EXPORTER_OTLP_ENDPOINT`): AsyncLocalStorage, the propagator of otel-ts and the metric view. Before, it registered nothing then.
+- A second `startNodeTelemetry()` before the `shutdown()` of the first throws. `shutdown()` now also removes the globals of the API, so a next start registers its own.
+- The propagator of otel-ts replaces the propagator of `OTEL_PROPAGATORS`: `traceparent` and `tracestate` go on each call, and `baggage` goes only on an internal call, with only the defined context keys.
+- With export on, otel-ts makes the span and log processors. `OTEL_TRACES_EXPORTER` and `OTEL_LOGS_EXPORTER` take `otlp`, `console` or `none`, and the OTLP protocol is `http/protobuf` or `http/json`. Another value throws: for grpc, give `traceExporter` and `logExporter`.
+
+### Added
+
+- With export on, each span and each log record gets the value of each context key of its context. Each metric loses the keys with `cardinality: "high"`.
+- The option `logExporter` of `startNodeTelemetry()`.
+- `exporterNames()` and `otlpProtocol()` in `@mark1russell7/otel-ts/node`: the exporters and the protocol that the `OTEL_*` variables name.
+
 ## 0.3.1
 
 ### Added
