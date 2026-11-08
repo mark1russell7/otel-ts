@@ -77,11 +77,17 @@ describe("the module graph of each entry", () => {
     }
   });
 
+  it("@mark1russell7/otel-ts/context imports @opentelemetry/api only", () => {
+    // The libraries and the browser bundles of apps import this entry, so it must stay light (CONTEXT-DESIGN.md, D2)
+    expect(runtimePackages("src/context.ts")).toEqual(["@opentelemetry/api"]);
+  });
+
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
       "./zone": { types: "./dist/zone.d.ts", import: "./dist/zone.js" },
       "./core": { types: "./dist/core.d.ts", import: "./dist/core.js" },
+      "./context": { types: "./dist/context.d.ts", import: "./dist/context.js" },
       "./node": { types: "./dist/node.d.ts", import: "./dist/node.js" },
       "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
     });

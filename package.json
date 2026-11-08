@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@mark1russell7/otel-ts",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Frontend observability in one init() call — OpenTelemetry + Grafana Faro for any TypeScript web app",
   "license": "MIT",
   "author": "Mark Russell (https://github.com/mark1russell7)",
@@ -29,6 +29,10 @@
     "./core": {
       "types": "./dist/core.d.ts",
       "import": "./dist/core.js"
+    },
+    "./context": {
+      "types": "./dist/context.d.ts",
+      "import": "./dist/context.js"
     },
     "./node": {
       "types": "./dist/node.d.ts",

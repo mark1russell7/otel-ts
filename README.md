@@ -194,6 +194,43 @@ const otel = init();
 
 The core entry imports no context library, and it patches nothing. Its default is `"stack"`: the `StackContextManager` of OpenTelemetry. You can also give your own `ContextManager`.
 
+## Context ids
+
+The entry `@mark1russell7/otel-ts/context` adds context ids, for example a user id or a request id, in one call. It depends on `@opentelemetry/api` only, so a library and a browser bundle can import it. It registers nothing: `init()` or `startNodeTelemetry()` registers the context manager. The design is in [docs/CONTEXT-DESIGN.md](docs/CONTEXT-DESIGN.md).
+
+1. Define the keys one time, as data:
+
+   ```ts
+   import { defineContextKeys } from "@mark1russell7/otel-ts/context";
+
+   export const keys = defineContextKeys({
+     "tenant.id": { cardinality: "low", propagate: "internal" },
+     "user.id": { cardinality: "high", propagate: "internal" },
+     "feature.flag": { cardinality: "low", propagate: "none", maxLength: 32 },
+   });
+   ```
+
+2. Run the code that knows the id in a context with it:
+
+   ```ts
+   import { withContext, contextValue } from "@mark1russell7/otel-ts/context";
+
+   await withContext({ "user.id": user.id }, () => handle(request));
+
+   // Anywhere below, also after await:
+   contextValue("user.id");
+   ```
+
+The rules:
+
+- `cardinality` tells how many values a key has. A key with `"high"` never becomes a metric attribute.
+- `propagate: "internal"` puts the key in the W3C baggage, for internal calls. `propagate: "none"` keeps the key in the process.
+- `maxLength` is the longest value. The default is 256.
+- A key that no `defineContextKeys` call defined is an error. A second definition of a key with other rules is an error too.
+- An `undefined` or `null` value adds nothing. A value that is not a string, or that is longer than `maxLength`, is an error.
+- `contextValues()` gives the value of each defined key. A baggage entry from outside with a key that is not defined is not in it.
+- `withInternalCall(fn)` marks the calls that `fn` starts as internal calls. `isInternalCall()` reads the mark.
+
 ## Writer identity
 
 Prometheus and Mimir make the `instance` label from the `service.instance.id` resource attribute. Each SDK instance writes its own metric series. Two SDK instances with the same identity write to the same series. Then Mimir rejects samples, and `rate()` gives incorrect values.
