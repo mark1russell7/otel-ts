@@ -1,12 +1,20 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { context } from "@opentelemetry/api";
 import { InMemoryLogRecordExporter, LoggerProvider, SimpleLogRecordProcessor } from "@opentelemetry/sdk-logs";
-import { AggregationTemporality, InMemoryMetricExporter, MeterProvider, PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import {
+  AggregationTemporality,
+  AggregationType,
+  DataPointType,
+  InMemoryMetricExporter,
+  InstrumentType,
+  MeterProvider,
+  PeriodicExportingMetricReader,
+} from "@opentelemetry/sdk-metrics";
 import { BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { AsyncContextManager } from "async-browser-context/opentelemetry";
 import { defineContextKeys, withContext } from "../../src/context.js";
 import {
-  contextMetricView,
+  contextMetricViews,
   createContextAttributesProcessor,
   createContextLogRecordProcessor,
   createContextSpanProcessor,
@@ -69,11 +77,11 @@ describe("createContextLogRecordProcessor", () => {
   });
 });
 
-describe("contextMetricView", () => {
+describe("contextMetricViews", () => {
   it("removes each key of high cardinality from a metric, and keeps the others", async () => {
     const exporter = new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE);
     const reader = new PeriodicExportingMetricReader({ exporter, exportIntervalMillis: 60_000 });
-    const provider = new MeterProvider({ readers: [reader], views: [contextMetricView()] });
+    const provider = new MeterProvider({ readers: [reader], views: contextMetricViews() });
     const counter = provider.getMeter("test").createCounter("requests");
 
     counter.add(1, { "q.user.id": "u-1", "q.tenant": "acme", route: "/a" });
@@ -84,6 +92,31 @@ describe("contextMetricView", () => {
     await provider.shutdown();
     // Two user ids, one series: the user id is not a dimension
     expect(points.map((point) => [point.attributes, point.value])).toEqual([[{ "q.tenant": "acme", route: "/a" }, 2]]);
+  });
+
+  it("keeps the aggregation of the selector, and gives one stream for each instrument", async () => {
+    const exporter = new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE);
+    const reader = new PeriodicExportingMetricReader({ exporter, exportIntervalMillis: 60_000 });
+    // A view replaces the preference of the reader, so the views take the selector
+    const exponential = (type: InstrumentType) =>
+      type === InstrumentType.HISTOGRAM ? { type: AggregationType.EXPONENTIAL_HISTOGRAM } : { type: AggregationType.DEFAULT };
+    const provider = new MeterProvider({ readers: [reader], views: contextMetricViews(exponential) });
+    const meter = provider.getMeter("test");
+    meter.createHistogram("duration").record(5, { "q.user.id": "u-1" });
+    meter.createCounter("calls").add(1);
+    meter.createUpDownCounter("open").add(1);
+
+    await reader.forceFlush();
+    const metrics = exporter.getMetrics().flatMap((m) => m.scopeMetrics.flatMap((s) => s.metrics));
+    await provider.shutdown();
+    expect(metrics.map((metric) => [metric.descriptor.name, metric.dataPointType])).toEqual([
+      ["duration", DataPointType.EXPONENTIAL_HISTOGRAM],
+      ["calls", DataPointType.SUM],
+      ["open", DataPointType.SUM],
+    ]);
+    expect(metrics[0]!.dataPoints[0]!.attributes).toEqual({});
+    // One view for each instrument type
+    expect(contextMetricViews().map((view) => view.instrumentType).sort()).toEqual(Object.values(InstrumentType).sort());
   });
 
   it("gives the same object when nothing is removed, and reads a key defined later", () => {

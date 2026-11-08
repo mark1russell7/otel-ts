@@ -29,10 +29,10 @@ import { NodeSDK, type NodeSDKConfiguration } from "@opentelemetry/sdk-node";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
 import type { SpanExporter } from "@opentelemetry/sdk-trace-base";
 import { ContextPropagator, claimContextRegistration } from "./context-propagator.js";
-import { contextMetricView } from "./context-processors.js";
-import { nodeLogRecordProcessors, nodeSpanProcessors } from "./node-exporters.js";
+import { contextMetricViews } from "./context-processors.js";
+import { histogramAggregation, nodeLogRecordProcessors, nodeSpanProcessors } from "./node-exporters.js";
 
-export { exporterNames, otlpProtocol, type ExporterName, type OtlpProtocol, type OtlpSignal } from "./node-exporters.js";
+export { exporterNames, histogramAggregation, otlpProtocol, type ExporterName, type OtlpProtocol, type OtlpSignal } from "./node-exporters.js";
 
 export { outgoingTraceparent, createTraceEcho, runInRemoteTrace, type RemoteTraceOptions, type TraceEcho } from "./trace-echo.js";
 
@@ -121,7 +121,9 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
     sdk = new NodeSDK({
       serviceName: options.serviceName ?? env["OTEL_SERVICE_NAME"] ?? "node-service",
       textMapPropagator: new ContextPropagator(),
-      views: [contextMetricView()],
+      // The aggregation of OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION:
+      // the views replace the preference of each reader
+      views: contextMetricViews(histogramAggregation(env)),
       ...exports,
       ...(options.instrumentations ? { instrumentations: options.instrumentations } : {}),
     });

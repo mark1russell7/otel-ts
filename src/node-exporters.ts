@@ -17,8 +17,9 @@ import {
   type LogRecordExporter,
   type LogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
+import { AggregationType, InstrumentType, type AggregationSelector } from "@opentelemetry/sdk-metrics";
 import { BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, type SpanExporter, type SpanProcessor } from "@opentelemetry/sdk-trace-base";
-import { createContextLogRecordProcessor, createContextSpanProcessor } from "./context-processors.js";
+import { createContextLogRecordProcessor, createContextSpanProcessor, defaultAggregation } from "./context-processors.js";
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -53,6 +54,21 @@ export function otlpProtocol(signal: OtlpSignal, env: Env): OtlpProtocol {
   const value = (env[variable] ?? env["OTEL_EXPORTER_OTLP_PROTOCOL"] ?? "http/protobuf").trim();
   if (value === "http/protobuf" || value === "http/json") return value;
   throw new RangeError(`the OTLP protocol of ${signal} is "${value}": otel-ts sends "http/protobuf" or "http/json". For grpc, give the exporter in the options.`);
+}
+
+/**
+ * The aggregation of `OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION`:
+ * `explicit_bucket_histogram` (default) or `base2_exponential_bucket_histogram`.
+ * Another value is an error.
+ */
+export function histogramAggregation(env: Env): AggregationSelector {
+  const variable = "OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION";
+  const value = (env[variable] ?? "").trim().toLowerCase();
+  if (value === "" || value === "explicit_bucket_histogram") return defaultAggregation;
+  if (value === "base2_exponential_bucket_histogram") {
+    return (type) => (type === InstrumentType.HISTOGRAM ? { type: AggregationType.EXPONENTIAL_HISTOGRAM } : { type: AggregationType.DEFAULT });
+  }
+  throw new RangeError(`${variable} has "${value}": otel-ts makes "explicit_bucket_histogram" or "base2_exponential_bucket_histogram"`);
 }
 
 /**

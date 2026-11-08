@@ -8,6 +8,8 @@ import { LongTaskInstrumentation } from "@opentelemetry/instrumentation-long-tas
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import type { ResolvedConfig } from "./types.js";
 import { hasDom } from "./env.js";
+import { createContextSpanProcessor } from "./context-processors.js";
+import { ContextPropagator } from "./context-propagator.js";
 import {
   createSessionSpanProcessor,
   type SessionIdReader,
@@ -30,11 +32,15 @@ export function setupTracing(
     resource,
     spanProcessors: [
       createSessionSpanProcessor(getSessionId),
+      // The context keys (docs/CONTEXT-DESIGN.md), before the export too
+      createContextSpanProcessor(),
       new BatchSpanProcessor(exporter),
     ],
   });
 
-  provider.register({ contextManager });
+  // The propagator of otel-ts: `traceparent` on each call that the
+  // instrumentations permit, `baggage` only on an internal call
+  provider.register({ contextManager, propagator: new ContextPropagator() });
 
   registerInstrumentations({
     instrumentations: [

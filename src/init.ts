@@ -1,3 +1,4 @@
+import { context, propagation, trace } from "@opentelemetry/api";
 import { MeterProvider } from "@opentelemetry/sdk-metrics";
 import { LoggerProvider } from "@opentelemetry/sdk-logs";
 import type { FlushCause, OtelTsConfig, OtelTsInstance, ResolvedConfig } from "./types.js";
@@ -6,6 +7,7 @@ import { createSessionTracker } from "./session.js";
 import type { SessionIdReader } from "./session-processors.js";
 import { createInstanceId, randomUuid } from "./id.js";
 import { setupTracing } from "./tracing.js";
+import { claimContextRegistration } from "./context-propagator.js";
 import {
   createContextManager,
   type EntryContextManagers,
@@ -86,6 +88,12 @@ export function initWith(
     ? createContextManager(resolved.contextManager, managers)
     : undefined;
 
+  // Tracing registers the globals of the context: only one part of a program
+  // does that. A second init() before the shutdown() of the first throws here.
+  const releaseRegistration = contextManager
+    ? claimContextRegistration("init()")
+    : undefined;
+
   // Read again for every log record and span, so they follow rotations
   const getSessionId = createSessionIdReader(resolved.sessionTracking);
 
@@ -145,6 +153,11 @@ export function initWith(
       shutdownPromise ??= (async () => {
         removeLifecycleHandlers();
         await Promise.allSettled(providers.map((p) => p.shutdown()));
+        if (releaseRegistration) {
+          // Remove the globals of the context, so a next init() registers its own
+          for (const api of [trace, propagation, context]) api.disable();
+          releaseRegistration();
+        }
       })();
     }
     return shutdownPromise;

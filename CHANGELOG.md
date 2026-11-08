@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0
+
+### Breaking changes
+
+- `init()` registers the propagator of otel-ts, as `startNodeTelemetry()` does. The fetch and XHR instrumentations add `traceparent` and `tracestate` to each request that `propagateTraceHeaderCorsUrls` permits, as before. They add `baggage` only to an internal call (`withInternalCall()`), with only the defined context keys. Before, each request to the origin of the page got the whole baggage. To send the context keys to your own API, start its call in `withInternalCall()`.
+- A second `init()` with tracing on, before the `shutdown()` of the first, throws. Before, the second call did not register its context manager, and nothing told it. `shutdown()` now also removes the globals of the trace, propagation and context APIs, so a next `init()` registers its own.
+
+### Added
+
+- `init()`: each span and each log record gets the value of each context key of its context. Each metric loses the keys with `cardinality: "high"`.
+- `histogramAggregation()` in `@mark1russell7/otel-ts/node`: the aggregation that `OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION` names.
+
+### Fixed
+
+- `startNodeTelemetry()` (0.4.0): the metric view of the context keys replaced the histogram aggregation of each reader. Thus `OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION=base2_exponential_bucket_histogram` gave explicit-bucket histograms. The views now take that aggregation. A reader of `metricReaders` with its own aggregation gets the aggregation of the variable: a view decides the aggregation.
+
 ## 0.4.0
 
 ### Breaking changes

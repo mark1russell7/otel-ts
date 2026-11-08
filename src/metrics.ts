@@ -1,3 +1,4 @@
+import { contextMetricViews } from "./context-processors.js";
 import type { Resource } from "@opentelemetry/resources";
 import {
   AggregationType,
@@ -26,8 +27,8 @@ const TEMPORALITY_PREFERENCES: Record<
  * instrument keeps its default aggregation. Used as the exporter's
  * aggregation preference — the SDK's equivalent of
  * OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION=base2_exponential_bucket_histogram —
- * rather than a View, so it stays the default that any View can override,
- * and there are no overlapping Views producing duplicate streams.
+ * The context views (contextMetricViews) replace the preference of the
+ * exporter, so they take the same selector.
  */
 const selectExponentialHistograms: AggregationSelector = (
   instrumentType,
@@ -53,6 +54,8 @@ export function setupMetrics(
 
   return new MeterProvider({
     resource,
+    // Removes each context key of high cardinality from each metric
+    views: contextMetricViews(options.aggregationPreference),
     readers: [
       new PeriodicExportingMetricReader({
         exporter,

@@ -6,7 +6,16 @@ import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
 import { logs } from "@opentelemetry/api-logs";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
 import { contextValue, defineContextKeys, withContext, withInternalCall } from "../../src/context.js";
-import { exporterNames, otlpProtocol } from "../../src/node-exporters.js";
+import {
+  AggregationTemporality,
+  AggregationType,
+  DataPointType,
+  InMemoryMetricExporter,
+  InstrumentType,
+  PeriodicExportingMetricReader,
+} from "@opentelemetry/sdk-metrics";
+import { metrics } from "@opentelemetry/api";
+import { exporterNames, histogramAggregation, otlpProtocol } from "../../src/node-exporters.js";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ExportResultCode } from "@opentelemetry/core";
 import type { SpanExporter } from "@opentelemetry/sdk-trace-base";
@@ -83,6 +92,22 @@ describe("startNodeTelemetry", () => {
 
     const spans = Object.fromEntries(finished.map((span) => [span.name, span.attributes["n.tenant"]]));
     expect(spans).toEqual({ keys: "acme", own: "set by the caller" });
+  });
+
+  it("keeps the histogram aggregation of the variable, with the metric views of the context", async () => {
+    const exporter = new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE);
+    const reader = new PeriodicExportingMetricReader({ exporter, exportIntervalMillis: 60_000 });
+    telemetry = startNodeTelemetry({
+      enabled: true,
+      env: { OTEL_TRACES_EXPORTER: "none", OTEL_LOGS_EXPORTER: "none", OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION: "base2_exponential_bucket_histogram" },
+      metricReaders: [reader],
+      stopOnSignals: false,
+    });
+    metrics.getMeter("otel-ts-node-context").createHistogram("n.duration").record(5);
+
+    await reader.forceFlush();
+    const found = exporter.getMetrics().flatMap((m) => m.scopeMetrics.flatMap((s) => s.metrics)).find((m) => m.descriptor.name === "n.duration");
+    expect(found?.dataPointType).toBe(DataPointType.EXPONENTIAL_HISTOGRAM);
   });
 
   it("adds the context keys to each log record with export on, and keeps an attribute of the caller", async () => {
@@ -291,5 +316,16 @@ describe("the exporters of the OTEL_* variables", () => {
     expect(otlpProtocol("traces", { OTEL_EXPORTER_OTLP_PROTOCOL: "http/json" })).toBe("http/json");
     expect(otlpProtocol("logs", { OTEL_EXPORTER_OTLP_PROTOCOL: "http/json", OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: "http/protobuf" })).toBe("http/protobuf");
     expect(() => otlpProtocol("traces", { OTEL_EXPORTER_OTLP_PROTOCOL: "grpc" })).toThrow(/For grpc, give the exporter/);
+  });
+
+  it("reads the histogram aggregation, and refuses a value it does not know", () => {
+    const variable = "OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION";
+    const exponential = histogramAggregation({ [variable]: "base2_exponential_bucket_histogram" });
+    expect(exponential(InstrumentType.HISTOGRAM)).toEqual({ type: AggregationType.EXPONENTIAL_HISTOGRAM });
+    expect(exponential(InstrumentType.COUNTER)).toEqual({ type: AggregationType.DEFAULT });
+    for (const env of [{}, { [variable]: "explicit_bucket_histogram" }]) {
+      expect(histogramAggregation(env)(InstrumentType.HISTOGRAM)).toEqual({ type: AggregationType.DEFAULT });
+    }
+    expect(() => histogramAggregation({ [variable]: "linear" })).toThrow(RangeError);
   });
 });

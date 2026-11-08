@@ -46,6 +46,12 @@ function start(config?: OtelTsConfig): OtelTsInstance {
   return instance;
 }
 
+/** Shuts down the instance, then starts a new one: init() registers the context one time */
+async function restart(config?: OtelTsConfig): Promise<OtelTsInstance> {
+  await instance?.shutdown();
+  return start(config);
+}
+
 afterEach(async () => {
   await instance?.shutdown();
   instance = undefined;
@@ -382,10 +388,10 @@ describe("init Faro", () => {
     expect(setupFaro).toHaveBeenCalledWith(expect.anything(), url);
   });
 
-  it("does not start Faro without faroCollectorUrl", () => {
+  it("does not start Faro without faroCollectorUrl", async () => {
     // Faro has no transport then, and logs an error if it starts
     start();
-    start({ faroCollectorUrl: "" });
+    await restart({ faroCollectorUrl: "" });
 
     expect(setupFaro).not.toHaveBeenCalled();
   });
@@ -398,12 +404,12 @@ describe("init Faro", () => {
 });
 
 describe("init contextManager", () => {
-  it("gives the tracing setup the manager of async-browser-context by default, and the choice of the app", () => {
+  it("gives the tracing setup the manager of async-browser-context by default, and the choice of the app", async () => {
     start();
     expect(vi.mocked(setupTracing).mock.lastCall![1].contextManager).toBe("async");
     expect(vi.mocked(setupTracing).mock.lastCall![3]).toBeInstanceOf(AsyncContextManager);
 
-    start({ contextManager: "stack" });
+    await restart({ contextManager: "stack" });
     expect(vi.mocked(setupTracing).mock.lastCall![1].contextManager).toBe("stack");
     expect(vi.mocked(setupTracing).mock.lastCall![3]).toBeInstanceOf(StackContextManager);
   });
@@ -440,11 +446,11 @@ describe("init browser attributes", () => {
     }
   });
 
-  it("leaves them out with browserAttributes: false, and the config attributes have priority", () => {
+  it("leaves them out with browserAttributes: false, and the config attributes have priority", async () => {
     start({ browserAttributes: false });
     expect(resources().metrics.attributes["user_agent.original"]).toBeUndefined();
 
-    start({ resourceAttributes: { "browser.language": "x-test" } });
+    await restart({ resourceAttributes: { "browser.language": "x-test" } });
     expect(resources().metrics.attributes["browser.language"]).toBe("x-test");
   });
 });
