@@ -58,7 +58,7 @@ describe("createContextSpanProcessor", () => {
 describe("createContextLogRecordProcessor", () => {
   it("sets each defined key of the context on each log record", async () => {
     const exporter = new InMemoryLogRecordExporter();
-    const provider = new LoggerProvider({ processors: [createContextLogRecordProcessor(), new SimpleLogRecordProcessor(exporter)] });
+    const provider = new LoggerProvider({ processors: [createContextLogRecordProcessor(), new SimpleLogRecordProcessor({ exporter })] });
     const logger = provider.getLogger("test");
 
     await withContext({ "q.user.id": "u-2", "q.flag": "off" }, async () => {

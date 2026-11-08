@@ -94,11 +94,11 @@ export function nodeSpanProcessors(env: Env, exporter?: SpanExporter): SpanProce
  */
 export function nodeLogRecordProcessors(env: Env, exporter?: LogRecordExporter): LogRecordProcessor[] {
   const exporting: LogRecordProcessor[] = exporter
-    ? [new BatchLogRecordProcessor(exporter)]
+    ? [new BatchLogRecordProcessor({ exporter })]
     : exporterNames("logs", env).map((name) =>
         name === "console"
-          ? new SimpleLogRecordProcessor(new ConsoleLogRecordExporter())
-          : new BatchLogRecordProcessor(otlpProtocol("logs", env) === "http/json" ? new JsonLogExporter() : new ProtobufLogExporter()),
+          ? new SimpleLogRecordProcessor({ exporter: new ConsoleLogRecordExporter() })
+          : new BatchLogRecordProcessor({ exporter: otlpProtocol("logs", env) === "http/json" ? new JsonLogExporter() : new ProtobufLogExporter() }),
       );
   return exporting.length > 0 ? [createContextLogRecordProcessor(), ...exporting] : [];
 }

@@ -26,7 +26,7 @@ export function setupLogs(
       // Before the exporting processor, so every exported record has it
       createSessionLogRecordProcessor(getSessionId),
       createContextLogRecordProcessor(),
-      new BatchLogRecordProcessor(exporter),
+      new BatchLogRecordProcessor({ exporter }),
     ],
   });
 }
