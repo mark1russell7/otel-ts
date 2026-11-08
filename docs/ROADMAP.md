@@ -20,4 +20,5 @@ This file is the plan of otel-ts. The Status page of the site reads it. The desi
 | C12 | The gate is green on each transport in CI | later | P1 | client and systems run the gate of C7 on each transport, as a required check. Needs C8, C10 and C11. |
 | C13 | The inherited repositories | later | P2 | AsyncBrowserContext, lag and grafana-infra: green CI, the checks CI OK and Security OK, and no open alert. |
 | C14 | KPI milestones | later | P2 | 2 to 5 measured milestones on the KPI page, for example the count of transports on which the gate is green. |
+| C16 | Exemplars from the SDK | later | P3 | The JS metrics SDK records no exemplars today (2.6.1 and 2.12.0). When an aggregator records them, turn them on, so a metric point carries its trace id, and the gate reads one. Until then, the span metrics of Tempo give the link (C9). Needs C3. |
 | C15 | One OpenTelemetry core for lag and otel-ts | later | P3 | lag keeps its own OpenTelemetry types, on purpose (review 2026-10-25, F7). Decide if they move to one home. |

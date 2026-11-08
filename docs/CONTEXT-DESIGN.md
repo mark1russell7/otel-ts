@@ -77,7 +77,7 @@ contextValue("user.id");
 
 - A span processor copies each named key of the baggage to each new span. A log record processor does the same for each log record. These are the same processors as the `session.id` processors of today (`session-processors.ts`), made general.
 - A metric attribute of high cardinality makes one time series for each value. Mimir then stores one series for each user. So a view of the meter provider removes each high cardinality key from the metric attributes, and a test holds it.
-- **Exemplars: none in the SDK.** `@opentelemetry/sdk-metrics` 2.6.1 and 2.12.0 have the reservoir classes (`build/src/exemplar/`), but no aggregator or exporter uses them (read on 2026-11-08). So no metric point carries a trace id. The link from a metric to a trace comes from the storage: the metrics generator of Tempo makes the request rate, error and duration metrics from the spans, with exemplars. This is a part of item C9.
+- **Exemplars: none in the SDK.** `@opentelemetry/sdk-metrics` 2.6.1 and 2.12.0 have the reservoir classes (`build/src/exemplar/`), but no aggregator or exporter uses them (read on 2026-11-08). So no metric point carries a trace id. The link from a metric to a trace comes from the storage: the metrics generator of Tempo makes the request rate, error and duration metrics from the spans, with exemplars. This is the link of a metric to its trace, and a part of item C9. Item C16 stays open: when an aggregator of the SDK records exemplars, the meter provider turns them on, and the gate reads one.
 
 ### 5. Baggage crosses only trusted calls
 
@@ -116,7 +116,7 @@ The flip test: a transport that drops the header turns the gate red, and a clean
 
 | ID | Question | Proposal | Who |
 | --- | --- | --- | --- |
-| D1 | Where is the home of the context? | otel-ts: the entries `/context` (light) and `/node` (registers). The map line becomes "OpenTelemetry for browsers and Node services, and the one context of logs, metrics and traces". No new package. | The strategist (a change of the map) |
+| D1 | Where is the home of the context? | **Decided on 2026-11-08 by the strategist: yes.** otel-ts, with the entries `/context` (light) and `/node` (registers). The map area "Observability and context" has otel-ts as its home (template#262). No new package. | The strategist (a change of the map) |
 | D2 | Do the libraries depend on otel-ts? | No. They depend on `@opentelemetry/api` only (section 1). | This role |
 | D3 | Does baggage leave the process on each call? | No. Only on calls with the internal mark (section 5). | This role |
 | D4 | Do ids of high cardinality go on metrics? | No, never as attributes. No exemplars in the JS SDK, so Tempo's span metrics give the link (section 4). | This role |
