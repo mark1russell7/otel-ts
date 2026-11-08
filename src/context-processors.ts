@@ -7,11 +7,18 @@
  *   series for each user id would fill the store.
  *
  * The `session.id` processors (session-processors.ts) are a case of the same
- * two processors. This file imports only types of the SDK packages.
+ * two processors. Of the SDK packages, this file loads only sdk-metrics, which
+ * each entry that uses it loads already.
  */
 import { context, type Attributes, type Context } from "@opentelemetry/api";
 import type { LogRecordProcessor } from "@opentelemetry/sdk-logs";
-import type { IAttributesProcessor, ViewOptions } from "@opentelemetry/sdk-metrics";
+import {
+  AggregationType,
+  InstrumentType,
+  type AggregationSelector,
+  type IAttributesProcessor,
+  type ViewOptions,
+} from "@opentelemetry/sdk-metrics";
 import type { SpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { contextKeyRule, contextValues } from "./context.js";
 
@@ -74,11 +81,26 @@ export function createContextAttributesProcessor(): IAttributesProcessor {
   };
 }
 
+/** The default aggregation of each instrument type, as the SDK's default reader */
+export const defaultAggregation: AggregationSelector = () => ({ type: AggregationType.DEFAULT });
+
 /**
- * The view for each instrument that removes the keys of high cardinality.
- * Give it as the only view of the meter provider: a second view that matches
- * an instrument makes a second stream of it.
+ * The views that remove the keys of high cardinality: one view for each
+ * instrument type, so each instrument matches one view.
+ *
+ * The aggregation of a view replaces the aggregation preference of each
+ * reader (sdk-metrics, `MeterSharedState`). So the views take the aggregation
+ * of each instrument type from `aggregation`: give the preference that the
+ * reader would have, for example base-2 exponential histograms.
+ *
+ * Give these as the only views of the meter provider: a second view that
+ * matches an instrument makes a second stream of it.
  */
-export function contextMetricView(): ViewOptions {
-  return { instrumentName: "*", attributesProcessors: [createContextAttributesProcessor()] };
+export function contextMetricViews(aggregation: AggregationSelector = defaultAggregation): ViewOptions[] {
+  const processor = createContextAttributesProcessor();
+  return Object.values(InstrumentType).map((instrumentType) => ({
+    instrumentType,
+    attributesProcessors: [processor],
+    aggregation: aggregation(instrumentType),
+  }));
 }

@@ -231,6 +231,15 @@ The rules:
 - `contextValues()` gives the value of each defined key. A baggage entry from outside with a key that is not defined is not in it.
 - `withInternalCall(fn)` marks the calls that `fn` starts as internal calls. `isInternalCall()` reads the mark.
 
+In the browser, `init()` registers the context when `tracing` is on (the default):
+
+- The context manager of the entry, so a value of `withContext()` stays after `await` (refer to [Context manager](#context-manager)).
+- The propagator of otel-ts. The fetch and XHR instrumentations add `traceparent` to each request that [`propagateTraceHeaderCorsUrls`](#trace-headers-to-other-origins) permits. They add `baggage` only to an internal call: start the calls to your own API in `withInternalCall()`.
+- Processors that add the value of each context key to each span and each log record. An attribute that the caller sets stays.
+- Metric views that remove each key with `cardinality: "high"` from each metric.
+
+Only one part of a program registers the context. A second `init()` before the `shutdown()` of the first is an error. `shutdown()` removes the registration. With `tracing: false`, `init()` registers no context manager and no propagator.
+
 ## Writer identity
 
 Prometheus and Mimir make the `instance` label from the `service.instance.id` resource attribute. Each SDK instance writes its own metric series. Two SDK instances with the same identity write to the same series. Then Mimir rejects samples, and `rate()` gives incorrect values.
@@ -403,7 +412,7 @@ The instrumentations patch a module when it loads, so this module must load befo
 
 Only one part of a program registers the context. A second `startNodeTelemetry()` before the `shutdown()` of the first is an error. `shutdown()` removes the registration.
 
-With export on, the exporters come from `OTEL_TRACES_EXPORTER` and `OTEL_LOGS_EXPORTER`: `otlp` (the default), `console` or `none`. The OTLP protocol comes from `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL` and `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL`, else `OTEL_EXPORTER_OTLP_PROTOCOL`: `http/protobuf` (the default) or `http/json`. Another name is an error. For grpc, give `traceExporter` and `logExporter`. The sampler and the metric readers are those of the SDK.
+With export on, the exporters come from `OTEL_TRACES_EXPORTER` and `OTEL_LOGS_EXPORTER`: `otlp` (the default), `console` or `none`. The OTLP protocol comes from `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL` and `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL`, else `OTEL_EXPORTER_OTLP_PROTOCOL`: `http/protobuf` (the default) or `http/json`. Another name is an error. For grpc, give `traceExporter` and `logExporter`. The sampler and the metric readers are those of the SDK. The metric views take the histogram aggregation from `OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION`: `explicit_bucket_histogram` (the default) or `base2_exponential_bucket_histogram`. A view decides the aggregation, so this variable also sets the aggregation of a reader in `metricReaders`.
 
 By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`. Then, when the service has no listener of its own for the signal, the process ends with the signal, as it does without `startNodeTelemetry()`. When the service has a listener, that listener ends the process. Set `stopOnSignals: false` to add no listener.
 

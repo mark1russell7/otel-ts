@@ -9,6 +9,7 @@ import {
   createSessionLogRecordProcessor,
   type SessionIdReader,
 } from "./session-processors.js";
+import { createContextLogRecordProcessor } from "./context-processors.js";
 
 export function setupLogs(
   resource: Resource,
@@ -24,6 +25,7 @@ export function setupLogs(
     processors: [
       // Before the exporting processor, so every exported record has it
       createSessionLogRecordProcessor(getSessionId),
+      createContextLogRecordProcessor(),
       new BatchLogRecordProcessor(exporter),
     ],
   });
