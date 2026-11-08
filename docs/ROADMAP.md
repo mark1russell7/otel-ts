@@ -11,12 +11,12 @@ This file is the plan of otel-ts. The Status page of the site reads it. The desi
 | C3 | The processors of the context keys | done | P1 | Copy each named key of the baggage to each span and log record. A metric view removes each key of high cardinality. The `session.id` processors become a case of them. Needs C2. |
 | C4 | The propagator: baggage on internal calls only | done | P1 | W3C trace context on each call, baggage only with the internal mark, the W3C limits, and one registration only. Needs C2. |
 | C5 | `/node` registers the context also with export off | done | P1 | AsyncLocalStorage, the propagator of C4 and the processors of C3, with or without a collector. Needs C3 and C4. |
-| C6 | The browser entries use the same parts | in progress | P1 | `init()` registers the propagator of C4 and the processors of C3. Needs C3 and C4. |
+| C6 | The browser entries use the same parts | done | P1 | `init()` registers the propagator of C4 and the processors of C3. Needs C3 and C4. |
 | C7 | The propagation gate | done | P1 | A test helper of rigor: in-memory exporters, one id from client to server to logs, metrics and traces, a flip test, and "no read" lines. Needs C2. |
-| C8 | `@procedures/client` sends the context | later | P1 | The API propagator on local, HTTP, WebSocket and port calls, the internal mark, spans of the API. Its own W3C code goes. A pull request to client, with its owner. Needs C4 and C7. |
+| C8 | `@procedures/client` sends the context | in progress | P1 | The API propagator on local, HTTP, WebSocket and port calls, the internal mark, spans of the API. Its own W3C code goes. A pull request to client, with its owner. Needs C4 and C7. |
 | C9 | Local storage for services | later | P2 | grafana-infra: OTLP from Node services, a link from each log line to its trace, the span metrics of Tempo, tail sampling. The home cluster waits on its talk. Needs C5. |
 | C10 | `@procedures/peer` runs each handler in the context of its caller | later | P1 | Extract after the token check, then run the handler in that context, on HTTP, WebSocket and MCP (`_meta`). The CLI carrier (`TRACEPARENT`, `BAGGAGE`). A pull request to client. Needs C8. |
-| C11 | `@mark1russell7/service` logs carry the ids | later | P1 | `trace_id` and `span_id` on each log line, and its HTTP and gRPC parts read and send the context. A pull request to systems, with its owner. Needs C4 and C7. |
+| C11 | `@mark1russell7/service` logs carry the ids | done | P1 | `trace_id` and `span_id` on each log line (systems#441), and its HTTP and gRPC parts read and send the context, held by the propagation gate (systems#445). Needs C4 and C7. |
 | C12 | The gate is green on each transport in CI | later | P1 | client and systems run the gate of C7 on each transport, as a required check. Needs C8, C10 and C11. |
 | C13 | The inherited repositories | later | P2 | AsyncBrowserContext, lag and grafana-infra: green CI, the checks CI OK and Security OK, and no open alert. |
 | C14 | KPI milestones | done | P2 | 2 to 5 measured milestones on the KPI page, for example the count of transports on which the gate is green. |
