@@ -10,9 +10,9 @@ This file is the plan of otel-ts. The Status page of the site reads it. The desi
 | C2 | The entry `/context` | done | P1 | `defineContextKeys`, `withContext`, `contextValue` and `withInternalCall`, on `@opentelemetry/api` only. Needs C1. |
 | C3 | The processors of the context keys | done | P1 | Copy each named key of the baggage to each span and log record. A metric view removes each key of high cardinality. The `session.id` processors become a case of them. Needs C2. |
 | C4 | The propagator: baggage on internal calls only | done | P1 | W3C trace context on each call, baggage only with the internal mark, the W3C limits, and one registration only. Needs C2. |
-| C5 | `/node` registers the context also with export off | later | P1 | AsyncLocalStorage, the propagator of C4 and the processors of C3, with or without a collector. Needs C3 and C4. |
+| C5 | `/node` registers the context also with export off | done | P1 | AsyncLocalStorage, the propagator of C4 and the processors of C3, with or without a collector. Needs C3 and C4. |
 | C6 | The browser entries use the same parts | later | P1 | `init()` registers the propagator of C4 and the processors of C3. Needs C3 and C4. |
-| C7 | The propagation gate | later | P1 | A test helper of rigor: in-memory exporters, one id from client to server to logs, metrics and traces, a flip test, and "no read" lines. Needs C2. |
+| C7 | The propagation gate | done | P1 | A test helper of rigor: in-memory exporters, one id from client to server to logs, metrics and traces, a flip test, and "no read" lines. Needs C2. |
 | C8 | `@procedures/client` sends the context | later | P1 | The API propagator on local, HTTP, WebSocket and port calls, the internal mark, spans of the API. Its own W3C code goes. A pull request to client, with its owner. Needs C4 and C7. |
 | C9 | Local storage for services | later | P2 | grafana-infra: OTLP from Node services, a link from each log line to its trace, the span metrics of Tempo, tail sampling. The home cluster waits on its talk. Needs C5. |
 | C10 | `@procedures/peer` runs each handler in the context of its caller | later | P1 | Extract after the token check, then run the handler in that context, on HTTP, WebSocket and MCP (`_meta`). The CLI carrier (`TRACEPARENT`, `BAGGAGE`). A pull request to client. Needs C8. |

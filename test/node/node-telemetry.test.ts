@@ -1,7 +1,12 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { trace } from "@opentelemetry/api";
+import { context, propagation, trace } from "@opentelemetry/api";
+import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
+import { logs } from "@opentelemetry/api-logs";
+import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
+import { contextValue, defineContextKeys, withContext, withInternalCall } from "../../src/context.js";
+import { exporterNames, otlpProtocol } from "../../src/node-exporters.js";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ExportResultCode } from "@opentelemetry/core";
 import type { SpanExporter } from "@opentelemetry/sdk-trace-base";
@@ -19,11 +24,101 @@ afterEach(async () => {
 });
 
 describe("startNodeTelemetry", () => {
-  it("starts nothing when OTEL_EXPORTER_OTLP_ENDPOINT has no value", async () => {
-    telemetry = startNodeTelemetry({ env: {}, importMetaUrl: import.meta.url });
+  it("registers the context with export off, and exports nothing", async () => {
+    defineContextKeys({ "n.request.id": { cardinality: "high", propagate: "internal" } });
+    telemetry = startNodeTelemetry({ env: {}, stopOnSignals: false });
     expect(telemetry.enabled).toBe(false);
-    expect(telemetry.esmHook).toBe(false);
+
+    // AsyncLocalStorage keeps the value after await
+    const seen = await withContext({ "n.request.id": "r-1" }, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      return contextValue("n.request.id");
+    });
+    expect(seen).toBe("r-1");
+
+    // The propagator of otel-ts: an incoming trace goes on, and the baggage goes only on an internal call
+    const incoming = propagation.extract(context.active(), {
+      traceparent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
+      baggage: "n.request.id=r-2",
+    });
+    const plain: Record<string, string> = {};
+    const internal: Record<string, string> = {};
+    context.with(incoming, () => {
+      propagation.inject(context.active(), plain);
+      withInternalCall(() => propagation.inject(context.active(), internal));
+    });
+    expect(plain["traceparent"]).toMatch(/^00-0af7651916cd43dd8448eb211c80319c-/);
+    expect(plain["baggage"]).toBeUndefined();
+    expect(internal["baggage"]).toBe("n.request.id=r-2");
+  });
+
+  it("refuses a second start before the stop of the first, and accepts it after", async () => {
+    telemetry = startNodeTelemetry({ env: {}, stopOnSignals: false });
+    expect(() => startNodeTelemetry({ env: {}, stopOnSignals: false })).toThrow(/registered already by startNodeTelemetry\(\)/);
+
     await telemetry.shutdown();
+    telemetry = startNodeTelemetry({ env: {}, stopOnSignals: false });
+    expect(telemetry.enabled).toBe(false);
+  });
+
+  it("adds the context keys to each span with export on, and keeps an attribute of the caller", async () => {
+    defineContextKeys({ "n.tenant": { cardinality: "low", propagate: "internal" } });
+    // An exporter that keeps its spans at the stop (InMemorySpanExporter clears them)
+    const finished: ReadableSpan[] = [];
+    const exporter: SpanExporter = {
+      export: (spans, done) => {
+        finished.push(...spans);
+        done({ code: ExportResultCode.SUCCESS });
+      },
+      shutdown: () => Promise.resolve(),
+    };
+    telemetry = startNodeTelemetry({ enabled: true, env: {}, traceExporter: exporter, stopOnSignals: false });
+    const tracer = trace.getTracer("otel-ts-node-context");
+
+    withContext({ "n.tenant": "acme" }, () => {
+      tracer.startSpan("keys").end();
+      tracer.startSpan("own", { attributes: { "n.tenant": "set by the caller" } }).end();
+    });
+    await telemetry.shutdown();
+
+    const spans = Object.fromEntries(finished.map((span) => [span.name, span.attributes["n.tenant"]]));
+    expect(spans).toEqual({ keys: "acme", own: "set by the caller" });
+  });
+
+  it("adds the context keys to each log record with export on, and keeps an attribute of the caller", async () => {
+    defineContextKeys({ "n.job.id": { cardinality: "high", propagate: "none" } });
+    const finished: Array<[unknown, unknown]> = [];
+    const logExporter: LogRecordExporter = {
+      export: (records, done) => {
+        finished.push(...records.map((record): [unknown, unknown] => [record.body, record.attributes["n.job.id"]]));
+        done({ code: ExportResultCode.SUCCESS });
+      },
+      shutdown: () => Promise.resolve(),
+    };
+    telemetry = startNodeTelemetry({ enabled: true, env: { OTEL_TRACES_EXPORTER: "none" }, logExporter, stopOnSignals: false });
+    const logger = logs.getLogger("otel-ts-node-context");
+
+    await withContext({ "n.job.id": "j-1" }, async () => {
+      await null;
+      logger.emit({ body: "keys" });
+      logger.emit({ body: "own", attributes: { "n.job.id": "set by the caller" } });
+    });
+    logger.emit({ body: "outside" });
+    await telemetry.shutdown();
+
+    expect(finished).toEqual([
+      ["keys", "j-1"],
+      ["own", "set by the caller"],
+      ["outside", undefined],
+    ]);
+  });
+
+  it("refuses an exporter name that it does not make, and keeps no registration", () => {
+    expect(() => startNodeTelemetry({ enabled: true, env: { OTEL_TRACES_EXPORTER: "zipkin" }, stopOnSignals: false })).toThrow(
+      /OTEL_TRACES_EXPORTER has "zipkin"/,
+    );
+    telemetry = startNodeTelemetry({ env: {}, stopOnSignals: false });
+    expect(telemetry.enabled).toBe(false);
   });
 
   it("exports the spans to the collector of the endpoint", async () => {
@@ -180,5 +275,21 @@ describe("startStubCollector", () => {
     expect(res.status).toBe(200);
     expect(collector.exports).toBe(1);
     expect(collector.spansByScope().size).toBe(0);
+  });
+});
+
+describe("the exporters of the OTEL_* variables", () => {
+  it("gives otlp by default, nothing with none, and refuses another name", () => {
+    expect(exporterNames("traces", {})).toEqual(["otlp"]);
+    expect(exporterNames("logs", { OTEL_LOGS_EXPORTER: " Console , otlp,console" })).toEqual(["console", "otlp"]);
+    expect(exporterNames("logs", { OTEL_LOGS_EXPORTER: "otlp,none" })).toEqual([]);
+    expect(() => exporterNames("traces", { OTEL_TRACES_EXPORTER: "jaeger" })).toThrow(RangeError);
+  });
+
+  it("gives the protocol of the signal, then the general one, then http/protobuf, and refuses grpc", () => {
+    expect(otlpProtocol("traces", {})).toBe("http/protobuf");
+    expect(otlpProtocol("traces", { OTEL_EXPORTER_OTLP_PROTOCOL: "http/json" })).toBe("http/json");
+    expect(otlpProtocol("logs", { OTEL_EXPORTER_OTLP_PROTOCOL: "http/json", OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: "http/protobuf" })).toBe("http/protobuf");
+    expect(() => otlpProtocol("traces", { OTEL_EXPORTER_OTLP_PROTOCOL: "grpc" })).toThrow(/For grpc, give the exporter/);
   });
 });

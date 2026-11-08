@@ -394,9 +394,20 @@ node --import ./dist/instrumentation.js dist/server.js
 
 The instrumentations patch a module when it loads, so this module must load before the modules of the service. In an ES module service, the CommonJS hook does not see a package that an ES module imports. When you give `importMetaUrl`, `startNodeTelemetry()` registers the loader hook of OpenTelemetry (`@opentelemetry/instrumentation/hook.mjs`) before the SDK starts. The hook then patches those imports too.
 
-`startNodeTelemetry()` starts nothing when `OTEL_EXPORTER_OTLP_ENDPOINT` has no value. Set `enabled` to change this. By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`. Then, when the service has no listener of its own for the signal, the process ends with the signal, as it does without `startNodeTelemetry()`. When the service has a listener, that listener ends the process. Set `stopOnSignals: false` to add no listener.
+`startNodeTelemetry()` exports nothing when `OTEL_EXPORTER_OTLP_ENDPOINT` has no value. Set `enabled` to change this. With export on or off, it registers the [context ids](#context-ids):
 
-The option `env` sets only `enabled` and the service name. The SDK reads its exporter settings (`OTEL_EXPORTER_OTLP_*`) from `process.env`. To send the spans to another endpoint, give `traceExporter`.
+- AsyncLocalStorage as the context manager, so a value of `withContext()` stays after `await`.
+- The propagator of otel-ts: `traceparent` and `tracestate` go on each call, and the context keys go in `baggage` only on an internal call (`withInternalCall()`).
+- A metric view that removes each key with `cardinality: "high"` from each metric.
+- With export on: a processor that adds the value of each context key to each span and each log record. An attribute that the caller sets stays.
+
+Only one part of a program registers the context. A second `startNodeTelemetry()` before the `shutdown()` of the first is an error. `shutdown()` removes the registration.
+
+With export on, the exporters come from `OTEL_TRACES_EXPORTER` and `OTEL_LOGS_EXPORTER`: `otlp` (the default), `console` or `none`. The OTLP protocol comes from `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL` and `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL`, else `OTEL_EXPORTER_OTLP_PROTOCOL`: `http/protobuf` (the default) or `http/json`. Another name is an error. For grpc, give `traceExporter` and `logExporter`. The sampler and the metric readers are those of the SDK.
+
+By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`. Then, when the service has no listener of its own for the signal, the process ends with the signal, as it does without `startNodeTelemetry()`. When the service has a listener, that listener ends the process. Set `stopOnSignals: false` to add no listener.
+
+The option `env` sets `enabled`, the service name, the exporter names and the protocols. An OTLP exporter and the sampler read their other settings (the endpoint, the headers, `OTEL_TRACES_SAMPLER`) from `process.env`. To send to another endpoint, give `traceExporter` and `logExporter`.
 
 ### The trace of a write, in its echo
 
