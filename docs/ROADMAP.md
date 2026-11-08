@@ -8,7 +8,7 @@ This file is the plan of otel-ts. The Status page of the site reads it. The desi
 | O2 | Faro in the lab | later | P3 | Faro stays off in the lab, because its tracing adds a second copy of each fetch span. A later lab can show a Faro lane with no second copy. |
 | C1 | The design of one context, and the talk | done | P1 | The design doc, then the decisions D1 to D5 with the strategist and Mark. The build starts after the talk. |
 | C2 | The entry `/context` | done | P1 | `defineContextKeys`, `withContext`, `contextValue` and `withInternalCall`, on `@opentelemetry/api` only. Needs C1. |
-| C3 | The processors of the context keys | later | P1 | Copy each named key of the baggage to each span and log record. A metric view removes each key of high cardinality. The `session.id` processors become a case of them. Needs C2. |
+| C3 | The processors of the context keys | done | P1 | Copy each named key of the baggage to each span and log record. A metric view removes each key of high cardinality. The `session.id` processors become a case of them. Needs C2. |
 | C4 | The propagator: baggage on internal calls only | active | P1 | W3C trace context on each call, baggage only with the internal mark, the W3C limits, and one registration only. Needs C2. |
 | C5 | `/node` registers the context also with export off | later | P1 | AsyncLocalStorage, the propagator of C4 and the processors of C3, with or without a collector. Needs C3 and C4. |
 | C6 | The browser entries use the same parts | later | P1 | `init()` registers the propagator of C4 and the processors of C3. Needs C3 and C4. |
