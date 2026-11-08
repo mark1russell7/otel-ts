@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+### Added
+
+- The entry `@mark1russell7/otel-ts/context`: `defineContextKeys`, `withContext`, `contextValue`, `contextValues`, `contextWith`, `withInternalCall` and `isInternalCall`. It adds context ids in one call, and it depends on `@opentelemetry/api` only. Refer to [Context ids](README.md#context-ids) and [docs/CONTEXT-DESIGN.md](docs/CONTEXT-DESIGN.md).
+
 ## 0.2.0
 
 ### Breaking changes
