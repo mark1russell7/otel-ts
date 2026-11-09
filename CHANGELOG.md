@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3
+
+### Added
+
+- The entry `@mark1russell7/otel-ts/lag`, with `lagDeps()` (decision D7). One call gives the monitors of `@mark1russell7/lag` the meter, the logger, the event sink and the span sink of an instance. `connect()` records the values of the monitors before each flush of the instance. Thus an app does not connect them by hand. The adapters are the adapters of lag. `@mark1russell7/lag` 0.4.2 or later is a new optional peer dependency, and no other entry imports it.
+
 ## 0.7.2
 
 ### Fixed
