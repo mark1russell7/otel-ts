@@ -84,6 +84,9 @@ export interface NodeTelemetryOptions {
 /** The signals that stop the SDK when `stopOnSignals` is true */
 const STOP_SIGNALS = ["SIGTERM", "SIGINT"] as const;
 
+/** The signal listeners of otel-ts. They are not listeners of the service. */
+const OWN_LISTENERS = new Set<Function>();
+
 /** The result of `startNodeTelemetry()` */
 export interface NodeTelemetry {
   /** True when export is on */
@@ -104,12 +107,13 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
   const release = claimContextRegistration("startNodeTelemetry()");
 
   let esmHook = false;
-  if (options.importMetaUrl) {
-    register("@opentelemetry/instrumentation/hook.mjs", options.importMetaUrl);
-    esmHook = true;
-  }
   let sdk: NodeSDK;
   try {
+    // In the try too: a hook that does not resolve gives back the claim
+    if (options.importMetaUrl) {
+      register("@opentelemetry/instrumentation/hook.mjs", options.importMetaUrl);
+      esmHook = true;
+    }
     // With export off: no processor and no reader, so nothing leaves the process
     const exports: Partial<NodeSDKConfiguration> = enabled
       ? {
@@ -133,10 +137,20 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
     throw error;
   }
 
+  // The signal listeners of this start, removed at the stop
+  const listeners: Array<[NodeJS.Signals, () => void]> = [];
   // One stop: a second call waits for the flush of the first
   let stopping: Promise<void> | undefined;
-  const shutdown = (): Promise<void> =>
-    (stopping ??= sdk
+  const shutdown = (): Promise<void> => {
+    if (stopping) return stopping;
+    // Before, the listeners stayed after the stop. At a signal after a new start, the
+    // listener of the new start counted the old one as a listener of the service, and the
+    // old one ended the process before the new SDK flushed.
+    for (const [signal, listener] of listeners) {
+      process.removeListener(signal, listener);
+      OWN_LISTENERS.delete(listener);
+    }
+    return (stopping = sdk
       .shutdown()
       .catch(() => {
         // a flush that fails at the stop loses its spans, and nothing else
@@ -146,19 +160,23 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
         for (const api of [trace, metrics, logs, propagation, context]) api.disable();
         release();
       }));
+  };
   if (options.stopOnSignals ?? true) {
     for (const signal of STOP_SIGNALS) {
-      // First in the list, so it sees each listener of the service before that listener runs
-      process.prependOnceListener(signal, () => {
+      const listener = (): void => {
         // A listener for a signal removes the default action of Node.js, which ends the
         // process. This listener is gone now. When the service has no listener of its own,
         // raise the signal again after the flush: the default action then ends the process.
         // Before, a service without a listener continued to run after SIGTERM or SIGINT.
-        const serviceListens = process.listenerCount(signal) > 0;
+        const serviceListens = process.listeners(signal).some((other) => !OWN_LISTENERS.has(other));
         void shutdown().finally(() => {
           if (!serviceListens) process.kill(process.pid, signal);
         });
-      });
+      };
+      listeners.push([signal, listener]);
+      OWN_LISTENERS.add(listener);
+      // First in the list, so it sees each listener of the service before that listener runs
+      process.prependOnceListener(signal, listener);
     }
   }
   return { enabled, esmHook, shutdown };

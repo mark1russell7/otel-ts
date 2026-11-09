@@ -51,7 +51,9 @@ export function exporterNames(signal: OtlpSignal, env: Env): ExporterName[] {
  */
 export function otlpProtocol(signal: OtlpSignal, env: Env): OtlpProtocol {
   const variable = `OTEL_EXPORTER_OTLP_${signal.toUpperCase()}_PROTOCOL`;
-  const value = (env[variable] ?? env["OTEL_EXPORTER_OTLP_PROTOCOL"] ?? "http/protobuf").trim();
+  // An empty variable is not set, as in the specification of the variables
+  const set = (name: string): string | undefined => env[name]?.trim() || undefined;
+  const value = set(variable) ?? set("OTEL_EXPORTER_OTLP_PROTOCOL") ?? "http/protobuf";
   if (value === "http/protobuf" || value === "http/json") return value;
   throw new RangeError(`the OTLP protocol of ${signal} is "${value}": otel-ts sends "http/protobuf" or "http/json". For grpc, give the exporter in the options.`);
 }
