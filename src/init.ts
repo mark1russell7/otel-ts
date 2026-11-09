@@ -94,6 +94,40 @@ export function initWith(
     ? claimContextRegistration("init()")
     : undefined;
 
+  // The providers that started, so a failure after the claim can stop them
+  const providers: Provider[] = [];
+  try {
+    return startInstance(resolved, contextManager, releaseRegistration, providers);
+  } catch (error) {
+    // A part failed after the claim. Stop the parts that started, and give
+    // back the claim: else no later init() or startNodeTelemetry() of the
+    // program could start, and no instance could call shutdown()
+    void Promise.allSettled(providers.map((p) => p.shutdown()));
+    releaseContext(releaseRegistration);
+    throw error;
+  }
+}
+
+/** A provider of a signal that init() started */
+type Provider = { forceFlush(): Promise<void>; shutdown(): Promise<void> };
+
+/**
+ * Remove the globals of the context and give back the claim, so a next
+ * init() registers its own. Without a claim, init() registered nothing.
+ */
+function releaseContext(releaseRegistration: (() => void) | undefined): void {
+  if (!releaseRegistration) return;
+  for (const api of [trace, propagation, context]) api.disable();
+  releaseRegistration();
+}
+
+/** The parts of init() after the claim. Each provider that starts goes into `providers`. */
+function startInstance(
+  resolved: ResolvedConfig,
+  contextManager: ReturnType<typeof createContextManager> | undefined,
+  releaseRegistration: (() => void) | undefined,
+  providers: Provider[],
+): OtelTsInstance {
   // Read again for every log record and span, so they follow rotations
   const getSessionId = createSessionIdReader(resolved.sessionTracking);
 
@@ -102,10 +136,6 @@ export function initWith(
 
   // One resource, so metrics, logs and traces share the service.instance.id
   const resource = buildResource(resolved);
-  const providers: Array<{
-    forceFlush(): Promise<void>;
-    shutdown(): Promise<void>;
-  }> = [];
 
   // Faro instruments the page (errors, web vitals, views) and needs a DOM.
   // Without a collector URL it has nowhere to send data and logs an error.
@@ -154,11 +184,7 @@ export function initWith(
       shutdownPromise ??= (async () => {
         removeLifecycleHandlers();
         await Promise.allSettled(providers.map((p) => p.shutdown()));
-        if (releaseRegistration) {
-          // Remove the globals of the context, so a next init() registers its own
-          for (const api of [trace, propagation, context]) api.disable();
-          releaseRegistration();
-        }
+        releaseContext(releaseRegistration);
       })();
     }
     return shutdownPromise;
