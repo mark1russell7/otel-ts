@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4
+
+### Fixed
+
+- With `faroCollectorUrl`, each export of the OTLP exporters made a fetch span, and the next export sent that span. The exporters send with `fetch.__original`, so that the fetch instrumentation does not see them. The request monitor of Faro replaced `fetch()` with a wrapper without `__original`. Now `init()` gives that wrapper the `__original` of the fetch that Faro replaced.
+
 ## 0.7.1
 
 ### Fixed
