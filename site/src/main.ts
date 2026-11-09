@@ -13,7 +13,7 @@ import type { ActionName, Lab, LabOptions } from "./lab.ts";
 import { formatMs } from "./otlp.ts";
 import { createStore } from "./store.ts";
 import type { Capture } from "./store.ts";
-import { drawDetail, drawExports, drawLanes, drawLogs, drawMetrics, drawPayload, drawTotals, drawWaterfall, shortId } from "./views.ts";
+import { drawDetail, drawExports, drawFaro, drawLanes, drawLogs, drawMetrics, drawPayload, drawTotals, drawWaterfall, shortId } from "./views.ts";
 import { createWire } from "./wire.ts";
 
 /** The time from an action to its flush. The fetch instrumentation ends a span about 300 ms after the response. */
@@ -84,6 +84,7 @@ function drawAll(capture: Capture | undefined): void {
   if (followExports && capture !== undefined) drawPayload(payloadLine, payload, capture);
   drawMetrics(byId("metrics"), byId("histograms"), store);
   drawLogs(byId("logs"), store);
+  drawFaro(byId("faro"), store);
   drawTotals(store.totals());
   drawLeft();
 }
@@ -125,6 +126,7 @@ const onExportClick = (event: Event): void => {
 
 waterfall.addEventListener("click", onSpanClick);
 byId("logs").addEventListener("click", onSpanClick);
+byId("faro").addEventListener("click", onSpanClick);
 lanes.addEventListener("click", onExportClick);
 exportsBody.addEventListener("click", onExportClick);
 
@@ -171,7 +173,8 @@ byId("flush").addEventListener("click", () => flush("flush button"));
 /** This function writes the two IDs, and it compares the instance ID with the load before. */
 function drawIds(capture: Capture): void {
   const id = byId("id-instance");
-  if (id.textContent !== "") return;
+  // A Faro body has no OTLP resource
+  if (id.textContent !== "" || capture.signal === "faro") return;
   const group = capture.body.resourceSpans ?? capture.body.resourceMetrics ?? capture.body.resourceLogs;
   const instance = group?.[0]?.resource?.attributes?.find((attribute) => attribute.key === "service.instance.id")?.value?.stringValue ?? "";
   id.textContent = instance;

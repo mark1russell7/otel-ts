@@ -11,6 +11,7 @@
   --traces: #2346c4;
   --metrics: #0f7f56;
   --logs: #a85f00;
+  --faro: #7b3fb5;
   --error: #c0262d;
   --focus: #2346c4;
   --select: #e3e8fb;
@@ -33,6 +34,7 @@
     --traces: #6f8cf0;
     --metrics: #2fa77c;
     --logs: #bd8028;
+    --faro: #b88ae6;
     --error: #f0686a;
     --focus: #93abff;
     --select: #252c44;
@@ -51,6 +53,7 @@
   --traces: #6f8cf0;
   --metrics: #2fa77c;
   --logs: #bd8028;
+  --faro: #b88ae6;
   --error: #f0686a;
   --focus: #93abff;
   --select: #252c44;
@@ -297,7 +300,7 @@ main {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0 0;
   padding-top: 12px;
@@ -383,6 +386,18 @@ main {
   height: 8px;
   border-radius: 2px;
   background: var(--error);
+}
+
+.key-faro,
+.packet-faro {
+  background: var(--faro);
+}
+
+.key-faro-mark {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--faro);
 }
 
 .waterfall {
@@ -503,6 +518,17 @@ main {
   border-radius: 1px;
   box-shadow: 0 0 0 2px var(--surface);
   transform: rotate(45deg);
+}
+
+.faro-mark {
+  position: absolute;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  background: var(--faro);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 .span-time {
@@ -897,7 +923,8 @@ select {
   .bar,
   .packet,
   .bucket-bar,
-  .log-mark {
+  .log-mark,
+  .faro-mark {
     forced-color-adjust: none;
     background: CanvasText;
   }

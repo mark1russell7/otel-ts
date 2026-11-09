@@ -7,10 +7,13 @@ import { logs } from "@opentelemetry/api-logs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { configText, labConfig, readOptions, startLab } from "./lab.ts";
 import type { Lab } from "./lab.ts";
+import { decodeFaro } from "./faro.ts";
+import type { FaroItem } from "./faro.ts";
 import { decodeLogs, decodeMetrics, decodeSpans } from "./otlp.ts";
+import type { OtlpBody } from "./otlp.ts";
 import { createStore } from "./store.ts";
 import type { Capture } from "./store.ts";
-import { COLLECTOR, createWire, isAt, OTHER_ORIGIN } from "./wire.ts";
+import { COLLECTOR, createWire, FARO_COLLECTOR, isAt, OTHER_ORIGIN } from "./wire.ts";
 
 const ORDER_URL = `${location.origin}/demo/order.json`;
 
@@ -36,6 +39,7 @@ describe("configText", () => {
   it("shows the collector URL and the options that the page passes to init()", () => {
     const text = configText(labConfig(readOptions("?metricsTemporality=delta"), "1.2.3"));
     expect(text).toContain(`endpoint: "${COLLECTOR}"`);
+    expect(text).toContain(`faroCollectorUrl: "${FARO_COLLECTOR}"`);
     expect(text).toContain('metricsTemporality: "delta"');
     expect(text).toContain("metricsExportIntervalMs: 10000");
   });
@@ -62,6 +66,20 @@ describe("the wire", () => {
     wire.onExport((record) => late.push(record.id));
     expect(late).toEqual([1]);
   });
+
+  it("takes a Faro request on the path of Faro, and gives it the lane faro", async () => {
+    const wire = createWire(() => Promise.reject(new Error("the network")));
+    const lanes: string[] = [];
+    wire.onExport((record) => lanes.push(record.signal));
+    const response = await wire.fetch(FARO_COLLECTOR, { method: "POST", body: '{"logs":[]}' });
+    expect(response.status).toBe(200);
+    expect(lanes).toEqual(["faro"]);
+  });
+
+  it("answers 404 to another path of the collector", async () => {
+    const wire = createWire(() => Promise.reject(new Error("the network")));
+    expect((await wire.fetch(`${COLLECTOR}/v1/profiles`, { method: "POST", body: "{}" })).status).toBe(404);
+  });
 });
 
 describe("the store", () => {
@@ -78,6 +96,16 @@ describe("the store", () => {
     store.noteFlush("flush button", 1000);
     expect(store.addExport(record("traces", 5000)).cause).toBe("batch timer");
   });
+
+  it("gives Faro as the cause of a Faro request, also right after a flush, and keeps its items", () => {
+    const store = createStore();
+    store.noteFlush("flush button", 1000);
+    const body = { logs: [{ level: "info", message: "hello", timestamp: "2026-11-09T10:00:00.000Z", trace: { trace_id: "t1", span_id: "s1" } }] };
+    const capture = store.addExport({ id: 1, at: 1100, signal: "faro", url: FARO_COLLECTOR, method: "POST", headers: {}, bytes: 2, text: "", body });
+    expect(capture).toMatchObject({ cause: "Faro batch", records: 1 });
+    expect(store.faro()).toMatchObject([{ kind: "log", text: "info: hello", traceId: "t1", spanId: "s1" }]);
+    expect(store.totals()).toMatchObject({ faro: 1, exports: 1, logs: 0 });
+  });
 });
 
 describe("the lab", () => {
@@ -86,8 +114,19 @@ describe("the lab", () => {
   const store = createStore();
   let lab: Lab;
 
-  const spans = () => captures.flatMap((capture) => decodeSpans(capture.body));
+  const otlp = (): OtlpBody[] => captures.flatMap((capture) => (capture.signal === "faro" ? [] : [capture.body]));
+  const spans = () => otlp().flatMap(decodeSpans);
   const named = (name: string) => spans().filter((span) => span.name === name);
+  const faroItems = (): FaroItem[] => captures.flatMap((capture) => (capture.signal === "faro" ? decodeFaro(capture.body) : []));
+  /** Faro sends on its own timer, so this function waits for the item with the text. */
+  const faroItem = async (text: string): Promise<FaroItem> => {
+    for (let i = 0; i < 100; i += 1) {
+      const found = faroItems().find((item) => item.text.includes(text));
+      if (found !== undefined) return found;
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    }
+    throw new Error(`no Faro item with "${text}"`);
+  };
   const flush = async () => {
     // The fetch instrumentation ends a span about 300 ms after the response.
     await new Promise((resolve) => setTimeout(resolve, 400));
@@ -114,11 +153,26 @@ describe("the lab", () => {
   it("sends each signal to the path of the collector, as JSON", async () => {
     await lab.run("checkout");
     await flush();
-    expect(new Set(captures.map((capture) => new URL(capture.url).pathname))).toEqual(new Set(["/v1/traces", "/v1/metrics", "/v1/logs"]));
-    expect(captures.every((capture) => capture.method === "POST" && capture.headers["content-type"] === "application/json")).toBe(true);
+    const exports = captures.filter((capture) => capture.signal !== "faro");
+    expect(new Set(exports.map((capture) => new URL(capture.url).pathname))).toEqual(new Set(["/v1/traces", "/v1/metrics", "/v1/logs"]));
+    expect(exports.every((capture) => capture.method === "POST" && capture.headers["content-type"] === "application/json")).toBe(true);
   });
 
-  it("makes no span for an export", () => {
+  it("makes one span for each fetch, with Faro on", () => {
+    // The checkout fetched the order once. The tracing of Faro made a second span before 0.7.0.
+    expect(spans().filter((span) => span.attributes["url.full"] === ORDER_URL)).toHaveLength(1);
+  });
+
+  it("gives the Faro event of the checkout the IDs of its span", async () => {
+    const event = await faroItem("order saved");
+    expect(event.kind).toBe("event");
+    expect(event.spanId).toBe(named("save the order")[0]?.spanId);
+    expect(event.traceId).toBe(named("checkout")[0]?.traceId);
+  });
+
+  it("makes no span for an export or a request of Faro", async () => {
+    await faroItem("order saved");
+    expect(captures.some((capture) => capture.url === FARO_COLLECTOR)).toBe(true);
     expect(spans().filter((span) => isAt(String(span.attributes["url.full"]), COLLECTOR))).toEqual([]);
   });
 
@@ -131,7 +185,7 @@ describe("the lab", () => {
   });
 
   it("gives the log record of the checkout the IDs of its span", () => {
-    const record = captures.flatMap((capture) => decodeLogs(capture.body)).find((log) => log.body === "The order is saved");
+    const record = otlp().flatMap(decodeLogs).find((log) => log.body === "The order is saved");
     expect(record?.spanId).toBe(named("save the order")[0]?.spanId);
     expect(record?.traceId).toBe(named("checkout")[0]?.traceId);
   });
@@ -143,7 +197,7 @@ describe("the lab", () => {
   });
 
   it("records the counter and the histogram of the action", () => {
-    const points = captures.flatMap((capture) => decodeMetrics(capture.body));
+    const points = otlp().flatMap(decodeMetrics);
     expect(points.find((point) => point.name === "demo.actions")).toMatchObject({ type: "sum", temporality: "cumulative", value: 1, attributes: { action: "checkout" } });
     expect(points.find((point) => point.name === "demo.action.duration")).toMatchObject({ type: "histogram", unit: "ms", count: 1 });
   });
@@ -170,6 +224,13 @@ describe("the lab", () => {
     expect(job).toMatchObject({ kind: "consumer", status: "error" });
     expect(job?.events[0]?.attributes["exception.message"]).toBe("The payment job failed on purpose");
     expect(job?.parentSpanId).toBe(named("click")[0]?.spanId);
+  });
+
+  it("gives the Faro error of the failed job the IDs of the click span", async () => {
+    const error = await faroItem("The payment job failed on purpose");
+    expect(error.kind).toBe("exception");
+    expect(error.spanId).toBe(named("click")[0]?.spanId);
+    expect(error.traceId).toBe(named("click")[0]?.traceId);
   });
 
   it("gives each span the session ID, and the resource the instance ID", () => {

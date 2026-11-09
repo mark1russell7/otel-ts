@@ -1,13 +1,15 @@
 /**
  * The lab: one real `init()` of the package, and the activity that a visitor starts from the page. No function here makes
  * a span, a metric or a log record by hand for the display. Each record that the page shows left the package through its
- * exporters, and `wire.ts` caught it.
+ * exporters, and `wire.ts` caught it. Faro starts too, with a collector on the same stub. Two actions give Faro an item
+ * in a span, and Faro sends it with the IDs of that span.
  */
 import { init, runInRemoteTrace } from "@mark1russell7/otel-ts";
 import type { OtelTsConfig, OtelTsInstance } from "@mark1russell7/otel-ts";
 import { context, propagation, trace } from "@opentelemetry/api";
 import { SeverityNumber } from "@opentelemetry/api-logs";
-import { COLLECTOR, OTHER_ORIGIN } from "./wire.ts";
+import { faro } from "@grafana/faro-web-sdk";
+import { COLLECTOR, FARO_COLLECTOR, OTHER_ORIGIN } from "./wire.ts";
 
 /** The options that the page can change. Each change needs a new `init()`, so the page reloads. */
 export interface LabOptions {
@@ -46,6 +48,7 @@ export function labConfig(options: LabOptions, serviceVersion: string): OtelTsCo
     serviceName: "otel-ts-demo",
     serviceVersion,
     endpoint: COLLECTOR,
+    faroCollectorUrl: FARO_COLLECTOR,
     metricsExportIntervalMs: METRICS_INTERVAL_MS,
     contextManager: options.contextManager,
     histogramAggregation: options.histogramAggregation,
@@ -125,13 +128,16 @@ export function startLab(config: OtelTsConfig, orderUrl: string): Lab {
       return job.then(
         () => "The job ended with no error.",
         (error: unknown) => {
+          const failure = error instanceof Error ? error : new Error(String(error));
           logger.emit({
             severityNumber: SeverityNumber.ERROR,
             severityText: "ERROR",
-            body: error instanceof Error ? error.message : String(error),
+            body: failure.message,
             attributes: { "demo.job": "payment" },
           });
-          return "The job failed. The page caught the error, and the span has the status ERROR.";
+          // Faro reads the active span from otel-ts, so the error has the trace of the click
+          faro.api.pushError(failure);
+          return "The job failed. The page caught the error, the span has the status ERROR, and Faro got the error with the trace of the click.";
         },
       );
     },
@@ -146,6 +152,7 @@ export function startLab(config: OtelTsConfig, orderUrl: string): Lab {
               getOrder().then(() => {
                 tracer.startActiveSpan("save the order", (save) => {
                   logger.emit({ severityNumber: SeverityNumber.INFO, severityText: "INFO", body: "The order is saved", attributes: { "demo.order": "A-1042" } });
+                  faro.api.pushEvent("order saved", { order: "A-1042" });
                   save.end();
                 });
                 root.end();

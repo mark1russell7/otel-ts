@@ -4,8 +4,11 @@
  */
 import { h } from "@mark1russell7/site-pages/chrome";
 import { barPosition, formatBytes, formatMs } from "./otlp.ts";
-import type { Attributes, LogRecord, MetricRecord, Signal, SpanRecord } from "./otlp.ts";
+import type { FaroItem } from "./faro.ts";
+import type { Attributes, LogRecord, MetricRecord, SpanRecord } from "./otlp.ts";
 import type { Capture, Store, TraceGroup, Totals } from "./store.ts";
+import { FARO_PATH } from "./wire.ts";
+import type { Lane } from "./wire.ts";
 
 /** The most traces that the waterfall shows. */
 const SHOWN_TRACES = 6;
@@ -19,8 +22,16 @@ const SHOWN_LOGS = 8;
 /** The time that the lanes of the wire show, in milliseconds. */
 export const WIRE_WINDOW_MS = 60_000;
 
-/** The signals, in the order of the lanes. */
-export const SIGNALS: readonly Signal[] = ["traces", "metrics", "logs"];
+/** The lanes of the wire, in their order. */
+export const LANES: readonly Lane[] = ["traces", "metrics", "logs", "faro"];
+
+/** This function gives the path of the collector that a lane shows. */
+function lanePath(lane: Lane): string {
+  return lane === "faro" ? FARO_PATH : `/v1/${lane}`;
+}
+
+/** The most Faro items that the list shows. */
+const SHOWN_FARO = 8;
 
 /** This function gives the first eight characters of an ID. */
 export function shortId(id: string): string {
@@ -50,10 +61,14 @@ function spanRow(group: TraceGroup, span: SpanRecord, depth: number, selected: s
   const isNew = !seen.has(span.spanId);
   seen.add(span.spanId);
   const bar = h("span", { class: `bar${span.status === "error" ? " bar-error" : ""}`, style: `left:${left.toFixed(3)}%;width:max(${width.toFixed(3)}%,2px)` });
-  const markers = logs.map((log) => {
-    const position = barPosition({ ...span, startMs: log.timeMs, endMs: log.timeMs }, group.startMs, group.endMs);
-    return h("span", { class: "log-mark", style: `left:${position.left.toFixed(3)}%`, title: `Log record: ${log.body}` });
-  });
+  const mark = (className: string, timeMs: number, title: string): HTMLElement => {
+    const position = barPosition({ ...span, startMs: timeMs, endMs: timeMs }, group.startMs, group.endMs);
+    return h("span", { class: className, style: `left:${position.left.toFixed(3)}%`, title });
+  };
+  const markers = [
+    ...logs.map((log) => mark("log-mark", log.timeMs, `Log record: ${log.body}`)),
+    ...group.faro.filter((item) => item.spanId === span.spanId).map((item) => mark("faro-mark", item.timeMs, `Faro ${item.kind}: ${item.text}`)),
+  ];
   return h(
     "li",
     {},
@@ -160,14 +175,14 @@ export function packetSize(bytes: number): number {
 
 /** This function gives the text of an export for a tooltip. */
 function captureLabel(capture: Capture): string {
-  const unit = capture.signal === "traces" ? "spans" : capture.signal === "metrics" ? "data points" : "log records";
-  return `Export ${capture.id} to /v1/${capture.signal}: ${capture.records} ${unit}, ${formatBytes(capture.bytes)}, ${capture.cause}`;
+  const units: Readonly<Record<Lane, string>> = { traces: "spans", metrics: "data points", logs: "log records", faro: "Faro items" };
+  return `Export ${capture.id} to ${lanePath(capture.signal)}: ${capture.records} ${units[capture.signal]}, ${formatBytes(capture.bytes)}, ${capture.cause}`;
 }
 
-/** This function draws the three lanes of the wire. */
+/** This function draws the four lanes of the wire. */
 export function drawLanes(target: HTMLElement, store: Store, selected: number | undefined, now: number): void {
   const recent = store.captures().filter((capture) => now - capture.at <= WIRE_WINDOW_MS);
-  const lanes = SIGNALS.map((signal) => {
+  const lanes = LANES.map((signal) => {
     const packets = recent
       .filter((capture) => capture.signal === signal)
       .map((capture) => {
@@ -184,7 +199,7 @@ export function drawLanes(target: HTMLElement, store: Store, selected: number | 
     return h(
       "div",
       { class: "lane", "data-lane": signal },
-      h("span", { class: "lane-name" }, h("span", { class: `key key-${signal}` }), `/v1/${signal}`),
+      h("span", { class: "lane-name" }, h("span", { class: `key key-${signal}` }), lanePath(signal)),
       h("div", { class: "lane-track" }, packets),
     );
   });
@@ -288,6 +303,23 @@ export function drawLogs(target: HTMLElement, store: Store): void {
   target.replaceChildren(...(logs.length === 0 ? [h("li", { class: "empty" }, "No log records yet. The buttons Write a log and Checkout make them.")] : logs.map(logRow)));
 }
 
+/** This function draws one Faro item. */
+function faroRow(item: FaroItem): HTMLElement {
+  return h(
+    "li",
+    { class: "log", "data-trace": item.traceId ?? "", "data-kind": item.kind },
+    h("span", { class: `tag${item.kind === "exception" ? " tag-error" : ""}` }, item.kind),
+    h("span", { class: "log-body" }, item.text),
+    item.spanId === undefined ? h("span", { class: "quiet" }, "no trace") : h("button", { type: "button", class: "link-button", "data-span": item.spanId }, `span ${shortId(item.spanId)}`),
+  );
+}
+
+/** This function draws the newest Faro items. */
+export function drawFaro(target: HTMLElement, store: Store): void {
+  const items = store.faro().slice(0, SHOWN_FARO);
+  target.replaceChildren(...(items.length === 0 ? [h("li", { class: "empty" }, "No Faro items yet. The buttons Fail a job and Checkout give one to Faro.")] : items.map(faroRow)));
+}
+
 /** This function writes the totals into the status line. */
 export function drawTotals(totals: Totals): void {
   const set = (id: string, text: string): void => {
@@ -297,6 +329,7 @@ export function drawTotals(totals: Totals): void {
   set("stat-spans", String(totals.spans));
   set("stat-points", String(totals.points));
   set("stat-logs", String(totals.logs));
+  set("stat-faro", String(totals.faro));
   set("stat-exports", String(totals.exports));
   set("stat-bytes", formatBytes(totals.bytes));
 }

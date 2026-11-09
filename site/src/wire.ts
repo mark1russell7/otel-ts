@@ -2,12 +2,22 @@
  * The in-page collector. The exporters of `init()` send each batch with `fetch`. This module replaces `fetch` before
  * `init()` runs, so that the fetch instrumentation wraps it and the OTLP transport finds it as the original. A request to
  * the collector URL or to the stand-in API ends here, and its bytes never go to a network. A request to the origin of
- * the page goes on to the browser `fetch`.
+ * the page goes on to the browser `fetch`. Faro sends to the same host on its own path, with the wrapped `fetch`.
  */
+import type { FaroBody } from "./faro.ts";
 import type { OtlpBody, Signal } from "./otlp.ts";
 
 /** The collector URL of the demo. The top-level domain `.invalid` does not resolve (RFC 2606). */
 export const COLLECTOR = "https://collector.invalid";
+
+/** The path of the Faro collector on the same host. Faro sends its own JSON there, not OTLP. */
+export const FARO_PATH = "/collect";
+
+/** The collector URL of Faro. */
+export const FARO_COLLECTOR = `${COLLECTOR}${FARO_PATH}`;
+
+/** The lanes of the wire: the three OTLP signals, and Faro. */
+export type Lane = Signal | "faro";
 
 /** The API on another origin. This module answers its requests. */
 export const OTHER_ORIGIN = "https://api.example.invalid";
@@ -17,20 +27,32 @@ export function isAt(url: string, origin: string): boolean {
   return URL.canParse(url) && new URL(url).origin === origin;
 }
 
-/** One export, as the transport of the package gave it. */
-export interface ExportRecord {
+interface ExportBase {
   readonly id: number;
   /** The time of the export, in `Date.now()` time. */
   readonly at: number;
-  readonly signal: Signal;
   readonly url: string;
   readonly method: string;
   readonly headers: Readonly<Record<string, string>>;
   readonly bytes: number;
   /** The body, as the transport gave it. */
   readonly text: string;
+}
+
+/** One export of an OTLP exporter. */
+export interface OtlpExport extends ExportBase {
+  readonly signal: Signal;
   readonly body: OtlpBody;
 }
+
+/** One request of Faro to its collector. */
+export interface FaroExport extends ExportBase {
+  readonly signal: "faro";
+  readonly body: FaroBody;
+}
+
+/** One export, as the transport of the package or of Faro gave it. */
+export type ExportRecord = OtlpExport | FaroExport;
 
 /** One request of the page, after the fetch instrumentation added its headers. */
 export interface RequestRecord {
@@ -73,20 +95,21 @@ export function createWire(network: typeof globalThis.fetch): Wire {
   const requestListeners: RequestListener[] = [];
 
   const collect = (url: string, options: RequestInit | undefined): Response => {
-    const signal = SIGNALS[new URL(url).pathname];
-    if (signal === undefined) return new Response(null, { status: 404 });
+    const path = new URL(url).pathname;
+    const signal = SIGNALS[path];
+    if (signal === undefined && path !== FARO_PATH) return new Response(null, { status: 404 });
     const text = bodyText(options?.body);
-    const record: ExportRecord = {
+    const base: ExportBase = {
       id: records.length + 1,
       at: Date.now(),
-      signal,
       url,
       method: options?.method ?? "GET",
       headers: Object.fromEntries([...new Headers(options?.headers).entries()].map(([name, value]) => [name.toLowerCase(), value])),
       bytes: new TextEncoder().encode(text).length,
       text,
-      body: JSON.parse(text) as OtlpBody,
     };
+    const record: ExportRecord =
+      signal === undefined ? { ...base, signal: "faro", body: JSON.parse(text) as FaroBody } : { ...base, signal, body: JSON.parse(text) as OtlpBody };
     records.push(record);
     for (const listener of exportListeners) listener(record);
     return new Response("{}", { status: 200, headers: { "content-type": "application/json" } });

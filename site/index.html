@@ -34,8 +34,8 @@
           <button id="act-fetch" class="action" type="button"><strong>Fetch a file</strong><span>Click span, fetch span, traceparent</span></button>
           <button id="act-other-origin" class="action" type="button"><strong>Call another origin</strong><span>Fetch span, no traceparent</span></button>
           <button id="act-slow" class="action" type="button"><strong>Block the main thread</strong><span>Long task span</span></button>
-          <button id="act-failed-job" class="action" type="button"><strong>Fail a job</strong><span>Status ERROR, exception event</span></button>
-          <button id="act-checkout" class="action" type="button"><strong>Checkout</strong><span>Nested spans, log, metrics</span></button>
+          <button id="act-failed-job" class="action" type="button"><strong>Fail a job</strong><span>Status ERROR, exception event, Faro error</span></button>
+          <button id="act-checkout" class="action" type="button"><strong>Checkout</strong><span>Nested spans, log, metrics, Faro event</span></button>
           <button id="act-log" class="action" type="button"><strong>Write a log</strong><span>Log record with trace IDs</span></button>
         </div>
         <div class="toolbar">
@@ -47,6 +47,7 @@
           <div><dt>Spans</dt><dd id="stat-spans">0</dd></div>
           <div><dt>Metric points</dt><dd id="stat-points">0</dd></div>
           <div><dt>Log records</dt><dd id="stat-logs">0</dd></div>
+          <div><dt>Faro items</dt><dd id="stat-faro">0</dd></div>
           <div><dt>Exports</dt><dd id="stat-exports">0</dd></div>
           <div><dt>Payload</dt><dd id="stat-bytes">0 B</dd></div>
           <div><dt><code>init()</code> time</dt><dd id="stat-init">-</dd></div>
@@ -64,6 +65,7 @@
           <ul class="legend" aria-label="Legend">
             <li><span class="key key-bar"></span>Span</li>
             <li><span class="key key-log-mark"></span>Log record of the span</li>
+            <li><span class="key key-faro-mark"></span>Faro item of the span</li>
             <li><span class="key key-failed"></span>Failed span</li>
           </ul>
           <div id="waterfall" class="waterfall"></div>
@@ -75,7 +77,7 @@
 
       <section class="card" aria-labelledby="wire-title">
         <h2 id="wire-title">The wire</h2>
-        <p class="quiet">Each dot is one POST of the OTLP exporters in the last 60 seconds. A larger dot has a larger payload. Press a dot to read its payload.</p>
+        <p class="quiet">Each dot is one POST of the OTLP exporters or of Faro in the last 60 seconds. A larger dot has a larger payload. Press a dot to read its payload.</p>
         <div id="lanes" class="lanes"></div>
         <div class="axis" aria-hidden="true"><span>60 s ago</span><span>30 s ago</span><span>0 s ago</span></div>
         <p id="wire-readout" class="quiet readout" role="status">Point at a dot to read its size and its cause.</p>
@@ -124,6 +126,12 @@
         </section>
       </div>
 
+      <section class="card" aria-labelledby="faro-title">
+        <h2 id="faro-title">Faro items</h2>
+        <p class="quiet">Faro sends errors, logs, events and Web Vitals to its own collector, as Faro JSON. It reads the active span from otel-ts, so an item that the page gives in a span has the IDs of that span. Press its span to find it in the traces. Faro has no tracing of its own, so each request has one span, and the requests of Faro have none.</p>
+        <ol id="faro" class="logs"></ol>
+      </section>
+
       <div class="split even">
         <section class="card" aria-labelledby="options-title">
           <h2 id="options-title">Change the options</h2>
@@ -170,7 +178,7 @@
           <li>The page decodes the body of each POST, and it draws the result. The console has the same records in <code>otelLab.exports()</code>.</li>
         </ol>
         <p>The button Fetch a file gets a real file from this site. The button Call another origin gets its answer from the stub, and the page tells you so.</p>
-        <p>Faro stays off on this page, because the page shows only the OTLP exports. <code>init()</code> starts Faro only with <code>faroCollectorUrl</code>. Faro has no tracing of its own, so with Faro on, each request also has one span.</p>
+        <p>Faro is on: <code>faroCollectorUrl</code> is <code>https://collector.invalid/collect</code>, and the same stub takes its requests. <code>init()</code> starts Faro only with that URL. Faro has no tracing of its own, so with Faro on, each request still has one span.</p>
         <h3>Install</h3>
         <div class="install">
           <pre id="install" tabindex="0" data-scrolls>pnpm add @mark1russell7/otel-ts</pre>

@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json"
   },
   "dependencies": {
+    "@grafana/faro-web-sdk": "^2.13.0",
     "@mark1russell7/otel-ts": "workspace:*",
     "@mark1russell7/site-pages": "^0.4.3",
     "@opentelemetry/api": "^1.9.0",
