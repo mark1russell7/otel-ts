@@ -6,6 +6,19 @@
 
 - With `faroCollectorUrl`, each export of the OTLP exporters made a fetch span, and the next export sent that span. The exporters send with `fetch.__original`, so that the fetch instrumentation does not see them. The request monitor of Faro replaced `fetch()` with a wrapper without `__original`. Now `init()` gives that wrapper the `__original` of the fetch that Faro replaced.
 
+## 0.7.3
+
+### Added
+
+- The entry `@mark1russell7/otel-ts/lag`, with `lagDeps()` (decision D7). One call gives the monitors of `@mark1russell7/lag` the meter, the logger, the event sink and the span sink of an instance. `connect()` records the values of the monitors before each flush of the instance. Thus an app does not connect them by hand. The adapters are the adapters of lag. `@mark1russell7/lag` 0.4.2 or later is a new optional peer dependency, and no other entry imports it.
+
+## 0.7.2
+
+### Fixed
+
+- `outgoingTraceparent()` and `runInRemoteTrace()` accepted a `traceparent` whose trace id or span id has only zeros. Such a value is not valid in W3C Trace Context. Now they check the value with `isSpanContextValid()` of `@opentelemetry/api` (decision D7). `outgoingTraceparent()` refuses the value, and `runInRemoteTrace()` only runs the function.
+- `outgoingTraceparent()` gave a header of a later version (for example `01`) back with its extra fields. Now it gives the header in the form of version `00`, as W3C Trace Context tells a receiver to send it on.
+
 ## 0.7.1
 
 ### Fixed

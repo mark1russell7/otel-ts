@@ -42,6 +42,8 @@ describe("runInRemoteTrace", () => {
     const tracer = provider.getTracer("test");
     expect(runInRemoteTrace(undefined, () => "plain", { tracer })).toBe("plain");
     expect(runInRemoteTrace("not-a-traceparent", () => "plain", { tracer })).toBe("plain");
+    expect(runInRemoteTrace("00-00000000000000000000000000000000-b7ad6b7169203331-01", () => "plain", { tracer })).toBe("plain");
+    expect(runInRemoteTrace("00-0af7651916cd43dd8448eb211c80319c-0000000000000000-01", () => "plain", { tracer })).toBe("plain");
     expect(exporter.getFinishedSpans()).toHaveLength(0);
   });
 
