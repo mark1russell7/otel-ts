@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0
+
+### Breaking changes
+
+- The fetch and XHR spans use the stable HTTP semantic conventions, from `instrumentation-fetch` and `instrumentation-xml-http-request` 0.223 (through `auto-instrumentations-web` 0.68). The span name is the method (`GET`), not `HTTP GET`. The attributes are `url.full`, `http.request.method`, `http.response.status_code`, `server.address` and `server.port`, not `http.url`, `http.method`, `http.status_code` and `http.host`. Change the queries, dashboards and alerts that use the old names. The OpenTelemetry packages have no option for the old names.
+
+### Security
+
+- The OpenTelemetry packages move to the 2.12 and 0.223 lines: `@opentelemetry/core` `^2.12.0` (and `resources`, `sdk-metrics`, `sdk-trace-base`, `context-zone`, `sdk-trace-web`), the exporters, `instrumentation`, `sdk-logs` and `api-logs` `^0.223.0`, `auto-instrumentations-web` `^0.68.0` and `instrumentation-long-task` `^0.67.0`. Before 2.8.0, the W3C baggage propagator of `@opentelemetry/core` could allocate memory with no limit for a large `baggage` header (GHSA-8988-4f7v-96qf). The propagator of otel-ts uses it.
+- `@grafana/faro-web-sdk` and `@grafana/faro-web-tracing` move to `^2.13.0`. The earlier versions brought `@opentelemetry/core` 2.6.0 through `otlp-transformer` 0.213.0.
+- Vitest 4.1.12, for the development only (GHSA-qxg6-89mg-rqv8, GHSA-xp26-3454-mjgp).
+
+No change to the TypeScript API of otel-ts.
+
 ## 0.5.0
 
 ### Breaking changes

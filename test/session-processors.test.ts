@@ -28,7 +28,7 @@ describe("createSessionLogRecordProcessor", () => {
     const provider = new LoggerProvider({
       processors: [
         createSessionLogRecordProcessor(rotatingSession()),
-        new SimpleLogRecordProcessor(exporter),
+        new SimpleLogRecordProcessor({ exporter }),
       ],
     });
     const logger = provider.getLogger("test");

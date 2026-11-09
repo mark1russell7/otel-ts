@@ -119,7 +119,7 @@ describe("the lab", () => {
   });
 
   it("makes no span for an export", () => {
-    expect(spans().filter((span) => isAt(String(span.attributes["http.url"]), COLLECTOR))).toEqual([]);
+    expect(spans().filter((span) => isAt(String(span.attributes["url.full"]), COLLECTOR))).toEqual([]);
   });
 
   it("keeps the checkout span across the timers and the then callback", () => {
@@ -127,7 +127,7 @@ describe("the lab", () => {
     expect(root).toBeDefined();
     expect(named("price the cart")[0]?.parentSpanId).toBe(root?.spanId);
     expect(named("save the order")[0]?.parentSpanId).toBe(root?.spanId);
-    expect(named("HTTP GET")[0]?.parentSpanId).toBe(root?.spanId);
+    expect(named("GET")[0]?.parentSpanId).toBe(root?.spanId);
   });
 
   it("gives the log record of the checkout the IDs of its span", () => {
@@ -137,7 +137,7 @@ describe("the lab", () => {
   });
 
   it("puts the fetch span ID into the traceparent of the request", () => {
-    const fetchSpan = named("HTTP GET")[0];
+    const fetchSpan = named("GET")[0];
     if (fetchSpan === undefined) throw new Error("no fetch span");
     expect(store.requestOf(fetchSpan)?.traceparent).toBe(`00-${fetchSpan.traceId}-${fetchSpan.spanId}-01`);
   });
@@ -151,7 +151,7 @@ describe("the lab", () => {
   it("sends no traceparent to another origin", async () => {
     await lab.run("other-origin");
     await flush();
-    const span = spans().find((item) => item.attributes["http.url"] === `${OTHER_ORIGIN}/orders`);
+    const span = spans().find((item) => item.attributes["url.full"] === `${OTHER_ORIGIN}/orders`);
     if (span === undefined) throw new Error("no span of the other origin");
     expect(store.requestOf(span)).toMatchObject({ stubbed: true, traceparent: undefined });
   });
