@@ -6,6 +6,7 @@
  * 3. `init()` runs.
  * 4. The listeners of the action buttons start. A click on one of these buttons makes a real click span.
  */
+import "@mark1russell7/site-pages/scroll-cue.css";
 import "./style.css";
 import { byId, copyText, setupTheme, showBuild } from "@mark1russell7/site-pages/chrome";
 import { configText, labConfig, OPTION_VALUES, readOptions, startLab } from "./lab.ts";
