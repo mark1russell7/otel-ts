@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2
+
+### Fixed
+
+- `outgoingTraceparent()` and `runInRemoteTrace()` accepted a `traceparent` whose trace id or span id has only zeros. Such a value is not valid in W3C Trace Context. Now they check the value with `isSpanContextValid()` of `@opentelemetry/api` (decision D7). `outgoingTraceparent()` refuses the value, and `runInRemoteTrace()` only runs the function.
+- `outgoingTraceparent()` gave a header of a later version (for example `01`) back with its extra fields. Now it gives the header in the form of version `00`, as W3C Trace Context tells a receiver to send it on.
+
 ## 0.7.0
 
 ### Breaking changes
