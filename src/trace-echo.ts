@@ -8,23 +8,49 @@
  *
  * @packageDocumentation
  */
-import { context, defaultTextMapGetter, propagation, ROOT_CONTEXT, SpanKind, SpanStatusCode, trace, type Attributes, type Tracer } from "@opentelemetry/api";
+import {
+  context,
+  defaultTextMapGetter,
+  isSpanContextValid,
+  propagation,
+  ROOT_CONTEXT,
+  SpanKind,
+  SpanStatusCode,
+  trace,
+  type Attributes,
+  type Context,
+  type Tracer,
+} from "@opentelemetry/api";
 import { W3CTraceContextPropagator } from "@opentelemetry/core";
 
-/** The W3C propagator of runInRemoteTrace: it reads the traceparent also when no global propagator is set. */
+/** The W3C propagator of this module: it reads the traceparent also when no global propagator is set. */
 const W3C = new W3CTraceContextPropagator();
 
-const TRACEPARENT = /^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/;
+/**
+ * The remote parent of a W3C `traceparent`, or undefined when the value is not a valid traceparent. The check is
+ * `isSpanContextValid` of `@opentelemetry/api`: a trace id or a span id of only zeros is not valid.
+ */
+function remoteParent(traceparent: unknown): Context | undefined {
+  if (typeof traceparent !== "string") return undefined;
+  const parent = W3C.extract(ROOT_CONTEXT, { traceparent }, defaultTextMapGetter);
+  const spanContext = trace.getSpanContext(parent);
+  return spanContext && isSpanContextValid(spanContext) ? parent : undefined;
+}
 
 /**
  * The W3C trace context to pass on: the context of the active span when the
- * SDK operates, else the `traceparent` header of the request.
+ * SDK operates, else the `traceparent` header of the request. The header comes
+ * back in the W3C form of version `00`.
  */
 export function outgoingTraceparent(header: unknown): string | undefined {
   const carrier: Record<string, string> = {};
   propagation.inject(context.active(), carrier);
-  const value = carrier["traceparent"] ?? (typeof header === "string" ? header : undefined);
-  return value && TRACEPARENT.test(value) ? value : undefined;
+  const parent = remoteParent(carrier["traceparent"]) ?? remoteParent(header);
+  const spanContext = parent && trace.getSpanContext(parent);
+  if (!spanContext) return undefined;
+  // Not W3C.inject: in core 2.12 it writes the flags 0x10 to 0xff with three digits ("0ff").
+  const flags = (spanContext.traceFlags & 0xff).toString(16).padStart(2, "0");
+  return `00-${spanContext.traceId}-${spanContext.spanId}-${flags}`;
 }
 
 /** A store of the trace contexts of the writes, until their echoes arrive */
@@ -103,8 +129,8 @@ export interface RemoteTraceOptions {
  * ```
  */
 export function runInRemoteTrace<T>(traceparent: string | undefined, fn: () => T, options: RemoteTraceOptions = {}): T {
-  if (!traceparent || !TRACEPARENT.test(traceparent)) return fn();
-  const parent = W3C.extract(ROOT_CONTEXT, { traceparent }, defaultTextMapGetter);
+  const parent = remoteParent(traceparent);
+  if (!parent) return fn();
   const tracer = options.tracer ?? trace.getTracer("@mark1russell7/otel-ts");
   const span = tracer.startSpan(options.name ?? "remote.apply", { kind: SpanKind.CONSUMER, ...(options.attributes ? { attributes: options.attributes } : {}) }, parent);
   const fail = (error: unknown): void => {
