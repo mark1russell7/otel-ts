@@ -31,7 +31,7 @@ vi.mock("@opentelemetry/exporter-logs-otlp-http", async () => {
 });
 vi.mock("@grafana/faro-web-sdk", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@grafana/faro-web-sdk")>()),
-  initializeFaro: vi.fn(),
+  initializeFaro: vi.fn(() => ({ api: { initOTEL: vi.fn() } })),
 }));
 
 // No auto-instrumentation: the tests make their own spans
@@ -188,6 +188,24 @@ describe("Faro", () => {
     expect(initializeFaro).toHaveBeenCalledWith(
       expect.objectContaining({ url: "https://faro.example.com/collect" }),
     );
+  });
+
+  it("reads the context of otel-ts and has no tracing of its own", () => {
+    otel = init({
+      ...QUIET,
+      faro: true,
+      faroCollectorUrl: "https://faro.example.com/collect",
+    });
+
+    const options = vi.mocked(initializeFaro).mock.calls[0]![0];
+    const names = (options.instrumentations ?? []).map((item) => item.name);
+    // The tracing of Faro made a second tracer provider and a second
+    // instrumentation of fetch() and XHR
+    expect(names).not.toContain("@grafana/faro-web-tracing");
+    const faro = vi.mocked(initializeFaro).mock.results[0]!.value as {
+      api: { initOTEL: ReturnType<typeof vi.fn> };
+    };
+    expect(faro.api.initOTEL).toHaveBeenCalledWith(trace, context);
   });
 
   it("does not start without faroCollectorUrl, so it logs no error", () => {

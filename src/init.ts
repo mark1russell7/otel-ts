@@ -107,9 +107,14 @@ export function initWith(
     shutdown(): Promise<void>;
   }> = [];
 
+  // Faro instruments the page (errors, web vitals, views) and needs a DOM.
+  // Without a collector URL it has nowhere to send data and logs an error.
+  const faroUrl =
+    resolved.faro && hasDom() ? resolved.faroCollectorUrl : undefined;
+
   if (contextManager) {
     providers.push(
-      setupTracing(resource, resolved, getSessionId, contextManager),
+      setupTracing(resource, resolved, getSessionId, contextManager, faroUrl),
     );
   }
 
@@ -125,11 +130,7 @@ export function initWith(
 
   providers.push(loggerProvider);
 
-  // Faro instruments the page (errors, web vitals, views) and needs a DOM.
-  // Without a collector URL it has nowhere to send data and logs an error.
-  const faroUrl =
-    resolved.faro && hasDom() ? resolved.faroCollectorUrl : undefined;
-
+  // After the tracing, so Faro reads the context of otel-ts
   if (faroUrl) {
     setupFaro(resolved, faroUrl);
   }

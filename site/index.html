@@ -170,7 +170,7 @@
           <li>The page decodes the body of each POST, and it draws the result. The console has the same records in <code>otelLab.exports()</code>.</li>
         </ol>
         <p>The button Fetch a file gets a real file from this site. The button Call another origin gets its answer from the stub, and the page tells you so.</p>
-        <p>Faro stays off on this page. <code>init()</code> starts Faro only with <code>faroCollectorUrl</code>, and Faro has its own tracing. This page leaves it out, so each span shows once.</p>
+        <p>Faro stays off on this page, because the page shows only the OTLP exports. <code>init()</code> starts Faro only with <code>faroCollectorUrl</code>. Faro has no tracing of its own, so with Faro on, each request also has one span.</p>
         <h3>Install</h3>
         <div class="install">
           <pre id="install" tabindex="0" data-scrolls>pnpm add @mark1russell7/otel-ts</pre>

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+### Breaking changes
+
+- Faro has no tracing of its own. `init()` no longer gives Faro the `TracingInstrumentation` of `@grafana/faro-web-tracing`, and otel-ts no longer depends on that package. The traces go only through the OTLP exporter of otel-ts, so the Faro collector gets no traces. Before, with `tracing: false` and `faroCollectorUrl`, Faro sent its own traces to its collector. Faro still sends the errors, the logs, the Web Vitals and the views.
+
+### Fixed
+
+- With `faroCollectorUrl`, each `fetch()` and each XHR request had two spans. The `TracingInstrumentation` of Faro wrapped `fetch()` and XHR a second time with the global tracer provider, which is the provider of otel-ts. Its own tracer provider, propagator and context manager did not register, because otel-ts registers first. Now each request has one span.
+- Each request of Faro to its collector had a span. The fetch and XHR instrumentations of otel-ts now ignore the URL of the Faro collector.
+- An error or a log of Faro has the trace and the span of its context: Faro reads the context of otel-ts (`faro.api.initOTEL()`).
+
 ## 0.6.0
 
 ### Breaking changes

@@ -20,6 +20,8 @@ export function setupTracing(
   config: ResolvedConfig,
   getSessionId: SessionIdReader,
   contextManager: ContextManager,
+  /** The URL of the Faro collector, when Faro starts */
+  faroUrl?: string,
 ): WebTracerProvider {
   // Document-load and user-interaction need a DOM; skip them in Web Workers
   const dom = hasDom();
@@ -42,6 +44,9 @@ export function setupTracing(
   // instrumentations permit, `baggage` only on an internal call
   provider.register({ contextManager, propagator: new ContextPropagator() });
 
+  // The sends of Faro to its collector are telemetry, not calls of the app
+  const ignoreUrls = faroUrl ? [faroUrl] : [];
+
   registerInstrumentations({
     instrumentations: [
       getWebAutoInstrumentations({
@@ -51,10 +56,12 @@ export function setupTracing(
         "@opentelemetry/instrumentation-fetch": {
           enabled: config.instrumentFetch,
           propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls,
+          ignoreUrls,
         },
         "@opentelemetry/instrumentation-xml-http-request": {
           enabled: config.instrumentXhr,
           propagateTraceHeaderCorsUrls: config.propagateTraceHeaderCorsUrls,
+          ignoreUrls,
         },
         "@opentelemetry/instrumentation-user-interaction": {
           enabled: config.instrumentUserInteraction && dom,
