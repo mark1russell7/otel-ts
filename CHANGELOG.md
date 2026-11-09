@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1
+
+### Fixed
+
+- When a part of `init()` failed after the claim of the context (the tracing, the metrics, the logs, Faro or the page handlers), the claim stayed. `init()` gave no instance, so nothing could call `shutdown()`, and each later `init()` or `startNodeTelemetry()` of the program threw "The context is registered already by init()". Now `init()` stops the providers that started, removes the globals of the context, gives back the claim, and throws the error.
+- `startNodeTelemetry()` with an `importMetaUrl` whose loader hook did not resolve kept the claim of the context. Now it gives back the claim, so a next start can operate.
+- The SIGTERM and SIGINT listeners of `startNodeTelemetry()` stayed after `shutdown()`. After a new start, a signal ended the process before the new SDK flushed: the new listener counted the old one as a listener of the service, and the old one raised the signal at once. Now `shutdown()` removes the listeners, and a listener of otel-ts is never counted as a listener of the service.
+- An empty `OTEL_EXPORTER_OTLP_<SIGNAL>_PROTOCOL` or `OTEL_EXPORTER_OTLP_PROTOCOL` was an error at the start. Now an empty variable is not set, as in the OpenTelemetry specification.
+
 ## 0.7.0
 
 ### Breaking changes

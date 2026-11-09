@@ -1,5 +1,8 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { context, propagation, trace } from "@opentelemetry/api";
 import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
@@ -146,6 +149,14 @@ describe("startNodeTelemetry", () => {
     expect(telemetry.enabled).toBe(false);
   });
 
+  it("keeps no registration when the loader hook does not resolve", () => {
+    // No node_modules above this folder has @opentelemetry/instrumentation
+    const importMetaUrl = pathToFileURL(join(tmpdir(), "otel-ts-no-hook", "entry.mjs")).href;
+    expect(() => startNodeTelemetry({ env: {}, stopOnSignals: false, importMetaUrl })).toThrow(/@opentelemetry\/instrumentation/);
+    telemetry = startNodeTelemetry({ env: {}, stopOnSignals: false });
+    expect(telemetry.esmHook).toBe(false);
+  });
+
   it("exports the spans to the collector of the endpoint", async () => {
     collector = await startStubCollector();
     telemetry = startNodeTelemetry({
@@ -230,6 +241,25 @@ describe("startNodeTelemetry at SIGTERM and SIGINT", () => {
       expect(process.listenerCount(signal)).toBe(0);
     });
   }
+
+  it("removes its listeners at the stop, so the next start flushes before the signal ends the process", async () => {
+    start();
+    await telemetry?.shutdown();
+    expect(signals.map((signal) => process.listenerCount(signal))).toEqual([0, 0]);
+
+    const { stopped, kill } = start();
+    let stoppedBeforeKill = false;
+    kill.mockImplementation(() => {
+      stoppedBeforeKill = stopped();
+      return true;
+    });
+    process.emit("SIGTERM", "SIGTERM");
+
+    // Before, the listener of the first start stayed, and it raised the signal before the flush
+    await vi.waitFor(() => expect(kill).toHaveBeenCalledWith(process.pid, "SIGTERM"));
+    expect(kill).toHaveBeenCalledTimes(1);
+    expect(stoppedBeforeKill).toBe(true);
+  });
 
   it("flushes, and lets the listener of the service end the process", async () => {
     const own = vi.fn();
@@ -316,6 +346,12 @@ describe("the exporters of the OTEL_* variables", () => {
     expect(otlpProtocol("traces", { OTEL_EXPORTER_OTLP_PROTOCOL: "http/json" })).toBe("http/json");
     expect(otlpProtocol("logs", { OTEL_EXPORTER_OTLP_PROTOCOL: "http/json", OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: "http/protobuf" })).toBe("http/protobuf");
     expect(() => otlpProtocol("traces", { OTEL_EXPORTER_OTLP_PROTOCOL: "grpc" })).toThrow(/For grpc, give the exporter/);
+  });
+
+  it("takes an empty protocol variable as not set", () => {
+    // For example, `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=` in a template. Before, it was an error.
+    expect(otlpProtocol("traces", { OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: "", OTEL_EXPORTER_OTLP_PROTOCOL: "http/json" })).toBe("http/json");
+    expect(otlpProtocol("traces", { OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: " ", OTEL_EXPORTER_OTLP_PROTOCOL: "" })).toBe("http/protobuf");
   });
 
   it("reads the histogram aggregation, and refuses a value it does not know", () => {
