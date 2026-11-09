@@ -365,6 +365,12 @@ To use Faro, set the collector URL:
 const otel = init({ faroCollectorUrl: "https://faro.example.com/collect" });
 ```
 
+Faro sends the errors, the logs, the Web Vitals and the views to its collector. otel-ts keeps the traces:
+
+- Faro has no tracer provider and no fetch or XHR instrumentation of its own. Each request has one span, and the traces go only through the OTLP exporter.
+- Faro reads the context of otel-ts. An error or a log of Faro has the trace ID and the span ID of the active span.
+- The requests of Faro to its collector make no span.
+
 ## Web Workers
 
 You can call `init()` in a Web Worker. The library does not use `window` or `document` there. It does not start Faro, document-load spans or user-interaction spans. It does not add page listeners. Call `forceFlush()` or `shutdown()` yourself before the worker stops.

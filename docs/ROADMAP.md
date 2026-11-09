@@ -5,7 +5,7 @@ This file is the plan of otel-ts. The Status page of the site reads it. The desi
 | ID | Item | Status | Priority | Summary |
 | --- | --- | --- | --- | --- |
 | O1 | The site with a live lab | done | P2 | The site at GitHub Pages starts the real `init()` in the browser. A stub in the page catches each OTLP export, and the page shows it in a waterfall and on a wire. |
-| O2 | Faro in the lab | later | P3 | Faro stays off in the lab, because its tracing adds a second copy of each fetch span. A later lab can show a Faro lane with no second copy. |
+| O2 | Faro in the lab | in progress | P3 | The second copy of each fetch span came from the `TracingInstrumentation` of Faro, in each app with `faroCollectorUrl`, not only in the lab. 0.7.0 removes it: Faro reads the context of otel-ts and has no tracing of its own, and the requests of Faro make no span. A test with the real Faro holds it. Next: a Faro lane in the lab. |
 | C1 | The design of one context, and the talk | done | P1 | The design doc, then the decisions D1 to D5 with the strategist and Mark. The build starts after the talk. |
 | C2 | The entry `/context` | done | P1 | `defineContextKeys`, `withContext`, `contextValue` and `withInternalCall`, on `@opentelemetry/api` only. Needs C1. |
 | C3 | The processors of the context keys | done | P1 | Copy each named key of the baggage to each span and log record. A metric view removes each key of high cardinality. The `session.id` processors become a case of them. Needs C2. |
