@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.5
+
+### Fixed
+
+- The package no longer ships `dist/.tsbuildinfo`, the build cache of `tsc`. The file changed on each build, also after a bump of a dev dependency, so the release of an unchanged version stopped. No change to the code or the API.
+
 ## 0.7.4
 
 ### Fixed
