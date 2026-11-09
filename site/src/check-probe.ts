@@ -52,12 +52,18 @@ interface Metric {
 interface Resource {
   attributes?: KeyValue[];
 }
+interface FaroTrace {
+  trace_id?: string;
+  span_id?: string;
+}
 interface Capture {
   id: number;
-  signal: "traces" | "metrics" | "logs";
+  signal: "traces" | "metrics" | "logs" | "faro";
   cause: string;
   url: string;
   body: {
+    exceptions?: { value?: string; trace?: FaroTrace }[];
+    events?: { name?: string; trace?: FaroTrace }[];
     resourceSpans?: { resource?: Resource; scopeSpans?: { spans?: Span[] }[] }[];
     resourceMetrics?: { resource?: Resource; scopeMetrics?: { metrics?: Metric[] }[] }[];
     resourceLogs?: { resource?: Resource; scopeLogs?: { logRecords?: LogRecord[] }[] }[];
@@ -144,6 +150,9 @@ check("the failed job has the click span as its remote parent", spans().find((sp
 check("the waterfall marks the failed span in text", await until(() => $(`#waterfall [data-span="${job?.spanId}"] .tag-error`)?.textContent === "error"));
 const failLog = await until(() => logs().find((log) => log.body?.stringValue === "The payment job failed on purpose"), SLOW);
 check("the error log has the trace of the job", failLog?.traceId === job?.traceId, failLog);
+const faroError = await until(() => lab.exports().flatMap((capture) => capture.body.exceptions ?? []).find((item) => item.value === "The payment job failed on purpose"), SLOW);
+check("Faro got the error with the IDs of the click span", faroError?.trace?.trace_id === job?.traceId && faroError?.trace?.span_id === job?.parentSpanId, faroError);
+check("the Faro list links the error to the click span", await until(() => $(`#faro [data-kind="exception"] button[data-span="${job?.parentSpanId}"]`) !== null), $("#faro")?.textContent?.slice(0, 200));
 
 // The checkout keeps its span across two timers, one fetch and one then callback
 click("#act-checkout");
@@ -156,6 +165,17 @@ check("the span in a then callback has the checkout span as its parent", saved?.
 const orderLog = logs().find((log) => log.body?.stringValue === "The order is saved");
 check("the log record of the checkout has the IDs of its span", orderLog?.spanId === saved?.spanId && orderLog?.traceId === saved?.traceId, orderLog);
 check("the waterfall shows the log record on the span", await until(() => $(`#waterfall [data-span="${saved?.spanId}"] .log-mark`) !== null));
+const faroEvent = await until(() => lab.exports().flatMap((capture) => capture.body.events ?? []).find((item) => item.name === "order saved"), SLOW);
+check("the Faro event of the checkout has the IDs of its span", faroEvent?.trace?.span_id === saved?.spanId && faroEvent?.trace?.trace_id === saved?.traceId, faroEvent);
+check("the waterfall shows the Faro event on the span", await until(() => $(`#waterfall [data-span="${saved?.spanId}"] .faro-mark`) !== null));
+
+// Faro is on, and each request has one span (the tracing of Faro made a second one before 0.7.0)
+const orderSpans = () => named("GET").filter((span) => String(attr(span.attributes, "url.full")).endsWith("/demo/order.json"));
+await until(() => orderSpans().length >= 2, SLOW);
+await wait(1000);
+check("each of the two fetches of the order has one span", orderSpans().length === 2, orderSpans().map((span) => span.spanId));
+check("Faro sent its items to its collector path", lab.exports().some((capture) => capture.signal === "faro" && capture.url === "https://collector.invalid/collect"));
+check("the requests of Faro make no span", !spans().some((span) => isAt(String(attr(span.attributes, "url.full")), "https://collector.invalid")), spans().map((span) => attr(span.attributes, "url.full")));
 
 // Metrics
 check("the counter of the checkout reached the collector", await until(() => counterTotal("checkout") >= 1, SLOW), counterTotal("checkout"));
@@ -196,13 +216,13 @@ setHidden(false);
 click(autoFlush);
 
 // The wire and the payload
-check("each lane of the wire has a dot", await until(() => ["traces", "metrics", "logs"].every((signal) => $(`[data-lane="${signal}"] .packet`) !== null)), $("#lanes")?.innerHTML.slice(0, 200));
+check("each lane of the wire has a dot", await until(() => ["traces", "metrics", "logs", "faro"].every((signal) => $(`[data-lane="${signal}"] .packet`) !== null)), $("#lanes")?.innerHTML.slice(0, 200));
 const row = $('#exports button[data-export]');
 const rowId = Number(row?.dataset["export"]);
 if (row) click(row);
 const shown = lab.exports().find((capture) => capture.id === rowId);
 check("an export row shows the JSON of that export", await until(() => $("#payload")?.textContent === JSON.stringify(shown?.body, null, 2)), $("#payload")?.textContent?.slice(0, 120));
-check("the line above the payload names the collector", ($("#payload-line")?.textContent ?? "").split(/\s+/).some((word) => isAt(word, "https://collector.invalid") && new URL(word).pathname.startsWith("/v1/")), $("#payload-line")?.textContent);
+check("the line above the payload names the collector", ($("#payload-line")?.textContent ?? "").split(/\s+/).map((word) => word.replace(/[,.]$/, "")).some((word) => isAt(word, "https://collector.invalid") && /^\/(v1\/(traces|metrics|logs)|collect)$/.test(new URL(word).pathname)), $("#payload-line")?.textContent);
 const packet = $(".packet");
 if (packet) click(packet);
 check("a dot of the wire selects its export", await until(() => $(".packet.is-selected") !== null));
@@ -220,7 +240,7 @@ check("the browser saw no request to another origin", entries.every((name) => ne
 check("the browser saw no request to the collector", !entries.some((name) => isAt(name, "https://collector.invalid")), entries);
 check("the status line shows the count of the browser", $("#stat-left")?.textContent === "0", $("#stat-left")?.textContent);
 check("the page tells that the data stays in the browser", /stays in your browser/.test($(".privacy")?.textContent ?? "") && /nothing goes to a server/.test($(".privacy")?.textContent ?? ""));
-check("the page shows the init() call that it ran", ($("#config")?.textContent ?? "").includes('endpoint: "https://collector.invalid"'));
+check("the page shows the init() call that it ran", ($("#config")?.textContent ?? "").includes('endpoint: "https://collector.invalid"') && ($("#config")?.textContent ?? "").includes('faroCollectorUrl: "https://collector.invalid/collect"'));
 
 // Other options need a new init(), so a hidden frame loads the page with them
 const frame = document.createElement("iframe");

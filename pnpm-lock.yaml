@@ -99,6 +99,9 @@ importers:
 
   site:
     dependencies:
+      '@grafana/faro-web-sdk':
+        specifier: ^2.13.0
+        version: 2.13.0
       '@mark1russell7/otel-ts':
         specifier: workspace:*
         version: link:..

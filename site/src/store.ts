@@ -2,17 +2,19 @@
  * The store of the page. It holds what the wire caught, and it groups the records for the views. It has no DOM, so a
  * test can examine it.
  */
+import { decodeFaro } from "./faro.ts";
+import type { FaroItem } from "./faro.ts";
 import { decodeLogs, decodeMetrics, decodeSpans, recordCount, waterfallRows } from "./otlp.ts";
 import type { LogRecord, MetricRecord, SpanRecord, WaterfallRow } from "./otlp.ts";
 import type { ExportRecord, RequestRecord } from "./wire.ts";
 
 /** One export, with the data that the page adds to it. */
-export interface Capture extends ExportRecord {
-  /** The count of spans, data points or log records. */
+export type Capture = ExportRecord & {
+  /** The count of spans, data points, log records or Faro items. */
   readonly records: number;
   /** What started the export, as a short text. */
   readonly cause: string;
-}
+};
 
 /** The spans of one trace. */
 export interface TraceGroup {
@@ -22,6 +24,8 @@ export interface TraceGroup {
   readonly endMs: number;
   readonly rows: readonly WaterfallRow[];
   readonly logs: readonly LogRecord[];
+  /** The Faro items that have the trace. */
+  readonly faro: readonly FaroItem[];
   readonly failed: boolean;
 }
 
@@ -30,6 +34,7 @@ export interface Totals {
   readonly spans: number;
   readonly points: number;
   readonly logs: number;
+  readonly faro: number;
   readonly exports: number;
   readonly bytes: number;
 }
@@ -45,6 +50,9 @@ const MAX_TRACES = 40;
 function timerCause(capture: Pick<ExportRecord, "signal">): string {
   return capture.signal === "metrics" ? "metric interval" : "batch timer";
 }
+
+/** The cause of each Faro request. Faro sends on its own timer, and a flush of otel-ts does not start it. */
+const FARO_CAUSE = "Faro batch";
 
 /** The store. */
 export interface Store {
@@ -64,6 +72,8 @@ export interface Store {
   latestMetrics(): readonly MetricRecord[];
   /** This function gives the log records, newest first. */
   logs(): readonly LogRecord[];
+  /** This function gives the Faro items, newest first. */
+  faro(): readonly FaroItem[];
   totals(): Totals;
 }
 
@@ -73,9 +83,10 @@ export function createStore(): Store {
   const spans = new Map<string, SpanRecord>();
   const requests: RequestRecord[] = [];
   const logs: LogRecord[] = [];
+  const faro: FaroItem[] = [];
   let metrics: readonly MetricRecord[] = [];
   let flush: { readonly cause: string; readonly at: number } | undefined;
-  const totals = { spans: 0, points: 0, logs: 0, exports: 0, bytes: 0 };
+  const totals = { spans: 0, points: 0, logs: 0, faro: 0, exports: 0, bytes: 0 };
 
   const forgetOldTraces = (): void => {
     const newest = [...new Set([...spans.values()].sort((a, b) => b.startMs - a.startMs).map((span) => span.traceId))];
@@ -89,7 +100,11 @@ export function createStore(): Store {
     },
     addExport(record) {
       const inFlush = flush !== undefined && record.at - flush.at <= FLUSH_WINDOW_MS;
-      const capture: Capture = { ...record, records: recordCount(record.signal, record.body), cause: inFlush && flush ? flush.cause : timerCause(record) };
+      const items = record.signal === "faro" ? decodeFaro(record.body) : [];
+      const capture: Capture =
+        record.signal === "faro"
+          ? { ...record, records: items.length, cause: FARO_CAUSE }
+          : { ...record, records: recordCount(record.signal, record.body), cause: inFlush && flush ? flush.cause : timerCause(record) };
       captures.push(capture);
       if (captures.length > MAX_CAPTURES) captures.shift();
       totals.exports += 1;
@@ -101,10 +116,14 @@ export function createStore(): Store {
       } else if (record.signal === "metrics") {
         metrics = decodeMetrics(record.body);
         totals.points += capture.records;
-      } else {
+      } else if (record.signal === "logs") {
         logs.push(...decodeLogs(record.body));
         logs.splice(0, Math.max(logs.length - MAX_CAPTURES, 0));
         totals.logs += capture.records;
+      } else {
+        faro.push(...items);
+        faro.splice(0, Math.max(faro.length - MAX_CAPTURES, 0));
+        totals.faro += items.length;
       }
       return capture;
     },
@@ -126,6 +145,7 @@ export function createStore(): Store {
           endMs: Math.max(...list.map((span) => span.endMs)),
           rows,
           logs: logs.filter((log) => log.traceId === traceId),
+          faro: faro.filter((item) => item.traceId === traceId),
           failed: list.some((span) => span.status === "error"),
         };
       });
@@ -140,6 +160,7 @@ export function createStore(): Store {
     },
     latestMetrics: () => metrics,
     logs: () => [...logs].reverse(),
+    faro: () => [...faro].reverse(),
     totals: () => ({ ...totals }),
   };
 }
