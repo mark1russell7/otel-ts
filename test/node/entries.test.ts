@@ -82,6 +82,14 @@ describe("the module graph of each entry", () => {
     expect(runtimePackages("src/context.ts")).toEqual(["@opentelemetry/api"]);
   });
 
+  it("@mark1russell7/otel-ts/lag imports lag and the API only, and no other entry imports lag", () => {
+    // lag is an optional peer: only an app that imports this entry installs it (decision D7)
+    expect(runtimePackages("src/lag.ts")).toEqual(["@mark1russell7/lag", "@opentelemetry/api"]);
+    for (const entry of ["src/index.ts", "src/zone.ts", "src/core.ts", "src/context.ts", "src/node.ts", "src/node-testing.ts"]) {
+      expect(runtimePackages(entry), entry).not.toContain("@mark1russell7/lag");
+    }
+  });
+
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
@@ -90,6 +98,7 @@ describe("the module graph of each entry", () => {
       "./context": { types: "./dist/context.d.ts", import: "./dist/context.js" },
       "./node": { types: "./dist/node.d.ts", import: "./dist/node.js" },
       "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
+      "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js" },
     });
   });
 });
