@@ -222,7 +222,7 @@ const rowId = Number(row?.dataset["export"]);
 if (row) click(row);
 const shown = lab.exports().find((capture) => capture.id === rowId);
 check("an export row shows the JSON of that export", await until(() => $("#payload")?.textContent === JSON.stringify(shown?.body, null, 2)), $("#payload")?.textContent?.slice(0, 120));
-check("the line above the payload names the collector", ($("#payload-line")?.textContent ?? "").split(/\s+/).some((word) => isAt(word, "https://collector.invalid") && /^\/(v1\/(traces|metrics|logs)|collect)$/.test(new URL(word).pathname)), $("#payload-line")?.textContent);
+check("the line above the payload names the collector", ($("#payload-line")?.textContent ?? "").split(/\s+/).map((word) => word.replace(/[,.]$/, "")).some((word) => isAt(word, "https://collector.invalid") && /^\/(v1\/(traces|metrics|logs)|collect)$/.test(new URL(word).pathname)), $("#payload-line")?.textContent);
 const packet = $(".packet");
 if (packet) click(packet);
 check("a dot of the wire selects its export", await until(() => $(".packet.is-selected") !== null));
