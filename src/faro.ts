@@ -17,6 +17,7 @@ import type { ResolvedConfig } from "./types.js";
  * an error or a log of Faro has the trace and the span of its call.
  */
 export function setupFaro(config: ResolvedConfig, url: string): Faro {
+  const before = globalThis.fetch;
   const faro = initializeFaro({
     url,
     app: {
@@ -31,6 +32,25 @@ export function setupFaro(config: ResolvedConfig, url: string): Faro {
   });
 
   faro.api.initOTEL(trace, context);
+  keepFetchOriginal(before);
 
   return faro;
+}
+
+type WrappedFetch = typeof fetch & { __original?: typeof fetch };
+
+/**
+ * The OTLP exporters send with `fetch.__original` when it exists, so an
+ * export makes no fetch span. The request monitor of Faro (user actions,
+ * navigation, frustration) replaces `fetch` with a wrapper without
+ * `__original`. Then each export made a span, and that span was exported
+ * again. This gives the wrapper of Faro the `__original` of the fetch that
+ * it replaced.
+ */
+function keepFetchOriginal(before: WrappedFetch | undefined): void {
+  const after = globalThis.fetch as WrappedFetch | undefined;
+  if (!before || !after || after === before) return;
+  if (typeof before.__original !== "function") return;
+  if (typeof after.__original === "function") return;
+  after.__original = before.__original;
 }

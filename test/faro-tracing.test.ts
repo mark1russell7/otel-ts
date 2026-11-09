@@ -103,6 +103,19 @@ describe("Faro with the tracing of otel-ts", () => {
     expect(await spansOf(collector)).toHaveLength(0);
   });
 
+  it("keeps fetch.__original, so an OTLP export makes no span", async () => {
+    // The OTLP exporters send with fetch.__original. Faro wraps fetch()
+    // again (its request monitor), and before, its wrapper had no __original
+    const wrapped = globalThis.fetch as typeof fetch & { __original?: typeof fetch };
+    const exportUrl = `${location.origin}/v1/traces-of-the-test`;
+
+    expect(typeof wrapped.__original).toBe("function");
+    await wrapped.__original!(exportUrl, { method: "POST", body: "{}" });
+
+    expect(sent.some((request) => request.url === exportUrl)).toBe(true);
+    expect(await spansOf(exportUrl)).toHaveLength(0);
+  });
+
   it("does not send traces to the Faro collector", async () => {
     await fetch(api());
     await otel?.forceFlush();
