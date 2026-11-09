@@ -133,7 +133,7 @@ export function createStore(): Store {
     },
     span: (spanId) => spans.get(spanId),
     requestOf(span) {
-      const url = span.attributes["http.url"];
+      const url = span.attributes["url.full"];
       if (typeof url !== "string") return undefined;
       const matches = requests.filter((request) => request.url === url);
       return matches.find((request) => request.traceparent?.includes(span.spanId)) ?? matches.filter((request) => request.traceparent === undefined).at(-1);

@@ -107,15 +107,15 @@ check("the resource has the service name of init()", attr(first?.body.resourceSp
 // An action makes a click span and a fetch span
 const sent = lab.exports().length;
 click("#act-fetch");
-const fetchSpan = await until(() => spans().find((span) => span.name === "HTTP GET" && String(attr(span.attributes, "http.url")).endsWith("/demo/order.json")), SLOW);
+const fetchSpan = await until(() => spans().find((span) => span.name === "GET" && String(attr(span.attributes, "url.full")).endsWith("/demo/order.json")), SLOW);
 const clickSpan = spans().find((span) => span.spanId === fetchSpan?.parentSpanId);
 check("a click on Fetch a file gives a fetch span under a click span", clickSpan?.name === "click", clickSpan?.name);
 check("the auto flush exported the action in a moment", lab.exports().slice(sent).some((capture) => capture.cause === "flush after the action"), lab.exports().slice(sent).map((capture) => capture.cause));
-check("the fetch span has the status of the real response", Number(attr(fetchSpan?.attributes, "http.status_code")) === 200, fetchSpan?.attributes);
+check("the fetch span has the status of the real response", Number(attr(fetchSpan?.attributes, "http.response.status_code")) === 200, fetchSpan?.attributes);
 
 // A row of the waterfall opens the span, and the request carries its IDs
 click(`#waterfall [data-span="${fetchSpan?.spanId}"]`);
-check("a span row shows its attributes", await until(() => ($("#detail-attrs")?.textContent ?? "").includes("http.url")), $("#detail")?.textContent?.slice(0, 200));
+check("a span row shows its attributes", await until(() => ($("#detail-attrs")?.textContent ?? "").includes("url.full")), $("#detail")?.textContent?.slice(0, 200));
 const traceparent = $("#detail-traceparent")?.textContent ?? "";
 check("the request carried the trace ID and the span ID of the fetch span", traceparent.includes(`00-${fetchSpan?.traceId}-${fetchSpan?.spanId}-`), traceparent);
 check("a selected span stops the auto follow", $("#follow")?.hidden === false);
@@ -123,7 +123,7 @@ click("#follow");
 
 // Another origin
 click("#act-other-origin");
-const otherSpan = await until(() => spans().find((span) => isAt(String(attr(span.attributes, "http.url")), "https://api.example.invalid")), SLOW);
+const otherSpan = await until(() => spans().find((span) => isAt(String(attr(span.attributes, "url.full")), "https://api.example.invalid")), SLOW);
 check("a call to another origin gives a fetch span", otherSpan !== undefined);
 click(`#waterfall [data-span="${otherSpan?.spanId}"]`);
 check("that request has no traceparent", await until(() => ($("#detail-traceparent")?.textContent ?? "").includes("no traceparent")), $("#detail-traceparent")?.textContent);

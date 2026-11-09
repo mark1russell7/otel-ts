@@ -113,7 +113,7 @@ export function drawDetail(target: HTMLElement, store: Store, spanId: string | u
   }
   const request = store.requestOf(span);
   const requestPart =
-    typeof span.attributes["http.url"] !== "string"
+    typeof span.attributes["url.full"] !== "string"
       ? null
       : h(
           "section",
