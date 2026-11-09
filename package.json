@@ -98,7 +98,7 @@
   },
   "devDependencies": {
     "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra",
-    "@mark1russell7/lag": "^0.4.2",
+    "@mark1russell7/lag": "^0.5.0",
     "@mark1russell7/rigor-testkit": "^0.1.2",
     "@opentelemetry/sdk-node": "~0.223.0",
     "@types/node": "^26.6.5",
