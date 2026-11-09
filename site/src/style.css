@@ -114,6 +114,11 @@ pre {
   line-height: 1.45;
 }
 
+/* A code block that is wider than its box fades at the edge (site-pages/scroll-cue.css) */
+pre.scroll-cue {
+  --scroll-cue-bg: var(--sunken);
+}
+
 a {
   color: var(--accent);
 }

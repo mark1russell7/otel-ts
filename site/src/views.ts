@@ -143,7 +143,7 @@ export function drawDetail(target: HTMLElement, store: Store, spanId: string | u
     requestPart,
     events,
     h("section", {}, h("h4", {}, "Resource"), attributeTable(span.resource)),
-    h("details", { class: "raw" }, h("summary", {}, "The OTLP object of this span"), h("pre", { tabindex: "0" }, JSON.stringify(span.raw, null, 2))),
+    h("details", { class: "raw" }, h("summary", {}, "The OTLP object of this span"), h("pre", { class: "scroll-cue", tabindex: "0" }, JSON.stringify(span.raw, null, 2))),
   ];
   target.replaceChildren(...parts.filter((part) => part !== null));
 }

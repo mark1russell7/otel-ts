@@ -99,7 +99,7 @@
             <button id="copy-payload" class="plain" type="button">Copy</button>
           </div>
           <p id="payload-line" class="quiet">Press an export to read its payload.</p>
-          <pre id="payload" class="payload" tabindex="0" data-scrolls></pre>
+          <pre id="payload" class="payload scroll-cue" tabindex="0" data-scrolls></pre>
         </section>
       </div>
 
@@ -141,7 +141,7 @@
           </div>
           <button id="reload" class="plain" type="button">Reload with these options</button>
           <h3>The call of this page</h3>
-          <pre id="config" tabindex="0" data-scrolls></pre>
+          <pre id="config" class="scroll-cue" tabindex="0" data-scrolls></pre>
         </section>
         <section class="card" aria-labelledby="ids-title">
           <h2 id="ids-title">Two IDs</h2>
@@ -173,7 +173,7 @@
         <p>Faro stays off on this page, because the page shows only the OTLP exports. <code>init()</code> starts Faro only with <code>faroCollectorUrl</code>. Faro has no tracing of its own, so with Faro on, each request also has one span.</p>
         <h3>Install</h3>
         <div class="install">
-          <pre id="install" tabindex="0" data-scrolls>pnpm add @mark1russell7/otel-ts</pre>
+          <pre id="install" class="scroll-cue" tabindex="0" data-scrolls>pnpm add @mark1russell7/otel-ts</pre>
           <button id="copy-install" class="plain" type="button">Copy</button>
         </div>
       </section>
