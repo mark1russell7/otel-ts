@@ -10,6 +10,18 @@ describe("outgoingTraceparent", () => {
     expect(outgoingTraceparent(undefined)).toBeUndefined();
     expect(outgoingTraceparent(42)).toBeUndefined();
   });
+
+  it("refuses a trace id or a span id of only zeros", () => {
+    expect(outgoingTraceparent("00-00000000000000000000000000000000-b7ad6b7169203331-01")).toBeUndefined();
+    expect(outgoingTraceparent("00-0af7651916cd43dd8448eb211c80319c-0000000000000000-01")).toBeUndefined();
+  });
+
+  it("gives the header in the form of version 00, with two digits of flags", () => {
+    expect(outgoingTraceparent("01-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-ff-more")).toBe(
+      "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-ff",
+    );
+    expect(outgoingTraceparent("ff-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")).toBeUndefined();
+  });
 });
 
 describe("createTraceEcho", () => {

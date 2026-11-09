@@ -330,18 +330,35 @@ The tracker does not listen to `beforeunload` or `unload`. These events can prev
 
 Some monitors record their values at the end of the page. An example is the final Web Vitals of a page. The order of `pagehide` listeners is not the same in all browsers. Chromium calls `window` listeners in registration order. Thus, a library that stops in its own `pagehide` listener can stop before a monitor records its values.
 
-This library flushes in the `export` phase of the shared lifecycle tracker. A monitor that subscribes to the same tracker in the `observe` phase records its values first, whatever the order of the scripts. `@lag/core` does this by default.
+This library flushes in the `export` phase of the shared lifecycle tracker. A monitor that subscribes to the same tracker in the `observe` phase records its values first, whatever the order of the scripts. [`@mark1russell7/lag`](https://www.npmjs.com/package/@mark1russell7/lag) does this by default.
 
 Values that a monitor keeps until a checkpoint can go out in each flush. Record them in an `onBeforeFlush()` listener:
 
 ```ts
 import { init } from "@mark1russell7/otel-ts";
-import { createBrowserDeps, setupAllMonitors } from "@lag/core";
+import { createBrowserDeps, setupAllMonitors } from "@mark1russell7/lag";
 
 const otel = init({ serviceName: "checkout-web" });
 const monitors = setupAllMonitors(createBrowserDeps(window, { /* options */ }));
 otel.onBeforeFlush(() => monitors.flush());
 ```
+
+### The monitors of lag
+
+The entry `@mark1russell7/otel-ts/lag` connects the monitors of `@mark1russell7/lag` to an instance in one call. `lagDeps()` gives the meter, the logger, the event sink and the span sink of the instance, with the name `lag`. `connect()` adds the `onBeforeFlush()` listener of the example above.
+
+```ts
+import { init } from "@mark1russell7/otel-ts";
+import { lagDeps } from "@mark1russell7/otel-ts/lag";
+import { createBrowserDeps, setupAllMonitors } from "@mark1russell7/lag";
+
+const otel = init({ serviceName: "checkout-web" });
+const lag = lagDeps(otel);
+const monitors = setupAllMonitors(createBrowserDeps(window, lag));
+lag.connect(monitors);
+```
+
+The spans go to the global tracer, which is the tracer of the instance when tracing is on. The option `tracer` gives another tracer, and the option `name` gives another name. `@mark1russell7/lag` 0.4.2 or later is an optional peer dependency. Only an app that imports this entry needs it.
 
 The listener gets the cause of the flush. For a page hide, `cause.transition` is the transition of the lifecycle state. For a call of `forceFlush()` or `shutdown()`, `cause.transition` is undefined.
 
