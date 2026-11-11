@@ -116,12 +116,12 @@ The flip test: a transport that drops the header turns the gate red, and a clean
 
 | ID | Question | Proposal | Who |
 | --- | --- | --- | --- |
-| D1 | Where is the home of the context? | **Decided on 2026-11-08 by the strategist: yes.** otel-ts, with the entries `/context` (light) and `/node` (registers). The map area "Observability and context" has otel-ts as its home (template#262). No new package. | The strategist (a change of the map) |
+| D1 | Where is the home of the context? | **Decided on 2026-11-08 by the maintainer: yes.** otel-ts, with the entries `/context` (light) and `/node` (registers). The map area "Observability and context" has otel-ts as its home (template#262). No new package. | The maintainer (a change of the map) |
 | D2 | Do the libraries depend on otel-ts? | No. They depend on `@opentelemetry/api` only (section 1). | This role |
 | D3 | Does baggage leave the process on each call? | No. Only on calls with the internal mark (section 5). | This role |
 | D4 | Do ids of high cardinality go on metrics? | No, never as attributes. No exemplars in the JS SDK, so Tempo's span metrics give the link (section 4). | This role |
 | D5 | Does `@procedures/client` keep its own W3C code and span records? | Its W3C code goes: the API propagator replaces it. `tracingInterceptor` and its `onSpan` records stay for the trace view of the site, and take their ids from the active OpenTelemetry span. | This role, with the owner of client |
-| D6 | What does `@procedures/client` do when no program registered an SDK? | **Decided on 2026-11-08 with the client role.** The API propagator then does nothing. So C8 is additive: with an SDK, the client uses the API propagator and the active span. With no SDK, it keeps its W3C code, now `@deprecated`. A later break removes that code only when the site, MiniMongo, Graph and jarvis each register an SDK in a released version. | This role, with the owner of client |
+| D6 | What does `@procedures/client` do when no program registered an SDK? | **Decided on 2026-11-08 with the client role.** The API propagator then does nothing. So C8 is additive: with an SDK, the client uses the API propagator and the active span. With no SDK, it keeps its W3C code, now `@deprecated`. A later break removes that code only when the site and each private application register an SDK in a released version. | This role, with the owner of client |
 
 ## What this design does not do
 
