@@ -302,7 +302,7 @@ packages:
     hasBin: true
 
   '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/53aec79a2ba695741b0cdfc9c09b08bd0d90bef3':
-    resolution: {tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/53aec79a2ba695741b0cdfc9c09b08bd0d90bef3}
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/53aec79a2ba695741b0cdfc9c09b08bd0d90bef3}
     version: 0.0.0
 
   '@mark1russell7/lag@0.5.0':
