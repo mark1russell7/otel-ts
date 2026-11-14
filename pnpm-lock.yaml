@@ -70,7 +70,7 @@ importers:
         version: 0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.6(@types/node@26.6.6)(yaml@2.9.1))
       page-lifecycle-tracker:
         specifier: ^0.1.0
-        version: 0.1.0
+        version: 0.1.1
     devDependencies:
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
@@ -1088,8 +1088,8 @@ packages:
     resolution: {integrity: sha512-5vvB5+W7ePv+p3uqxi+RcW1XAzLW0/hxt3/4X4Lc4qHudzOhmBiBwOY6DRob4WnanAEGvNcLjF+KNOufrUoEQw==}
     engines: {node: '>=12.20.0'}
 
-  page-lifecycle-tracker@0.1.0:
-    resolution: {integrity: sha512-nhISB4DKdWYgqxWPLVIDkUCbNVjRSXrZTmviX6s8R4NplsiL2E6pzvEC/d4+DJKCgqt8j3p67W1iOLxDfgPMYQ==}
+  page-lifecycle-tracker@0.1.1:
+    resolution: {integrity: sha512-URDSyWl3d+CwHUyQkInaOosV+jwh+cpLMORjZzD/zWIAJzIdNRfx/uZpOprpd+nCigg2xu3SpZS6qTYMyIwWEw==}
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
@@ -1515,7 +1515,7 @@ snapshots:
 
   '@mark1russell7/lag@0.5.0(@opentelemetry/api@1.9.1)(async-browser-context@0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.6(@types/node@26.6.6)(yaml@2.9.1)))':
     dependencies:
-      page-lifecycle-tracker: 0.1.0
+      page-lifecycle-tracker: 0.1.1
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       async-browser-context: 0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.6(@types/node@26.6.6)(yaml@2.9.1))
@@ -2223,7 +2223,7 @@ snapshots:
 
   obug@3.0.0: {}
 
-  page-lifecycle-tracker@0.1.0: {}
+  page-lifecycle-tracker@0.1.1: {}
 
   pathe@2.0.3: {}
 
