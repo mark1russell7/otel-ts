@@ -74,13 +74,13 @@ importers:
     devDependencies:
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
-        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/3fb3e9e7b2fe0623160160daa9150f16ff5cd82b
+        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/5c6f55fc189e7b0b2dd23deb71b112e6e59913d5
       '@mark1russell7/lag':
         specifier: ^0.5.0
         version: 0.5.0(@opentelemetry/api@1.9.1)(async-browser-context@0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.6(@types/node@26.6.6)(yaml@2.9.1)))
       '@mark1russell7/rigor-testkit':
         specifier: ^0.1.2
-        version: 0.1.5(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))
+        version: 0.1.6(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))
       '@opentelemetry/sdk-node':
         specifier: ~0.223.0
         version: 0.223.0(@opentelemetry/api@1.9.1)
@@ -301,8 +301,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/3fb3e9e7b2fe0623160160daa9150f16ff5cd82b':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/3fb3e9e7b2fe0623160160daa9150f16ff5cd82b}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/5c6f55fc189e7b0b2dd23deb71b112e6e59913d5':
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/5c6f55fc189e7b0b2dd23deb71b112e6e59913d5}
     version: 0.0.0
 
   '@mark1russell7/lag@0.5.0':
@@ -324,14 +324,14 @@ packages:
     resolution: {integrity: sha512-dxr3UiAs64JXV3trXCaTRTesHqXEMUoVvDGIyrz0BWsAZERA/lrIQNUATFAuqnAWzdmbHUyi/5nzA4uPXTSTJw==}
     engines: {node: '>=22'}
 
-  '@mark1russell7/rigor-testkit@0.1.5':
-    resolution: {integrity: sha512-9wt6zR8Z1Jez3se1OfaXlg3ZIH8ZmG+n2FDTb0xoYYrhl+3HHtKuMo+XPWPyYLWMiZvtywtVr/uUF/tRidfWcA==}
+  '@mark1russell7/rigor-testkit@0.1.6':
+    resolution: {integrity: sha512-fsAf/iUpxQK6NMAo66RXmgt1OMqlRJ78yBtG+wSPRMkgXf7RrRn2PMhp4GGFHR4C4/3SJrCS8/FJhuKidXtB/Q==}
     engines: {node: '>=22'}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
       '@opentelemetry/api-logs': ^0.213.0 || ^0.223.0
-      '@opentelemetry/sdk-logs': ^0.223.0
-      '@opentelemetry/sdk-metrics': ^2.12.0
+      '@opentelemetry/sdk-logs': ^0.223.0 || ^3.0.0
+      '@opentelemetry/sdk-metrics': ^2.12.0 || ^3.0.0
       '@opentelemetry/sdk-trace-base': ^2.12.0
       fast-check: ^4.0.0
     peerDependenciesMeta:
@@ -1511,7 +1511,7 @@ snapshots:
 
   '@mark1russell7/cue@2.1.4': {}
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/3fb3e9e7b2fe0623160160daa9150f16ff5cd82b': {}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/5c6f55fc189e7b0b2dd23deb71b112e6e59913d5': {}
 
   '@mark1russell7/lag@0.5.0(@opentelemetry/api@1.9.1)(async-browser-context@0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.6(@types/node@26.6.6)(yaml@2.9.1)))':
     dependencies:
@@ -1526,7 +1526,7 @@ snapshots:
     dependencies:
       '@mark1russell7/rigor-generators': 0.1.6
 
-  '@mark1russell7/rigor-testkit@0.1.5(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))':
+  '@mark1russell7/rigor-testkit@0.1.6(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))':
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.223.0
