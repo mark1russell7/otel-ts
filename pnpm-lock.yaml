@@ -67,7 +67,7 @@ importers:
         version: 1.40.0
       async-browser-context:
         specifier: ^0.3.0
-        version: 0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1))
+        version: 0.3.2(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1))
       page-lifecycle-tracker:
         specifier: ^0.1.0
         version: 0.1.1
@@ -77,7 +77,7 @@ importers:
         version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/b0478f1efd1f0535cf8cba8c359533d1cf93ac47
       '@mark1russell7/lag':
         specifier: ^0.5.0
-        version: 0.5.0(@opentelemetry/api@1.9.1)(async-browser-context@0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))
+        version: 0.5.1(@opentelemetry/api@1.9.1)(async-browser-context@0.3.2(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))
       '@mark1russell7/rigor-testkit':
         specifier: ^0.1.2
         version: 0.1.7(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))
@@ -314,8 +314,8 @@ packages:
     resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/b0478f1efd1f0535cf8cba8c359533d1cf93ac47}
     version: 0.0.0
 
-  '@mark1russell7/lag@0.5.0':
-    resolution: {integrity: sha512-DbBryO3yYvwUu7ReOb510N0SXr3eqzOyctveQIxb5v1t135TV7QcxzyRD204mvuxVr8EiPoQlIWD98flho0frQ==}
+  '@mark1russell7/lag@0.5.1':
+    resolution: {integrity: sha512-hsBTTv8awSYB5XoKGxvMNjR5mj2lzceZwKdlhbAzuaNZ9ZOmcQPGrpBqGAjIBoFvKC605jwp9L+gv+BXIuC0rA==}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
       async-browser-context: ^0.3.0
@@ -863,8 +863,8 @@ packages:
   ast-v8-to-istanbul@1.0.8:
     resolution: {integrity: sha512-lPdpagk13ANXV+HClJEpCZM7kUsl5XcvgqKzZhaj6Ve1ZFICcY2sGhAN1n1vT0tML6EclT7bfVgTxqL57Gkpow==}
 
-  async-browser-context@0.3.1:
-    resolution: {integrity: sha512-zmldjkRgiLHEKod31yFKEsTTpegIfAiMypMeQiILDdCNYVF9Q/asVLDxG/E45n98yWnySqvUOWLpg8EiOiKLiA==}
+  async-browser-context@0.3.2:
+    resolution: {integrity: sha512-z5Bat5cYE1J+KUjpe+w60o63avTqJB3Vl+uiYfItxbkJdxskrv6oQy8C8HV+qley14XRhKlernQO/kXXh769BQ==}
     engines: {node: ^22.18.0 || >=24.11.0}
     peerDependencies:
       '@opentelemetry/api': ^1.0.0
@@ -1584,12 +1584,12 @@ snapshots:
 
   '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/b0478f1efd1f0535cf8cba8c359533d1cf93ac47': {}
 
-  '@mark1russell7/lag@0.5.0(@opentelemetry/api@1.9.1)(async-browser-context@0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))':
+  '@mark1russell7/lag@0.5.1(@opentelemetry/api@1.9.1)(async-browser-context@0.3.2(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))':
     dependencies:
       page-lifecycle-tracker: 0.1.1
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
-      async-browser-context: 0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1))
+      async-browser-context: 0.3.2(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1))
 
   '@mark1russell7/rigor-generators@0.1.6': {}
 
@@ -2134,7 +2134,7 @@ snapshots:
       estree-walker: 3.0.3
       js-tokens: 10.0.0
 
-  async-browser-context@0.3.1(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)):
+  async-browser-context@0.3.2(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)):
     dependencies:
       '@babel/core': 8.0.9
       '@babel/helper-module-imports': 8.0.0
