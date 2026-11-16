@@ -74,13 +74,13 @@ importers:
     devDependencies:
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
-        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/b0478f1efd1f0535cf8cba8c359533d1cf93ac47
+        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/8454ec1b3540e39f1d7c39bff4841c8feeb38efd
       '@mark1russell7/lag':
         specifier: ^0.5.0
         version: 0.5.1(@opentelemetry/api@1.9.1)(async-browser-context@0.3.2(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))
       '@mark1russell7/rigor-testkit':
         specifier: ^0.1.2
-        version: 0.1.8(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))
+        version: 0.1.16(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))
       '@opentelemetry/sdk-node':
         specifier: ~0.223.0
         version: 0.223.0(@opentelemetry/api@1.9.1)
@@ -109,8 +109,8 @@ importers:
         specifier: workspace:*
         version: link:..
       '@mark1russell7/site-pages':
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
       '@opentelemetry/api':
         specifier: ^1.9.0
         version: 1.9.1
@@ -310,8 +310,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/b0478f1efd1f0535cf8cba8c359533d1cf93ac47':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/b0478f1efd1f0535cf8cba8c359533d1cf93ac47}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/8454ec1b3540e39f1d7c39bff4841c8feeb38efd':
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/8454ec1b3540e39f1d7c39bff4841c8feeb38efd}
     version: 0.0.0
 
   '@mark1russell7/lag@0.5.1':
@@ -333,10 +333,12 @@ packages:
     resolution: {integrity: sha512-0L075rT+toD6edxEwDdZHiFzHP4+dJrI64Pw5gh9V33VwCfNRUMQY90AooDpMgVcC9cuxHNXegDLSOYU9ZMIlA==}
     engines: {node: '>=22'}
 
-  '@mark1russell7/rigor-testkit@0.1.8':
-    resolution: {integrity: sha512-ooiuN7e8SqJAYAEVQ5RAa80HqkQKKno1Gw5Me09g5dN2Th7iK1YGiFhCMByCkY1SOqEoU8OmnH+l1g0vs27bKQ==}
+  '@mark1russell7/rigor-testkit@0.1.16':
+    resolution: {integrity: sha512-pdn65CX9XRKyUe99iSFi+hqqGbDEJRZyfpJy6ro5VyWr7arp9dhkmLO2RUb8LndaGnEKufmeRwv1qhNwtCoiJw==}
     engines: {node: '>=22'}
     peerDependencies:
+      '@mark1russell7/rigor-chaos': ^0.3.2
+      '@mark1russell7/rigor-generators': ^0.1.18
       '@opentelemetry/api': ^1.9.0
       '@opentelemetry/api-logs': ^0.213.0 || ^0.223.0
       '@opentelemetry/sdk-logs': ^0.223.0 || ^3.0.0
@@ -344,6 +346,10 @@ packages:
       '@opentelemetry/sdk-trace-base': ^2.12.0
       fast-check: ^4.0.0
     peerDependenciesMeta:
+      '@mark1russell7/rigor-chaos':
+        optional: true
+      '@mark1russell7/rigor-generators':
+        optional: true
       '@opentelemetry/api':
         optional: true
       '@opentelemetry/api-logs':
@@ -357,8 +363,8 @@ packages:
       fast-check:
         optional: true
 
-  '@mark1russell7/site-pages@0.6.0':
-    resolution: {integrity: sha512-fj4r31yTJVhuZkTFdfg/n1cQSu+vuUf5eRxWpkUMXp2EsAYpdnbfanCNCC3kPen6C69lNwkkbyUs5YIR7bVFNw==}
+  '@mark1russell7/site-pages@0.7.0':
+    resolution: {integrity: sha512-nFiaxs1D/IAxj54KUow0AkU35fxWj6iCHAcQ2GG2ISv0yD+YwnOoDHNmO1mV1g+roRV7G5czJNZlzv+3lcT2vg==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1582,7 +1588,7 @@ snapshots:
 
   '@mark1russell7/cue@2.1.4': {}
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/b0478f1efd1f0535cf8cba8c359533d1cf93ac47': {}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/8454ec1b3540e39f1d7c39bff4841c8feeb38efd': {}
 
   '@mark1russell7/lag@0.5.1(@opentelemetry/api@1.9.1)(async-browser-context@0.3.2(@opentelemetry/api@1.9.1)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))':
     dependencies:
@@ -1597,7 +1603,7 @@ snapshots:
     dependencies:
       '@mark1russell7/rigor-generators': 0.1.16
 
-  '@mark1russell7/rigor-testkit@0.1.8(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))':
+  '@mark1russell7/rigor-testkit@0.1.16(@opentelemetry/api-logs@0.223.0)(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-logs@0.223.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))':
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.223.0
@@ -1605,7 +1611,7 @@ snapshots:
       '@opentelemetry/sdk-metrics': 2.12.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.12.0(@opentelemetry/api@1.9.1)
 
-  '@mark1russell7/site-pages@0.6.0':
+  '@mark1russell7/site-pages@0.7.0':
     dependencies:
       '@mark1russell7/rigor-statistics': 0.2.4
 
