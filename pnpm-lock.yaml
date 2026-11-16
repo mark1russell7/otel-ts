@@ -109,8 +109,8 @@ importers:
         specifier: workspace:*
         version: link:..
       '@mark1russell7/site-pages':
-        specifier: ^0.5.0
-        version: 0.5.0
+        specifier: ^0.6.0
+        version: 0.6.0
       '@opentelemetry/api':
         specifier: ^1.9.0
         version: 1.9.1
@@ -357,8 +357,8 @@ packages:
       fast-check:
         optional: true
 
-  '@mark1russell7/site-pages@0.5.0':
-    resolution: {integrity: sha512-sGDFRCr2fIRarRV4FCoDvfYBSOln134N9ApuwNMKXYtiiXpPv8LMeUUB/19QQU7fJDKWGZgqPSAJZ/+RA7p63A==}
+  '@mark1russell7/site-pages@0.6.0':
+    resolution: {integrity: sha512-fj4r31yTJVhuZkTFdfg/n1cQSu+vuUf5eRxWpkUMXp2EsAYpdnbfanCNCC3kPen6C69lNwkkbyUs5YIR7bVFNw==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1605,7 +1605,7 @@ snapshots:
       '@opentelemetry/sdk-metrics': 2.12.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.12.0(@opentelemetry/api@1.9.1)
 
-  '@mark1russell7/site-pages@0.5.0':
+  '@mark1russell7/site-pages@0.6.0':
     dependencies:
       '@mark1russell7/rigor-statistics': 0.2.4
 
