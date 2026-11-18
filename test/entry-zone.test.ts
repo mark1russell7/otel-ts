@@ -6,6 +6,7 @@ import { init } from "../src/zone.js";
 import type { ContextManagerOption, OtelTsConfig, OtelTsInstance } from "../src/zone.js";
 import { unavailableMessage } from "../src/context-manager.js";
 import { FakeExporter } from "./support/fake-exporter.js";
+import { registeredContextManager } from "./support/context-manager.js";
 import { activeSpanIn, inListener, inThen, inTimeout } from "./support/active-span.js";
 
 // @mark1russell7/otel-ts/zone: zone.js, never async-browser-context
@@ -33,7 +34,7 @@ function start(contextManager?: ContextManagerOption): void {
 
 /** The manager that init() registered */
 function registered(): unknown {
-  return vi.mocked(context.setGlobalContextManager).mock.lastCall?.[0];
+  return registeredContextManager();
 }
 
 describe("@mark1russell7/otel-ts/zone", () => {
@@ -42,8 +43,6 @@ describe("@mark1russell7/otel-ts/zone", () => {
   });
 
   it("registers the ZoneContextManager by default", () => {
-    vi.spyOn(context, "setGlobalContextManager");
-
     start();
 
     expect(registered()).toBeInstanceOf(ZoneContextManager);
@@ -59,15 +58,12 @@ describe("@mark1russell7/otel-ts/zone", () => {
   });
 
   it('registers the StackContextManager for "stack"', () => {
-    vi.spyOn(context, "setGlobalContextManager");
-
     start("stack");
 
     expect(registered()).toBeInstanceOf(StackContextManager);
   });
 
   it("registers a ContextManager of the app", () => {
-    vi.spyOn(context, "setGlobalContextManager");
     const manager = new StackContextManager();
 
     start(manager);

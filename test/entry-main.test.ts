@@ -6,6 +6,7 @@ import { init } from "../src/index.js";
 import type { ContextManagerOption, OtelTsConfig, OtelTsInstance } from "../src/index.js";
 import { unavailableMessage } from "../src/context-manager.js";
 import { FakeExporter } from "./support/fake-exporter.js";
+import { registeredContextManager } from "./support/context-manager.js";
 import { activeSpanIn, inListener, inThen, inTimeout } from "./support/active-span.js";
 
 // @mark1russell7/otel-ts, with real providers and the real context managers;
@@ -37,13 +38,11 @@ function start(contextManager?: ContextManagerOption): void {
 
 /** The manager that init() registered */
 function registered(): unknown {
-  return vi.mocked(context.setGlobalContextManager).mock.lastCall?.[0];
+  return registeredContextManager();
 }
 
 describe("@mark1russell7/otel-ts: the default context manager", () => {
   it("is the AsyncContextManager of async-browser-context", () => {
-    vi.spyOn(context, "setGlobalContextManager");
-
     start();
 
     expect(registered()).toBeInstanceOf(AsyncContextManager);
@@ -77,8 +76,6 @@ describe("@mark1russell7/otel-ts: the default context manager", () => {
 
 describe('@mark1russell7/otel-ts: contextManager: "stack"', () => {
   it("registers the StackContextManager", () => {
-    vi.spyOn(context, "setGlobalContextManager");
-
     start("stack");
 
     expect(registered()).toBeInstanceOf(StackContextManager);
@@ -96,7 +93,6 @@ describe('@mark1russell7/otel-ts: contextManager: "stack"', () => {
 
 describe("@mark1russell7/otel-ts: other values", () => {
   it("registers a ContextManager of the app", () => {
-    vi.spyOn(context, "setGlobalContextManager");
     const manager = new StackContextManager();
 
     start(manager);
