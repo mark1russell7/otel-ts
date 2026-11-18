@@ -17,6 +17,8 @@ import {
   type LogRecordExporter,
   type LogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
+import type { Attributes } from "@opentelemetry/api";
+import { envDetector, hostDetector, osDetector, processDetector, serviceInstanceIdDetector, type ResourceDetector } from "@opentelemetry/resources";
 import { AggregationType, InstrumentType, type AggregationSelector } from "@opentelemetry/sdk-metrics";
 import { BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, type SpanExporter, type SpanProcessor } from "@opentelemetry/sdk-trace";
 import { createContextLogRecordProcessor, createContextSpanProcessor, defaultAggregation } from "./context-processors.js";
@@ -71,6 +73,32 @@ export function histogramAggregation(env: Env): AggregationSelector {
     return (type) => (type === InstrumentType.HISTOGRAM ? { type: AggregationType.EXPONENTIAL_HISTOGRAM } : { type: AggregationType.DEFAULT });
   }
   throw new RangeError(`${variable} has "${value}": otel-ts makes "explicit_bucket_histogram" or "base2_exponential_bucket_histogram"`);
+}
+
+/** The resource detectors of `OTEL_NODE_RESOURCE_DETECTORS`, with the names and the sequence of the NodeSDK. `env` is last. */
+const RESOURCE_DETECTORS: ReadonlyMap<string, ResourceDetector> = new Map([
+  ["host", hostDetector],
+  ["os", osDetector],
+  ["serviceinstance", serviceInstanceIdDetector],
+  ["process", processDetector],
+  ["env", envDetector],
+]);
+
+/**
+ * The resource detectors that the NodeSDK uses: the names of `OTEL_NODE_RESOURCE_DETECTORS` (`host`, `os`,
+ * `serviceinstance`, `process`, `env`, `all` or `none`; default `all`), then a detector that gives
+ * `attributes`. That last detector wins over each other detector, also over `OTEL_RESOURCE_ATTRIBUTES` (the
+ * detector `env`), as the option `resourceAttributes` of `startNodeSDK()` of the SDK does. Without it, a
+ * `service.instance.id` of the service lost to the random id of the detector `serviceinstance`. The NodeSDK
+ * ignores a name that it does not know, with a warning. This function ignores it too.
+ */
+export function nodeResourceDetectors(env: Env, attributes: Attributes): ResourceDetector[] {
+  const names = (env["OTEL_NODE_RESOURCE_DETECTORS"] ?? "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name !== "");
+  const chosen = names.length === 0 || names.includes("all") ? [...RESOURCE_DETECTORS.values()] : names.includes("none") ? [] : names.flatMap((name) => RESOURCE_DETECTORS.get(name) ?? []);
+  return [...chosen, { detect: () => ({ attributes: { ...attributes } }) }];
 }
 
 /**

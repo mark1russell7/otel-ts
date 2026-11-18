@@ -23,13 +23,13 @@
  * @packageDocumentation
  */
 import { register } from "node:module";
-import { context, logs, metrics, propagation, trace } from "@opentelemetry/api";
+import { context, logs, metrics, propagation, trace, type Attributes } from "@opentelemetry/api";
 import { NodeSDK, type NodeSDKConfiguration } from "@opentelemetry/sdk-node";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
 import type { SpanExporter } from "@opentelemetry/sdk-trace";
 import { ContextPropagator, claimContextRegistration } from "./context-propagator.js";
 import { contextMetricViews } from "./context-processors.js";
-import { histogramAggregation, nodeLogRecordProcessors, nodeSpanProcessors } from "./node-exporters.js";
+import { histogramAggregation, nodeLogRecordProcessors, nodeResourceDetectors, nodeSpanProcessors } from "./node-exporters.js";
 
 export { exporterNames, histogramAggregation, otlpProtocol, type ExporterName, type OtlpProtocol, type OtlpSignal } from "./node-exporters.js";
 
@@ -39,6 +39,12 @@ export { outgoingTraceparent, createTraceEcho, runInRemoteTrace, type RemoteTrac
 export interface NodeTelemetryOptions {
   /** The service name. Default: `OTEL_SERVICE_NAME`, else "node-service". */
   serviceName?: string;
+  /**
+   * The attributes of the resource of the service, for example `service.version` and `service.instance.id`
+   * (the copy of the service). They win over the detected attributes and over `OTEL_RESOURCE_ATTRIBUTES`.
+   * `service.name` comes from `serviceName`. Default: none, and the resource is the resource of the SDK.
+   */
+  resourceAttributes?: Attributes;
   /**
    * The `import.meta.url` of the module that calls this function. The loader
    * hook resolves from it, so it is the instance of the service's
@@ -67,7 +73,12 @@ export interface NodeTelemetryOptions {
   /**
    * Stop the SDK (and flush) at SIGTERM and SIGINT. Default: true. When the
    * service has no listener of its own for the signal, the process then ends
-   * with the signal, as it does without this option.
+   * with the signal, as it does without this option. A service with a staged
+   * shutdown of its own (for example `@mark1russell7/service`) gives false and
+   * calls `shutdown()` in its last stage. With true, the stop removes the
+   * context at the signal, while the service still drains its requests: the
+   * log lines of the drain lose their trace ids, and the spans of the drained
+   * requests go.
    */
   stopOnSignals?: boolean;
   /**
@@ -128,6 +139,7 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
       // the views replace the preference of each reader
       views: contextMetricViews(histogramAggregation(env)),
       ...exports,
+      ...(options.resourceAttributes ? { resourceDetectors: nodeResourceDetectors(env, options.resourceAttributes) } : {}),
       ...(options.instrumentations ? { instrumentations: options.instrumentations } : {}),
     });
     sdk.start();

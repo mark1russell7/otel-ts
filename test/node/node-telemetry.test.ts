@@ -4,8 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { context, logs, propagation, trace } from "@opentelemetry/api";
-import type { ReadableSpan } from "@opentelemetry/sdk-trace";
+import { context, isSpanContextValid, logs, propagation, trace, type SpanContext } from "@opentelemetry/api";
+import { envDetector, hostDetector, osDetector, processDetector, serviceInstanceIdDetector } from "@opentelemetry/resources";
+import { InMemorySpanExporter, type ReadableSpan } from "@opentelemetry/sdk-trace";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
 import { contextValue, defineContextKeys, withContext, withInternalCall } from "../../src/context.js";
 import {
@@ -17,7 +18,7 @@ import {
   PeriodicExportingMetricReader,
 } from "@opentelemetry/sdk-metrics";
 import { metrics } from "@opentelemetry/api";
-import { exporterNames, histogramAggregation, otlpProtocol } from "../../src/node-exporters.js";
+import { exporterNames, histogramAggregation, nodeResourceDetectors, otlpProtocol } from "../../src/node-exporters.js";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ExportResultCode } from "@opentelemetry/core";
 import type { SpanExporter } from "@opentelemetry/sdk-trace";
@@ -305,6 +306,93 @@ describe("startNodeTelemetry at SIGTERM and SIGINT", () => {
   it("adds no listener when stopOnSignals is false", () => {
     telemetry = startNodeTelemetry({ enabled: true, env: {}, stopOnSignals: false });
     expect(signals.map((signal) => process.listenerCount(signal))).toEqual([0, 0]);
+  });
+
+  /** The span context of a request that the service drains after the signal: what its log line gets */
+  const drainedRequest = (): SpanContext | undefined =>
+    trace.getTracer("otel-ts-drain").startActiveSpan("drained request", (span) => {
+      const active = trace.getActiveSpan()?.spanContext();
+      span.end();
+      return active;
+    });
+
+  it("removes the context at the signal with stopOnSignals true, while the service still drains", async () => {
+    // The service has a staged shutdown of its own: it drains its requests after the signal.
+    process.once("SIGTERM", vi.fn());
+    start();
+
+    process.emit("SIGTERM", "SIGTERM");
+    await telemetry?.shutdown(); // the stop that the signal started
+
+    // A request of the drain gets no valid span context, thus its log line has no trace id.
+    const drained = drainedRequest();
+    expect(drained === undefined || !isSpanContextValid(drained)).toBe(true);
+  });
+
+  it("keeps the context through the drain with stopOnSignals false, until the service calls shutdown()", async () => {
+    process.once("SIGTERM", vi.fn());
+    telemetry = startNodeTelemetry({ enabled: true, env: {}, traceExporter: new InMemorySpanExporter(), stopOnSignals: false });
+
+    process.emit("SIGTERM", "SIGTERM");
+
+    const drained = drainedRequest();
+    expect(drained !== undefined && isSpanContextValid(drained)).toBe(true);
+    // The service calls it in its last stage, for example the phase "flush the output" of @mark1russell7/service.
+    await telemetry.shutdown();
+  });
+});
+
+describe("the resource of startNodeTelemetry", () => {
+  const saved = process.env["OTEL_RESOURCE_ATTRIBUTES"];
+  afterEach(() => {
+    if (saved === undefined) delete process.env["OTEL_RESOURCE_ATTRIBUTES"];
+    else process.env["OTEL_RESOURCE_ATTRIBUTES"] = saved;
+  });
+
+  it("gives the resource attributes of the service, over the detectors and OTEL_RESOURCE_ATTRIBUTES", async () => {
+    // The detector env reads process.env, not the option env.
+    process.env["OTEL_RESOURCE_ATTRIBUTES"] = "service.instance.id=from-env,deployment.environment.name=lab";
+    const finished: ReadableSpan[] = [];
+    const exporter: SpanExporter = {
+      export: (spans, done) => {
+        finished.push(...spans);
+        done({ code: ExportResultCode.SUCCESS });
+      },
+      shutdown: () => Promise.resolve(),
+    };
+    telemetry = startNodeTelemetry({
+      enabled: true,
+      env: {},
+      serviceName: "alerts-runtime",
+      resourceAttributes: { "service.version": "1.2.3", "service.instance.id": "copy-2" },
+      traceExporter: exporter,
+      stopOnSignals: false,
+    });
+
+    trace.getTracer("otel-ts-resource").startSpan("one").end();
+    await telemetry.shutdown();
+
+    const resource = finished[0]?.resource;
+    await resource?.waitForAsyncAttributes?.();
+    expect(resource?.attributes).toMatchObject({
+      "service.name": "alerts-runtime",
+      "service.version": "1.2.3",
+      // Before, the random id of the detector serviceinstance replaced the id of the copy.
+      "service.instance.id": "copy-2",
+      "deployment.environment.name": "lab",
+    });
+  });
+
+  it("chooses the detectors of OTEL_NODE_RESOURCE_DETECTORS, as the NodeSDK does, and puts the attributes last", async () => {
+    const variable = "OTEL_NODE_RESOURCE_DETECTORS";
+    const attributes = { "service.version": "1.2.3" };
+    for (const env of [{}, { [variable]: "all" }, { [variable]: " env, all " }]) {
+      expect(nodeResourceDetectors(env, attributes)).toEqual([hostDetector, osDetector, serviceInstanceIdDetector, processDetector, envDetector, expect.anything()]);
+    }
+    expect(nodeResourceDetectors({ [variable]: "env,host,unknown" }, attributes).slice(0, -1)).toEqual([envDetector, hostDetector]);
+    const none = nodeResourceDetectors({ [variable]: "none" }, attributes);
+    expect(none).toHaveLength(1);
+    expect(await none[0]?.detect().attributes).toEqual(attributes);
   });
 });
 
