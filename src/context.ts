@@ -16,7 +16,7 @@
  *
  * @packageDocumentation
  */
-import { context, createContextKey, propagation, type Context } from "@opentelemetry/api";
+import { context, createContextKey, propagation, ROOT_CONTEXT, type Context, type TextMapGetter } from "@opentelemetry/api";
 
 /** How many distinct values a key has: "low" may become a metric attribute, "high" never does */
 export type ContextKeyCardinality = "low" | "high";
@@ -204,4 +204,42 @@ export function withInternalCall<T>(fn: () => T): T {
 /** True when the active context (or `from`) has the internal mark */
 export function isInternalCall(from: Context = context.active()): boolean {
   return from.getValue(INTERNAL_CALL) === true;
+}
+
+/** The headers of an incoming call as a record, as `node:http` gives them: a value can be a list. */
+export type IncomingHeaderRecord = Readonly<Record<string, string | readonly string[] | undefined>>;
+
+/** The headers of an incoming call: a record of `node:http`, or the `Headers` of a Fetch `Request`. */
+export type IncomingHeaders = IncomingHeaderRecord | Headers;
+
+/** This getter reads a record of headers. `node:http` gives each name in lower case, and another record can use any case. */
+const recordGetter: TextMapGetter<IncomingHeaderRecord> = {
+  keys: (headers) => Object.keys(headers),
+  get: (headers, key) => {
+    const name = key.toLowerCase();
+    const found = name in headers ? name : Object.keys(headers).find((other) => other.toLowerCase() === name);
+    return found === undefined ? undefined : (headers[found] as string | string[] | undefined);
+  },
+};
+
+/** This getter reads the `Headers` of Fetch. Its names do not have a case. */
+const fetchGetter: TextMapGetter<Headers> = {
+  keys: (headers) => [...headers.keys()],
+  get: (headers, key) => headers.get(key) ?? undefined,
+};
+
+const isFetchHeaders = (headers: IncomingHeaders): headers is Headers => typeof (headers as Headers).get === "function";
+
+/**
+ * The context of an incoming call, for its handler (docs/CONTEXT-DESIGN.md, section 5). The propagator that
+ * the program registers reads the trace context and the baggage from the headers. The read starts from the
+ * root context, thus the call gets no value of the context that runs the server. A caller that is not
+ * trusted keeps its trace, but `trusted: false` removes all of its baggage. Without a registered
+ * propagator, the result is the root context.
+ */
+export function incomingContext(headers: IncomingHeaders, trusted: boolean): Context {
+  const read = isFetchHeaders(headers)
+    ? propagation.extract(ROOT_CONTEXT, headers, fetchGetter)
+    : propagation.extract(ROOT_CONTEXT, headers, recordGetter);
+  return trusted ? read : propagation.deleteBaggage(read);
 }

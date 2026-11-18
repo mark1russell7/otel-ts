@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.6
+
+### Added
+
+- `incomingContext(headers, trusted)` in the entry `@mark1russell7/otel-ts/context`: the context of an incoming call, for its handler. The registered propagator reads the trace context and the baggage from the headers, from the root context. The headers are a record of `node:http` (a name in any case, a value or a list) or the `Headers` of Fetch. A caller that is not trusted keeps its trace, but `trusted: false` removes all of its baggage (docs/CONTEXT-DESIGN.md, section 5). The types `IncomingHeaders` and `IncomingHeaderRecord` are new too.
+
 ## 0.7.5
 
 ### Fixed

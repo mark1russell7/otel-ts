@@ -87,6 +87,7 @@ The W3C baggage propagator sends each baggage entry on each outgoing request. A 
 - `baggage` goes only on a call to a trusted destination. The propagator of otel-ts injects baggage only when the active context has the mark `internal call`. `@procedures/client` sets the mark around the send of each of its transports. A program can set it with `withInternalCall(fn)`. Each other outgoing call (a fetch of a third party, a database driver) gets no baggage.
 - A key with `propagate: "none"` never leaves the process.
 - On the server side, `@procedures/peer` extracts baggage only from a caller that passed its token check. An untrusted caller keeps its `traceparent` (the trace joins), but its baggage is dropped.
+- A server reads the context of an incoming call with `incomingContext(headers, trusted)` of `/context`. It reads the headers of `node:http` or the `Headers` of Fetch. It starts from the root context. With `trusted: false`, the trace stays and the baggage goes.
 - The propagator keeps the W3C limits: at most 180 entries and 8192 bytes. A value longer than its key's limit is dropped, not cut.
 
 ### 6. The propagation gate
