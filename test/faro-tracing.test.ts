@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { context, propagation, trace } from "@opentelemetry/api";
 import { faro } from "@grafana/faro-web-sdk";
-import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan } from "@opentelemetry/sdk-trace";
 import { init } from "../src/index.js";
 import type { OtelTsInstance } from "../src/index.js";
 import { FakeExporter, exportedTo } from "./support/fake-exporter.js";

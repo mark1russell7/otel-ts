@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ROOT_CONTEXT, type ContextManager } from "@opentelemetry/api";
-import { StackContextManager } from "@opentelemetry/sdk-trace-web";
+import { StackContextManager } from "@opentelemetry/sdk-trace";
 import {
   createContextManager,
   createStackContextManager,

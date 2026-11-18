@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { context, propagation, trace } from "@opentelemetry/api";
-import { StackContextManager } from "@opentelemetry/sdk-trace-web";
+import { StackContextManager } from "@opentelemetry/sdk-trace";
 import { init } from "../src/core.js";
 import type { ContextManagerOption, OtelTsConfig, OtelTsInstance } from "../src/core.js";
 import { unavailableMessage } from "../src/context-manager.js";

@@ -18,7 +18,7 @@ import {
   type LogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
 import { AggregationType, InstrumentType, type AggregationSelector } from "@opentelemetry/sdk-metrics";
-import { BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, type SpanExporter, type SpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, type SpanExporter, type SpanProcessor } from "@opentelemetry/sdk-trace";
 import { createContextLogRecordProcessor, createContextSpanProcessor, defaultAggregation } from "./context-processors.js";
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -80,11 +80,11 @@ export function histogramAggregation(env: Env): AggregationSelector {
  */
 export function nodeSpanProcessors(env: Env, exporter?: SpanExporter): SpanProcessor[] {
   const exporting: SpanProcessor[] = exporter
-    ? [new BatchSpanProcessor(exporter)]
+    ? [new BatchSpanProcessor({ exporter })]
     : exporterNames("traces", env).map((name) =>
         name === "console"
-          ? new SimpleSpanProcessor(new ConsoleSpanExporter())
-          : new BatchSpanProcessor(otlpProtocol("traces", env) === "http/json" ? new JsonTraceExporter() : new ProtobufTraceExporter()),
+          ? new SimpleSpanProcessor({ exporter: new ConsoleSpanExporter() })
+          : new BatchSpanProcessor({ exporter: otlpProtocol("traces", env) === "http/json" ? new JsonTraceExporter() : new ProtobufTraceExporter() }),
       );
   return exporting.length > 0 ? [createContextSpanProcessor(), ...exporting] : [];
 }

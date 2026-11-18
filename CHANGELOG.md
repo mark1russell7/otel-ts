@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.0
+
+### Changed (breaking)
+
+- otel-ts uses OpenTelemetry JS 3.x: `@opentelemetry/sdk-trace`, `sdk-logs` and `sdk-metrics` 3.1, and the exporters and the instrumentation 0.301.
+- The processors of the entries are processors of the 3.x SDK. Give them to a 3.x provider. A provider of the 2.x SDK does not take them.
+- `startNodeTelemetry()` in the entry `/node` takes a `traceExporter` and a `logExporter` of the 3.x SDK. The optional peer `@opentelemetry/sdk-node` is now `>=0.300.0 <0.400.0`.
+- `getLogger()` gives the `Logger` of `@opentelemetry/api`, because the logs API is in `@opentelemetry/api` 1.10. `@opentelemetry/api-logs` is not a dependency now.
+- The minimum version of Node.js is 22.15, the minimum of the 3.x SDK (`engines`).
+
+### Changed
+
+- The tracer provider of 3.x has no `register()`. So `init()` sets the global tracer provider, the context manager and the propagator itself. The behavior does not change.
+
 ## 0.7.7
 
 ### Fixed

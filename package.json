@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@mark1russell7/otel-ts",
-  "version": "0.7.7",
+  "version": "0.8.0",
   "description": "Frontend observability in one init() call — OpenTelemetry + Grafana Faro for any TypeScript web app",
   "license": "MIT",
   "author": "Mark Russell (https://github.com/mark1russell7)",
@@ -15,6 +15,9 @@
   },
   "type": "module",
   "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=22.15.0"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -64,30 +67,28 @@
   },
   "dependencies": {
     "@grafana/faro-web-sdk": "^2.13.0",
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/api-logs": "^0.223.0",
-    "@opentelemetry/auto-instrumentations-web": "^0.70.0",
-    "@opentelemetry/context-zone": "^2.12.0",
-    "@opentelemetry/core": "^2.12.0",
-    "@opentelemetry/exporter-logs-otlp-http": "^0.301.0",
-    "@opentelemetry/exporter-logs-otlp-proto": "^0.301.0",
-    "@opentelemetry/exporter-metrics-otlp-http": "^0.301.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.301.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.301.0",
-    "@opentelemetry/instrumentation": "^0.301.0",
+    "@opentelemetry/api": "^1.10.0",
+    "@opentelemetry/auto-instrumentations-web": "^0.70.1",
+    "@opentelemetry/context-zone": "^3.1.1",
+    "@opentelemetry/core": "^3.1.1",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.301.2",
+    "@opentelemetry/exporter-logs-otlp-proto": "^0.301.2",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.301.2",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.301.2",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.301.2",
+    "@opentelemetry/instrumentation": "^0.301.2",
     "@opentelemetry/instrumentation-long-task": "^0.69.0",
-    "@opentelemetry/resources": "^2.12.0",
-    "@opentelemetry/sdk-logs": "^0.223.0",
-    "@opentelemetry/sdk-metrics": "^2.12.0",
-    "@opentelemetry/sdk-trace-base": "^2.12.0",
-    "@opentelemetry/sdk-trace-web": "^2.12.0",
+    "@opentelemetry/resources": "^3.1.1",
+    "@opentelemetry/sdk-logs": "^3.1.1",
+    "@opentelemetry/sdk-metrics": "^3.1.1",
+    "@opentelemetry/sdk-trace": "^3.1.1",
     "@opentelemetry/semantic-conventions": "^1.40.0",
     "async-browser-context": "^0.3.0",
     "page-lifecycle-tracker": "^0.1.0"
   },
   "peerDependencies": {
     "@mark1russell7/lag": ">=0.4.2 <0.6.0",
-    "@opentelemetry/sdk-node": ">=0.200.0"
+    "@opentelemetry/sdk-node": ">=0.300.0 <0.400.0"
   },
   "peerDependenciesMeta": {
     "@mark1russell7/lag": {
@@ -101,7 +102,7 @@
     "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra",
     "@mark1russell7/lag": "^0.5.0",
     "@mark1russell7/rigor-testkit": "^0.1.2",
-    "@opentelemetry/sdk-node": "~0.301.0",
+    "@opentelemetry/sdk-node": "~0.301.2",
     "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^4.1.12",
     "happy-dom": "^21.0.4",

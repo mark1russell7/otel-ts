@@ -2,8 +2,7 @@
  * These tests run the real `init()` through the real wire of the page: only the DOM comes from happy-dom. Thus they show
  * that the exporters of the package call the stub, and that the decoders of the page read what the package gives.
  */
-import { context, propagation, trace } from "@opentelemetry/api";
-import { logs } from "@opentelemetry/api-logs";
+import { context, logs, propagation, trace } from "@opentelemetry/api";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { configText, labConfig, readOptions, startLab } from "./lab.ts";
 import type { Lab } from "./lab.ts";

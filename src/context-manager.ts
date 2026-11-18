@@ -1,5 +1,5 @@
 import type { ContextManager } from "@opentelemetry/api";
-import { StackContextManager } from "@opentelemetry/sdk-trace-web";
+import { StackContextManager } from "@opentelemetry/sdk-trace";
 import type { ContextManagerName, ContextManagerOption } from "./types.js";
 
 /**

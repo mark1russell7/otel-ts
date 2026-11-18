@@ -261,5 +261,5 @@ export interface OtelTsInstance {
   getMeter(name: string): import("@opentelemetry/api").Meter;
 
   /** Get a named Logger for emitting log records */
-  getLogger(name: string): import("@opentelemetry/api-logs").Logger;
+  getLogger(name: string): import("@opentelemetry/api").Logger;
 }

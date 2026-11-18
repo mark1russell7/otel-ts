@@ -10,7 +10,7 @@ import { SESSION_STORAGE_KEY, SESSION_TTL_MS } from "../src/constants.js";
 import { hidePage, resetVisibility, setVisibility, showPage } from "./support/page.js";
 import { getPageLifecycle, resetSharedPageLifecycle } from "page-lifecycle-tracker";
 import { UUID_V4 } from "./support/uuid.js";
-import { StackContextManager } from "@opentelemetry/sdk-trace-web";
+import { StackContextManager } from "@opentelemetry/sdk-trace";
 import { AsyncContextManager } from "async-browser-context/opentelemetry";
 import { unavailableMessage } from "../src/context-manager.js";
 

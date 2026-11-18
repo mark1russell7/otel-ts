@@ -23,11 +23,10 @@
  * @packageDocumentation
  */
 import { register } from "node:module";
-import { context, metrics, propagation, trace } from "@opentelemetry/api";
-import { logs } from "@opentelemetry/api-logs";
+import { context, logs, metrics, propagation, trace } from "@opentelemetry/api";
 import { NodeSDK, type NodeSDKConfiguration } from "@opentelemetry/sdk-node";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
-import type { SpanExporter } from "@opentelemetry/sdk-trace-base";
+import type { SpanExporter } from "@opentelemetry/sdk-trace";
 import { ContextPropagator, claimContextRegistration } from "./context-propagator.js";
 import { contextMetricViews } from "./context-processors.js";
 import { histogramAggregation, nodeLogRecordProcessors, nodeSpanProcessors } from "./node-exporters.js";
