@@ -1,0 +1,15 @@
+{
+  "$comment": "The site config of this repository (CI.md of the template, \"The site config\"). The Pages workflow deploys this site from main, and a job of ci.yml checks it on each pull request.",
+  "build": "pnpm run build\npnpm --filter @otel-ts/site run typecheck\npnpm --filter @otel-ts/site run test\npnpm --filter @otel-ts/site run build\n",
+  "out": "site/dist",
+  "env": {
+    "SITE_BASE": "/{repo}"
+  },
+  "site-pages": true,
+  "roadmap": "docs/ROADMAP.md",
+  "packages": "@mark1russell7/otel-ts",
+  "site-name": "otel-ts",
+  "site-check": true,
+  "site-check-pages": "/,/releases/,/status/",
+  "site-check-probe": "site/src/check-probe.ts"
+}
