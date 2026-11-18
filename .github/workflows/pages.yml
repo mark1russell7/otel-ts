@@ -8,8 +8,6 @@ name: Pages
 on:
   push:
     branches: [main]
-  # A pull request builds the site and runs the site check, with no deploy.
-  pull_request:
   # One build each day, so the Status page shows the open pull requests and issues of the day
   schedule:
     - cron: "52 5 * * *"
@@ -25,7 +23,7 @@ concurrency:
 
 jobs:
   pages:
-    uses: mark1russell7/template/.github/workflows/reusable-pages.yml@eb7f3517aa8614e338a46acd37ab0c49395be5f9 # main
+    uses: mark1russell7/template/.github/workflows/reusable-pages.yml@2030c7dec9485afebb504772f79f41f23bdb2df7 # main
     # The build job of the shared workflow gets only the read permissions. Only its deploy job,
     # which runs no code of the repository, writes to Pages.
     permissions:
@@ -37,29 +35,6 @@ jobs:
       statuses: read
       pages: write
       id-token: write
-    with:
-      # The site bundles the built package from the workspace, so the root builds first. The CI of the root has no
-      # site job, so this build also examines the site with its typecheck and its tests.
-      build: |
-        pnpm run build
-        pnpm --filter @otel-ts/site run typecheck
-        pnpm --filter @otel-ts/site run test
-        pnpm --filter @otel-ts/site run build
-      out: site/dist
-      env: '{"SITE_BASE": "/${{ github.event.repository.name }}"}'
-      # The site-pages action adds releases/, status/, data/releases.json and data/status.json to the built site.
-      site-pages: true
-      # The Status page shows the items of docs/ROADMAP.md, and the open pull requests and issues.
-      roadmap: docs/ROADMAP.md
-      packages: "@mark1russell7/otel-ts"
-      site-name: otel-ts
-      # The site check: a browser opens each page at 360, 400 and 1280 px, in light and dark, before the deploy.
-      # The probe presses the buttons of the lab and reads the payloads. The check reads the TypeScript source and
-      # removes its types. A failure stops the deploy.
-      site-check: true
-      site-check-pages: /,/releases/,/status/
-      site-check-probe: site/src/check-probe.ts
-      deploy: ${{ github.event_name != 'pull_request' }}
 
   # This job examines the deployed site: the home page and the pages of site-pages.
   # It starts no code of the repository and reads only the public site.
