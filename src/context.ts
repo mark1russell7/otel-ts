@@ -16,7 +16,7 @@
  *
  * @packageDocumentation
  */
-import { context, createContextKey, propagation, ROOT_CONTEXT, type Context, type TextMapGetter } from "@opentelemetry/api";
+import { context, createContextKey, propagation, ROOT_CONTEXT, trace, type Context, type TextMapGetter } from "@opentelemetry/api";
 
 /** How many distinct values a key has: "low" may become a metric attribute, "high" never does */
 export type ContextKeyCardinality = "low" | "high";
@@ -215,7 +215,8 @@ export type IncomingHeaders = IncomingHeaderRecord | Headers;
 /**
  * How much of the context of a caller a server keeps:
  * - "all": the trace and the baggage, for a caller that passed its check.
- * - "trace": the trace only. The baggage of the caller goes.
+ * - "trace": the trace only, that is the span context of the caller (its trace id, span id, flags and trace state).
+ *   Each other value that the propagator reads goes: the baggage, and each key of a propagator of the program.
  * - "none": nothing. The call starts a new trace from the root context, for a public edge.
  *   The W3C trace context lets a server restart the trace of a caller that it does not trust.
  */
@@ -249,8 +250,10 @@ const isFetchHeaders = (headers: IncomingHeaders): headers is Headers => typeof 
  * The context of an incoming call, for its handler (docs/CONTEXT-DESIGN.md, section 5). The propagator that
  * the program registers reads the trace context and the baggage from the headers. The read starts from the
  * root context, thus the call gets no value of the context that runs the server. The option `trust` tells
- * how much of the context of the caller stays: "all", "trace" (the default) or "none". Without a registered
- * propagator, the result is the root context.
+ * how much of the context of the caller stays: "all", "trace" (the default) or "none". With "trace", the result
+ * holds only the span context that the propagator read. A propagator of the program that reads the baggage
+ * header, or another header, into a key of its own thus gives that key to a trusted call only. Without a
+ * registered propagator, the result is the root context.
  */
 export function incomingContext(headers: IncomingHeaders, options: IncomingContextOptions = {}): Context {
   const trust = options.trust ?? "trace";
@@ -261,5 +264,8 @@ export function incomingContext(headers: IncomingHeaders, options: IncomingConte
   const read = isFetchHeaders(headers)
     ? propagation.extract(ROOT_CONTEXT, headers, fetchGetter)
     : propagation.extract(ROOT_CONTEXT, headers, recordGetter);
-  return trust === "all" ? read : propagation.deleteBaggage(read);
+  if (trust === "all") return read;
+  // Only the span context stays. Before, only the W3C baggage went, and each other key of the propagator stayed.
+  const span = trace.getSpanContext(read);
+  return span === undefined ? ROOT_CONTEXT : trace.setSpanContext(ROOT_CONTEXT, span);
 }

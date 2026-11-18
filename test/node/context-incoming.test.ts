@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { context, propagation, ROOT_CONTEXT, trace } from "@opentelemetry/api";
+import { context, createContextKey, propagation, ROOT_CONTEXT, trace, type TextMapPropagator } from "@opentelemetry/api";
+import { CompositePropagator } from "@opentelemetry/core";
 import { AsyncContextManager } from "async-browser-context/opentelemetry";
 import { contextValue, defineContextKeys, incomingContext, withContext, type IncomingTrust } from "../../src/context.js";
 import { ContextPropagator } from "../../src/context-propagator.js";
@@ -82,6 +83,45 @@ describe("incomingContext", () => {
     expect(contextValue("i.tenant", read)).toBeUndefined();
     expect(contextValue("i.flag", read)).toBeUndefined();
     expect(trace.getSpanContext(incomingContext({}, { trust: "all" }))).toBeUndefined();
+  });
+
+  it("keeps only the span context with trust trace, also when the propagator of the program reads other keys", () => {
+    // A propagator of the program reads the baggage header and a header of its own into keys of its own.
+    const BAGGAGE_TEXT = createContextKey("test baggage text");
+    const TENANT = createContextKey("test tenant");
+    const own: TextMapPropagator = {
+      inject: () => undefined,
+      extract: (from, carrier, getter) => {
+        const baggage = getter.get(carrier, "baggage");
+        const tenant = getter.get(carrier, "x-tenant");
+        let next = from;
+        if (baggage !== undefined) next = next.setValue(BAGGAGE_TEXT, baggage);
+        if (tenant !== undefined) next = next.setValue(TENANT, tenant);
+        return next;
+      },
+      fields: () => ["baggage", "x-tenant"],
+    };
+    propagation.disable();
+    propagation.setGlobalPropagator(new CompositePropagator({ propagators: [new ContextPropagator(), own] }));
+    try {
+      const headers = { traceparent: TRACEPARENT, baggage: "i.tenant=acme", "x-tenant": "acme" };
+
+      const trusted = incomingContext(headers, { trust: "all" });
+      expect(trusted.getValue(BAGGAGE_TEXT)).toBe("i.tenant=acme");
+      expect(trusted.getValue(TENANT)).toBe("acme");
+
+      const untrusted = incomingContext(headers, { trust: "trace" });
+      expect(trace.getSpanContext(untrusted)).toMatchObject({ traceId: TRACE_ID, spanId: SPAN_ID, isRemote: true });
+      expect(untrusted.getValue(BAGGAGE_TEXT)).toBeUndefined();
+      expect(untrusted.getValue(TENANT)).toBeUndefined();
+      expect(propagation.getBaggage(untrusted)).toBeUndefined();
+
+      // Without a trace, nothing of the caller stays.
+      expect(incomingContext({ "x-tenant": "acme" }, { trust: "trace" })).toBe(ROOT_CONTEXT);
+    } finally {
+      propagation.disable();
+      propagation.setGlobalPropagator(new ContextPropagator());
+    }
   });
 
   it("gives the root context when no propagator is registered", () => {

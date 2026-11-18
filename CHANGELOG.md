@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1
+
+### Fixed
+
+- `incomingContext()` with trust `"trace"` (the default) keeps only the span context of the caller, as its doc tells. Before, it removed only the W3C baggage. A propagator of the program that reads the baggage header, or another header, into a key of its own then kept that key on a call that is not trusted. With the propagator of otel-ts, the result does not change.
+
 ## 0.8.0
 
 ### Changed (breaking)
