@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.2
+
+### Added
+
+- `startNodeTelemetry()` in the entry `/node` takes `resourceAttributes`: the attributes of the resource of the service, for example `service.version` and `service.instance.id`. They win over the detected attributes and over `OTEL_RESOURCE_ATTRIBUTES`. Before, a `service.instance.id` of the service lost to the random id of the detector of the SDK.
+- The README tells how a service of `@mark1russell7/service` starts telemetry: `stopOnSignals: false`, and `shutdown()` in the stage `flush the output`. Two tests show why: with `stopOnSignals: true`, the context goes at the signal, while the service still drains its requests.
+
 ## 0.8.1
 
 ### Fixed

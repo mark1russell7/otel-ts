@@ -443,6 +443,39 @@ With export on, the exporters come from `OTEL_TRACES_EXPORTER` and `OTEL_LOGS_EX
 
 By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`. Then, when the service has no listener of its own for the signal, the process ends with the signal, as it does without `startNodeTelemetry()`. When the service has a listener, that listener ends the process. Set `stopOnSignals: false` to add no listener.
 
+The option `resourceAttributes` gives the attributes of the resource of the service, for example `service.version` and `service.instance.id` (the copy of the service). They win over the detected attributes and over `OTEL_RESOURCE_ATTRIBUTES`. `service.name` comes from `serviceName`. The detectors are those of the SDK, from `OTEL_NODE_RESOURCE_DETECTORS`.
+
+### A service of `@mark1russell7/service`
+
+A service of [`@mark1russell7/service`](https://github.com/mark1russell7/systems/tree/main/packages/service) has a staged shutdown of its own: after the signal, it drains its requests. The stop of telemetry must come after the drain. With `stopOnSignals: true`, the stop removes the context at the signal: the log lines of the drain lose their trace ids, and the spans of the drained requests go. So:
+
+1. Start telemetry with `stopOnSignals: false`, in the module that the service loads first.
+2. Give `telemetry.shutdown` to the last stage of the shutdown, `flush the output`.
+3. Give `traceIds` to the logger and `callContext` to the transports and the clients, from `@mark1russell7/service/otel`.
+
+```ts
+// telemetry.ts: node --import ./src/telemetry.ts src/main.ts
+import { startNodeTelemetry } from "@mark1russell7/otel-ts/node";
+
+export const telemetry = startNodeTelemetry({
+  serviceName: "my-service",
+  resourceAttributes: { "service.version": "1.2.3", "service.instance.id": "copy-1" },
+  importMetaUrl: import.meta.url,
+  stopOnSignals: false,
+});
+
+// main.ts: the same module, thus the same telemetry
+import { consoleLogger } from "@mark1russell7/service";
+import { httpTransport } from "@mark1russell7/service/http";
+import { callContext, traceIds } from "@mark1russell7/service/otel";
+import { telemetry } from "./telemetry.ts";
+
+svc.phase("flush the output", s(2));
+svc.onPhase("flush the output", () => telemetry.shutdown());
+const logger = consoleLogger({ traceIds });
+const http = httpTransport(server, knobs, { listen, callContext });
+```
+
 The option `env` sets `enabled`, the service name, the exporter names and the protocols. An OTLP exporter and the sampler read their other settings (the endpoint, the headers, `OTEL_TRACES_SAMPLER`) from `process.env`. To send to another endpoint, give `traceExporter` and `logExporter`.
 
 ### The trace of a write, in its echo
