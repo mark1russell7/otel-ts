@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { context, propagation, trace } from "@opentelemetry/api";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
-import { StackContextManager } from "@opentelemetry/sdk-trace-web";
+import { StackContextManager } from "@opentelemetry/sdk-trace";
 import { init } from "../src/zone.js";
 import type { ContextManagerOption, OtelTsConfig, OtelTsInstance } from "../src/zone.js";
 import { unavailableMessage } from "../src/context-manager.js";

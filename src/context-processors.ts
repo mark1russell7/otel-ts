@@ -19,7 +19,7 @@ import {
   type IAttributesProcessor,
   type ViewOptions,
 } from "@opentelemetry/sdk-metrics";
-import type { SpanProcessor } from "@opentelemetry/sdk-trace-base";
+import type { SpanProcessor } from "@opentelemetry/sdk-trace";
 import { contextKeyRule, contextValues } from "./context.js";
 
 /** The attributes to add to a record that starts in the context `from` */

@@ -5,5 +5,5 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [siteShell({ themeKey: "otel-ts-theme" })],
   // The page and the package must use one copy of the API, so that they share the active span.
-  resolve: { dedupe: ["@opentelemetry/api", "@opentelemetry/api-logs"] },
+  resolve: { dedupe: ["@opentelemetry/api"] },
 });

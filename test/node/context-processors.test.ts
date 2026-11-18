@@ -10,7 +10,7 @@ import {
   MeterProvider,
   PeriodicExportingMetricReader,
 } from "@opentelemetry/sdk-metrics";
-import { BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { TracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace";
 import { AsyncContextManager } from "async-browser-context/opentelemetry";
 import { defineContextKeys, withContext } from "../../src/context.js";
 import {
@@ -37,7 +37,7 @@ afterAll(() => {
 describe("createContextSpanProcessor", () => {
   it("sets each defined key of the context on each span, also after await, and keeps an attribute of the caller", async () => {
     const exporter = new InMemorySpanExporter();
-    const provider = new BasicTracerProvider({ spanProcessors: [createContextSpanProcessor(), new SimpleSpanProcessor(exporter)] });
+    const provider = new TracerProvider({ spanProcessors: [createContextSpanProcessor(), new SimpleSpanProcessor({ exporter: exporter })] });
     const tracer = provider.getTracer("test");
 
     await withContext({ "q.user.id": "u-1", "q.tenant": "acme", "q.flag": "on" }, async () => {

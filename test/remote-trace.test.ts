@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { context, SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
-import { BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
-import { StackContextManager } from "@opentelemetry/sdk-trace-web";
+import { InMemorySpanExporter, SimpleSpanProcessor, StackContextManager, TracerProvider } from "@opentelemetry/sdk-trace";
 import { runInRemoteTrace } from "../src/trace-echo.js";
 
 const TRACE_ID = "0af7651916cd43dd8448eb211c80319c";
@@ -10,11 +9,11 @@ const TRACEPARENT = `00-${TRACE_ID}-${PARENT_ID}-01`;
 
 describe("runInRemoteTrace", () => {
   let exporter: InMemorySpanExporter;
-  let provider: BasicTracerProvider;
+  let provider: TracerProvider;
 
   beforeEach(() => {
     exporter = new InMemorySpanExporter();
-    provider = new BasicTracerProvider({ spanProcessors: [new SimpleSpanProcessor(exporter)] });
+    provider = new TracerProvider({ spanProcessors: [new SimpleSpanProcessor({ exporter: exporter })] });
     context.setGlobalContextManager(new StackContextManager().enable());
   });
   afterEach(() => {

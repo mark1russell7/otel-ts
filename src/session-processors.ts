@@ -1,5 +1,5 @@
 import type { LogRecordProcessor } from "@opentelemetry/sdk-logs";
-import type { SpanProcessor } from "@opentelemetry/sdk-trace-base";
+import type { SpanProcessor } from "@opentelemetry/sdk-trace";
 import { ATTR_SESSION_ID } from "./constants.js";
 import { createAttributesLogRecordProcessor, createAttributesSpanProcessor } from "./context-processors.js";
 

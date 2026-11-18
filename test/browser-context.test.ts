@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { context, propagation, trace } from "@opentelemetry/api";
 import type { ReadableLogRecord } from "@opentelemetry/sdk-logs";
 import type { ResourceMetrics } from "@opentelemetry/sdk-metrics";
-import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan } from "@opentelemetry/sdk-trace";
 import type { OtelTsConfig, OtelTsInstance } from "../src/index.js";
 import { init } from "../src/index.js";
 import { defineContextKeys, withContext, withInternalCall } from "../src/context.js";

@@ -1,7 +1,6 @@
 import type { Resource } from "@opentelemetry/resources";
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
-import type { ContextManager } from "@opentelemetry/api";
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { BatchSpanProcessor, TracerProvider } from "@opentelemetry/sdk-trace";
+import { context, propagation, trace, type ContextManager } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
 import { LongTaskInstrumentation } from "@opentelemetry/instrumentation-long-task";
@@ -22,7 +21,7 @@ export function setupTracing(
   contextManager: ContextManager,
   /** The URL of the Faro collector, when Faro starts */
   faroUrl?: string,
-): WebTracerProvider {
+): TracerProvider {
   // Document-load and user-interaction need a DOM; skip them in Web Workers
   const dom = hasDom();
 
@@ -30,19 +29,23 @@ export function setupTracing(
     url: `${config.endpoint}/v1/traces`,
   });
 
-  const provider = new WebTracerProvider({
+  const provider = new TracerProvider({
     resource,
     spanProcessors: [
       createSessionSpanProcessor(getSessionId),
       // The context keys (docs/CONTEXT-DESIGN.md), before the export too
       createContextSpanProcessor(),
-      new BatchSpanProcessor(exporter),
+      new BatchSpanProcessor({ exporter }),
     ],
   });
 
-  // The propagator of otel-ts: `traceparent` on each call that the
-  // instrumentations permit, `baggage` only on an internal call
-  provider.register({ contextManager, propagator: new ContextPropagator() });
+  // OpenTelemetry JS 3.x has no register() on the provider: the global
+  // tracer provider, the enabled context manager, and the propagator of
+  // otel-ts (`traceparent` on each call that the instrumentations permit,
+  // `baggage` only on an internal call)
+  trace.setGlobalTracerProvider(provider);
+  context.setGlobalContextManager(contextManager.enable());
+  propagation.setGlobalPropagator(new ContextPropagator());
 
   // The sends of Faro to its collector are telemetry, not calls of the app
   const ignoreUrls = faroUrl ? [faroUrl] : [];

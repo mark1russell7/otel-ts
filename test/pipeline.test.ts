@@ -3,7 +3,7 @@ import { context, propagation, trace } from "@opentelemetry/api";
 import { initializeFaro } from "@grafana/faro-web-sdk";
 import type { ReadableLogRecord } from "@opentelemetry/sdk-logs";
 import type { ResourceMetrics } from "@opentelemetry/sdk-metrics";
-import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan } from "@opentelemetry/sdk-trace";
 import type { OtelTsConfig, OtelTsInstance } from "../src/index.js";
 import { init } from "../src/index.js";
 import { SESSION_TTL_MS } from "../src/constants.js";

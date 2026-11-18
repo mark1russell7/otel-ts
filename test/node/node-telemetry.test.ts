@@ -4,9 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { context, propagation, trace } from "@opentelemetry/api";
-import type { ReadableSpan } from "@opentelemetry/sdk-trace-base";
-import { logs } from "@opentelemetry/api-logs";
+import { context, logs, propagation, trace } from "@opentelemetry/api";
+import type { ReadableSpan } from "@opentelemetry/sdk-trace";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
 import { contextValue, defineContextKeys, withContext, withInternalCall } from "../../src/context.js";
 import {
@@ -21,7 +20,7 @@ import { metrics } from "@opentelemetry/api";
 import { exporterNames, histogramAggregation, otlpProtocol } from "../../src/node-exporters.js";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ExportResultCode } from "@opentelemetry/core";
-import type { SpanExporter } from "@opentelemetry/sdk-trace-base";
+import type { SpanExporter } from "@opentelemetry/sdk-trace";
 import { startNodeTelemetry, type NodeTelemetry } from "../../src/node.js";
 import { startStubCollector, type StubCollector } from "../../src/node-testing.js";
 

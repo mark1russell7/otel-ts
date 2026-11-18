@@ -6,8 +6,7 @@
  */
 import { init, runInRemoteTrace } from "@mark1russell7/otel-ts";
 import type { OtelTsConfig, OtelTsInstance } from "@mark1russell7/otel-ts";
-import { context, propagation, trace } from "@opentelemetry/api";
-import { SeverityNumber } from "@opentelemetry/api-logs";
+import { context, propagation, SeverityNumber, trace } from "@opentelemetry/api";
 import { faro } from "@grafana/faro-web-sdk";
 import { COLLECTOR, FARO_COLLECTOR, OTHER_ORIGIN } from "./wire.ts";
 

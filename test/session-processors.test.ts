@@ -5,10 +5,10 @@ import {
   SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
 import {
-  BasicTracerProvider,
+  TracerProvider,
   InMemorySpanExporter,
   SimpleSpanProcessor,
-} from "@opentelemetry/sdk-trace-base";
+} from "@opentelemetry/sdk-trace";
 import {
   createSessionLogRecordProcessor,
   createSessionSpanProcessor,
@@ -71,10 +71,10 @@ describe("createSessionSpanProcessor", () => {
     spans: Array<{ name: string; attributes?: Record<string, string> }>,
   ) {
     const exporter = new InMemorySpanExporter();
-    const provider = new BasicTracerProvider({
+    const provider = new TracerProvider({
       spanProcessors: [
         createSessionSpanProcessor(rotatingSession()),
-        new SimpleSpanProcessor(exporter),
+        new SimpleSpanProcessor({ exporter: exporter }),
       ],
     });
     const tracer = provider.getTracer("test");
