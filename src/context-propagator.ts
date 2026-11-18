@@ -12,8 +12,9 @@
  *   outside does not travel on. The W3C limits (180 entries, 8192 bytes) are
  *   the limits of the W3C baggage propagator of `@opentelemetry/core`.
  *
- * A server that does not trust its caller removes the extracted baggage with
- * `propagation.deleteBaggage(context)`, and keeps the trace context.
+ * A server reads the context of an incoming call with `incomingContext(headers,
+ * { trust })` of `/context`. With the default trust "trace", the baggage of
+ * the caller goes, and the trace context stays.
  */
 import {
   propagation,
