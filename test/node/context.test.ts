@@ -4,6 +4,7 @@ import { AsyncContextManager } from "async-browser-context/opentelemetry";
 import { init } from "../../src/index.js";
 import type { OtelTsInstance } from "../../src/index.js";
 import { FakeExporter } from "../support/fake-exporter.js";
+import { registeredContextManager } from "../support/context-manager.js";
 
 // Node.js resolves async-browser-context with the `node` export condition:
 // its context manager uses the native AsyncLocalStorage, and nothing patches
@@ -32,11 +33,9 @@ function start(): void {
 
 describe("the default context manager on Node.js", () => {
   it("is the AsyncContextManager of the Node.js entry", () => {
-    const registered = vi.spyOn(context, "setGlobalContextManager");
-
     start();
 
-    expect(registered.mock.lastCall![0]).toBeInstanceOf(AsyncContextManager);
+    expect(registeredContextManager()).toBeInstanceOf(AsyncContextManager);
   });
 
   it("keeps the active span after a native await, without a transform", async () => {

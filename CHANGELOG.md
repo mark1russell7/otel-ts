@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.7
+
+### Fixed
+
+- The package builds with `@opentelemetry/api` 1.10. That version ships separate CommonJS and ES module types, and the CommonJS types of Faro did not take the ES module `trace` and `context`. No change to the behavior or the API.
+
 ## 0.7.6
 
 ### Added

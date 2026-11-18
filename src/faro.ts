@@ -31,11 +31,25 @@ export function setupFaro(config: ResolvedConfig, url: string): Faro {
     }),
   });
 
-  faro.api.initOTEL(trace, context);
+  faro.api.initOTEL(
+    trace as unknown as FaroOtel[0],
+    context as unknown as FaroOtel[1],
+  );
   keepFetchOriginal(before);
 
   return faro;
 }
+
+/**
+ * The trace and context APIs as the types of Faro declare them. Faro ships
+ * CommonJS types only, so in its types `@opentelemetry/api` (1.10 and later)
+ * resolves to the CommonJS declarations (`.d.cts`). This module gets the ES
+ * module declarations (`.d.mts`). The classes have private fields, so
+ * TypeScript sees two different types. At run time they are one API: each
+ * copy reads the same global of `@opentelemetry/api`. Remove the casts when
+ * Faro ships ES module types.
+ */
+type FaroOtel = Parameters<Faro["api"]["initOTEL"]>;
 
 type WrappedFetch = typeof fetch & { __original?: typeof fetch };
 
