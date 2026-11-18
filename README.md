@@ -230,7 +230,10 @@ The rules:
 - An `undefined` or `null` value adds nothing. A value that is not a string, or that is longer than `maxLength`, is an error.
 - `contextValues()` gives the value of each defined key. A baggage entry from outside with a key that is not defined is not in it.
 - `withInternalCall(fn)` marks the calls that `fn` starts as internal calls. `isInternalCall()` reads the mark.
-- `incomingContext(headers, trusted)` gives the context of an incoming call, for its handler. It reads the headers of `node:http` or the `Headers` of a Fetch `Request`, from the root context. A caller that is not trusted keeps its trace, but its baggage goes. Start the handler in it: `context.with(incomingContext(req.headers, trusted), handler)`.
+- `incomingContext(headers, { trust })` gives the context of an incoming call, for its handler. It reads the headers of `node:http` or the `Headers` of a Fetch `Request`, from the root context. Start the handler in it: `context.with(incomingContext(req.headers, { trust }), handler)`. The option `trust` tells how much of the context of the caller stays:
+  - `"all"`: the trace and the baggage, for a caller that passed its check.
+  - `"trace"` (the default): the trace only. The baggage of the caller goes.
+  - `"none"`: nothing. The call starts a new trace, for a public edge.
 
 In the browser, `init()` registers the context when `tracing` is on (the default):
 

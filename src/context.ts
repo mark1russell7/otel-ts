@@ -212,12 +212,27 @@ export type IncomingHeaderRecord = Readonly<Record<string, string | readonly str
 /** The headers of an incoming call: a record of `node:http`, or the `Headers` of a Fetch `Request`. */
 export type IncomingHeaders = IncomingHeaderRecord | Headers;
 
+/**
+ * How much of the context of a caller a server keeps:
+ * - "all": the trace and the baggage, for a caller that passed its check.
+ * - "trace": the trace only. The baggage of the caller goes.
+ * - "none": nothing. The call starts a new trace from the root context, for a public edge.
+ *   The W3C trace context lets a server restart the trace of a caller that it does not trust.
+ */
+export type IncomingTrust = "all" | "trace" | "none";
+
+/** The options of `incomingContext` */
+export interface IncomingContextOptions {
+  /** How much of the context of the caller stays. Default: "trace", the safe value. */
+  readonly trust?: IncomingTrust;
+}
+
 /** This getter reads a record of headers. `node:http` gives each name in lower case, and another record can use any case. */
 const recordGetter: TextMapGetter<IncomingHeaderRecord> = {
   keys: (headers) => Object.keys(headers),
   get: (headers, key) => {
     const name = key.toLowerCase();
-    const found = name in headers ? name : Object.keys(headers).find((other) => other.toLowerCase() === name);
+    const found = Object.hasOwn(headers, name) ? name : Object.keys(headers).find((other) => other.toLowerCase() === name);
     return found === undefined ? undefined : (headers[found] as string | string[] | undefined);
   },
 };
@@ -233,13 +248,18 @@ const isFetchHeaders = (headers: IncomingHeaders): headers is Headers => typeof 
 /**
  * The context of an incoming call, for its handler (docs/CONTEXT-DESIGN.md, section 5). The propagator that
  * the program registers reads the trace context and the baggage from the headers. The read starts from the
- * root context, thus the call gets no value of the context that runs the server. A caller that is not
- * trusted keeps its trace, but `trusted: false` removes all of its baggage. Without a registered
+ * root context, thus the call gets no value of the context that runs the server. The option `trust` tells
+ * how much of the context of the caller stays: "all", "trace" (the default) or "none". Without a registered
  * propagator, the result is the root context.
  */
-export function incomingContext(headers: IncomingHeaders, trusted: boolean): Context {
+export function incomingContext(headers: IncomingHeaders, options: IncomingContextOptions = {}): Context {
+  const trust = options.trust ?? "trace";
+  if (trust !== "all" && trust !== "trace" && trust !== "none") {
+    throw new TypeError(`The trust "${String(trust)}" is not "all", "trace" or "none"`);
+  }
+  if (trust === "none") return ROOT_CONTEXT;
   const read = isFetchHeaders(headers)
     ? propagation.extract(ROOT_CONTEXT, headers, fetchGetter)
     : propagation.extract(ROOT_CONTEXT, headers, recordGetter);
-  return trusted ? read : propagation.deleteBaggage(read);
+  return trust === "all" ? read : propagation.deleteBaggage(read);
 }

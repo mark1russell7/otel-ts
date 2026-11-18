@@ -13,8 +13,8 @@
  *   the limits of the W3C baggage propagator of `@opentelemetry/core`.
  *
  * A server reads the context of an incoming call with `incomingContext(headers,
- * trusted)` of `/context`. For a caller that it does not trust, the baggage
- * goes, and the trace context stays.
+ * { trust })` of `/context`. With the default trust "trace", the baggage of
+ * the caller goes, and the trace context stays.
  */
 import {
   propagation,
