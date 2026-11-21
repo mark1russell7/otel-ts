@@ -104,9 +104,9 @@
     "@mark1russell7/rigor-testkit": "^0.2.0",
     "@opentelemetry/sdk-node": "~0.301.2",
     "@types/node": "^26.6.5",
-    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/coverage-v8": "^5.0.0",
     "happy-dom": "^21.0.4",
     "typescript": "^5.9.0",
-    "vitest": "^4.1.12"
+    "vitest": "^5.0.0"
   }
 }
