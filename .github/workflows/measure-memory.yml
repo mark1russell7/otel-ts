@@ -56,7 +56,8 @@ jobs:
     timeout-minutes: 20
     strategy:
       fail-fast: false
-      max-parallel: 5
+      # At most 3 jobs at a time: the runners are shared with other repositories.
+      max-parallel: 3
       matrix:
         run: [1, 2, 3, 4, 5]
     steps:
@@ -106,11 +107,13 @@ jobs:
           path: memory/
       - name: Read the bytes of each entry over the five runs
         env:
-          # The limits in bytes. Empty: the read only reports, and it prints the limits that the five runs give.
-          MEMORY_RSS_LIMIT: ""
-          MEMORY_RSS_AA: ""
-          MEMORY_HEAP_LIMIT: ""
-          MEMORY_HEAP_AA: ""
+          # The limits in bytes: the worst of the 5 runs of the first measure plus their spread (run 45039866455,
+          # 2026-11-22, 10 rounds each). To set them again, empty the four values: the read then only reports, and it
+          # prints the limits that its runs give. A change of the limits is a change of the gate, in its own commit.
+          MEMORY_RSS_LIMIT: "6164480"
+          MEMORY_RSS_AA: "913408"
+          MEMORY_HEAP_LIMIT: "1873904"
+          MEMORY_HEAP_AA: "1264"
         run: node bench/memory.mjs verdict "$GITHUB_WORKSPACE/memory"
 
   measure-ok:
