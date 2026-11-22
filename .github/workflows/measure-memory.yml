@@ -1,0 +1,130 @@
+# The memory gate of the entry /node/context. Each run starts one fresh Node process for each arm in each round: the bare
+# @opentelemetry/api (two arms, the A/A pair), /node/context (two arms) and /node with export off. Each child gives the
+# live heap after a full GC and the resident set. Memory on a shared computer tells nothing, thus the measure runs in CI
+# only. Five runs give the spread.
+#
+# The gate: the bytes that /node/context adds to the bare API are at most the limits, and the bytes of /node are beyond
+# the limit of the resident set. Else the gate cannot tell the two entries apart, and it has no read. Each limit is the
+# worst of 5 runs plus their spread.
+# The job changes gives the match, and the job Measure memory OK gives the result.
+name: Measure memory
+
+on:
+  # Each pull request starts the workflow. The job changes skips the measure when no file of the gate changes.
+  pull_request:
+  # A person starts a run with more rounds: gh workflow run measure-memory.yml -f rounds=20
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: The count of rounds of each run, a multiple of 10. Each round starts one process for each arm.
+        default: "10"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: measure-memory-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      match: ${{ steps.changes.outputs.match }}
+    steps:
+      - id: changes
+        uses: mark1russell7/template/.github/actions/changes@130d7d6038dfa2e32fb0d6f01c385f22046a752f # main
+        with:
+          paths: |
+            src/**
+            bench/**
+            package.json
+            pnpm-lock.yaml
+            .github/workflows/measure-memory.yml
+
+  measure:
+    needs: changes
+    if: needs.changes.outputs.match == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      # At most 3 jobs at a time: the runners are shared with other repositories.
+      max-parallel: 3
+      matrix:
+        run: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Measure the memory of each entry
+        env:
+          RUN: ${{ matrix.run }}
+          ROUNDS: ${{ inputs.rounds || '10' }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/memory"
+          node bench/memory.mjs measure "$RUN" "$ROUNDS" | tee "$GITHUB_WORKSPACE/memory/records.jsonl"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: measure-memory-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.run }}
+          path: memory/
+          if-no-files-found: error
+          retention-days: 90
+
+  verdict:
+    needs: [changes, measure]
+    if: needs.changes.outputs.match == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: measure-memory-${{ github.run_id }}-${{ github.run_attempt }}-*
+          path: memory/
+      - name: Read the bytes of each entry over the five runs
+        env:
+          # The limits in bytes: the worst of the 10 runs of the two first measures plus their spread (runs
+          # 45039866455 and 45040762954, 2026-11-22, 10 rounds each). The limits of the first 5 runs alone were too
+          # tight: one round of the second measure had 7 KiB more heap. To set the limits again, empty the four
+          # values: the read then only reports, and it prints the limits that its runs give.
+          MEMORY_RSS_LIMIT: "6668288"
+          MEMORY_RSS_AA: "913408"
+          MEMORY_HEAP_LIMIT: "1885728"
+          MEMORY_HEAP_AA: "1264"
+        run: node bench/memory.mjs verdict "$GITHUB_WORKSPACE/memory"
+
+  measure-ok:
+    name: Measure memory OK
+    if: ${{ !cancelled() }}
+    needs: [changes, measure, verdict]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - uses: mark1russell7/template/.github/actions/gate-summary@130d7d6038dfa2e32fb0d6f01c385f22046a752f # main
+        with:
+          needs: ${{ toJSON(needs) }}
