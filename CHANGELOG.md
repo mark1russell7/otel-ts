@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+
+### Fixed
+
+- `startNodeTelemetry()` in the entry `/node` gives each span a trace id with export off, as its doc tells. Before, each span had the trace id zero and recorded nothing. The SDK registers its tracer provider only for a list of span processors that is not empty, and export off gave an empty list. Thus the log lines of a service had no trace id. The same fix applies with export on and `OTEL_TRACES_EXPORTER=none`. Nothing leaves the process with export off.
+
 ## 0.8.2
 
 ### Added

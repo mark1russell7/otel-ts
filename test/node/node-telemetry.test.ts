@@ -41,6 +41,16 @@ describe("startNodeTelemetry", () => {
     telemetry = startNodeTelemetry({ env: {}, stopOnSignals: false });
     expect(telemetry.enabled).toBe(false);
 
+    // A new span gets a trace id, and its child has the same trace. Before 0.8.3 each id was zero with export off.
+    const tracer = trace.getTracer("t");
+    const root = tracer.startSpan("root");
+    expect(isSpanContextValid(root.spanContext())).toBe(true);
+    const child = context.with(trace.setSpan(context.active(), root), () => tracer.startSpan("child"));
+    expect(isSpanContextValid(child.spanContext())).toBe(true);
+    expect(child.spanContext().traceId).toBe(root.spanContext().traceId);
+    child.end();
+    root.end();
+
     // AsyncLocalStorage keeps the value after await
     const seen = await withContext({ "n.request.id": "r-1" }, async () => {
       await new Promise((resolve) => setTimeout(resolve, 1));
@@ -124,6 +134,10 @@ describe("startNodeTelemetry", () => {
       shutdown: () => Promise.resolve(),
     };
     telemetry = startNodeTelemetry({ enabled: true, env: { OTEL_TRACES_EXPORTER: "none" }, logExporter, stopOnSignals: false });
+    // With the traces exporter "none", a span still gets a trace id for the log records.
+    const span = trace.getTracer("t").startSpan("s");
+    expect(isSpanContextValid(span.spanContext())).toBe(true);
+    span.end();
     const logger = logs.getLogger("otel-ts-node-context");
 
     await withContext({ "n.job.id": "j-1" }, async () => {

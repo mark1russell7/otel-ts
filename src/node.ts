@@ -26,7 +26,7 @@ import { register } from "node:module";
 import { context, logs, metrics, propagation, trace, type Attributes } from "@opentelemetry/api";
 import { NodeSDK, type NodeSDKConfiguration } from "@opentelemetry/sdk-node";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
-import type { SpanExporter } from "@opentelemetry/sdk-trace";
+import { NoopSpanProcessor, type SpanExporter } from "@opentelemetry/sdk-trace";
 import { ContextPropagator, claimContextRegistration } from "./context-propagator.js";
 import { contextMetricViews } from "./context-processors.js";
 import { histogramAggregation, nodeLogRecordProcessors, nodeResourceDetectors, nodeSpanProcessors } from "./node-exporters.js";
@@ -66,8 +66,9 @@ export interface NodeTelemetryOptions {
   metricReaders?: NodeSDKConfiguration["metricReaders"];
   /**
    * Export on or off. Default: on when `OTEL_EXPORTER_OTLP_ENDPOINT` has a
-   * value. With export off, the context is registered all the same, so the ids
-   * go through the service and into its own log lines.
+   * value. With export off, the context is registered all the same, and each
+   * span gets a trace id. So the ids go through the service and into its own
+   * log lines.
    */
   enabled?: boolean;
   /**
@@ -124,14 +125,19 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
       register("@opentelemetry/instrumentation/hook.mjs", options.importMetaUrl);
       esmHook = true;
     }
-    // With export off: no processor and no reader, so nothing leaves the process
+    // With export off: no exporter and no reader, so nothing leaves the process.
+    // The SDK registers its tracer provider only for a list of span processors that is not empty. Without the
+    // provider, each span is the span of the API with the trace id zero. A processor that does nothing keeps the
+    // provider, so each span gets a trace id, also with export off or with the traces exporter "none".
+    const exporting = enabled ? nodeSpanProcessors(env, options.traceExporter) : [];
+    const spanProcessors = exporting.length > 0 ? exporting : [new NoopSpanProcessor()];
     const exports: Partial<NodeSDKConfiguration> = enabled
       ? {
-          spanProcessors: nodeSpanProcessors(env, options.traceExporter),
+          spanProcessors,
           logRecordProcessors: nodeLogRecordProcessors(env, options.logExporter),
           ...(options.metricReaders ? { metricReaders: options.metricReaders } : {}),
         }
-      : { spanProcessors: [], logRecordProcessors: [], metricReaders: [] };
+      : { spanProcessors, logRecordProcessors: [], metricReaders: [] };
     sdk = new NodeSDK({
       serviceName: options.serviceName ?? env["OTEL_SERVICE_NAME"] ?? "node-service",
       textMapPropagator: new ContextPropagator(),
