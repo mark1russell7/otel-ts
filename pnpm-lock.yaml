@@ -71,13 +71,13 @@ importers:
     devDependencies:
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
-        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/cee82217eb0e31e00f9140c2085329b0f7af34df
+        version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/d2b4bcf44b27dfe0c77273120e8e412276eced5b
       '@mark1russell7/lag':
         specifier: ^0.5.0
-        version: 0.5.1(@opentelemetry/api@1.10.0)(async-browser-context@0.3.2(@opentelemetry/api@1.10.0)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))
+        version: 0.5.3(@opentelemetry/api@1.10.0)(async-browser-context@0.3.2(@opentelemetry/api@1.10.0)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))
       '@mark1russell7/rigor-bench':
         specifier: ^0.3.2
-        version: 0.3.2
+        version: 0.3.3
       '@mark1russell7/rigor-testkit':
         specifier: ^0.2.0
         version: 0.2.0(@mark1russell7/rigor-generators@0.2.0)(@opentelemetry/api-logs@0.223.2)(@opentelemetry/api@1.10.0)(@opentelemetry/sdk-logs@3.1.1(@opentelemetry/api@1.10.0))(@opentelemetry/sdk-metrics@3.1.1(@opentelemetry/api@1.10.0))(@opentelemetry/sdk-trace@3.1.1(@opentelemetry/api@1.10.0))
@@ -110,7 +110,7 @@ importers:
         version: link:..
       '@mark1russell7/site-pages':
         specifier: ^0.8.0
-        version: 0.8.1
+        version: 0.8.2
       '@opentelemetry/api':
         specifier: ^1.10.0
         version: 1.10.0
@@ -307,12 +307,12 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/cee82217eb0e31e00f9140c2085329b0f7af34df':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/cee82217eb0e31e00f9140c2085329b0f7af34df}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/d2b4bcf44b27dfe0c77273120e8e412276eced5b':
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/d2b4bcf44b27dfe0c77273120e8e412276eced5b}
     version: 0.0.0
 
-  '@mark1russell7/lag@0.5.1':
-    resolution: {integrity: sha512-hsBTTv8awSYB5XoKGxvMNjR5mj2lzceZwKdlhbAzuaNZ9ZOmcQPGrpBqGAjIBoFvKC605jwp9L+gv+BXIuC0rA==}
+  '@mark1russell7/lag@0.5.3':
+    resolution: {integrity: sha512-oHZ+M994jzVw3M0F/AZrUp/6jB6yaWEeGq61e1RhfrKuKimUawuJ7mKp2Y9TduvSobsvHbGUTud+BA/QJegQLw==}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
       async-browser-context: ^0.3.0
@@ -322,8 +322,8 @@ packages:
       async-browser-context:
         optional: true
 
-  '@mark1russell7/rigor-bench@0.3.2':
-    resolution: {integrity: sha512-wZ6YWq5974qhud6W+PNpBnO6xrZpGJCAbKcIw3ICfrEnTDWZRWHgn0vBKBlRJIPcJBn9o5SYNN5NKz+prp9/HA==}
+  '@mark1russell7/rigor-bench@0.3.3':
+    resolution: {integrity: sha512-8iOCvKVL1jyhQrp++N01H317sEBGa8ZHCj1ubQLYVIzZD2kXXEvyNjH0OzmVWI6SSWuv1FYSyO+dt3Fw0c49uA==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -332,20 +332,12 @@ packages:
       esbuild:
         optional: true
 
-  '@mark1russell7/rigor-generators@0.1.16':
-    resolution: {integrity: sha512-C94Q4C31aZ8UXx1R0JSBV7DiQFl5tVpbFxHxHzHaSqr3dTgmCkEvLrvlUV8/0/GZqPhQYG9cbX6GOlqfRj/h4g==}
-    engines: {node: '>=22'}
-
   '@mark1russell7/rigor-generators@0.2.0':
     resolution: {integrity: sha512-eTyJhK4Nowx1KQ3QrsQqLiAlhFoL+8m1OT6He+X0Lf0G/0f9OyQC8ponQLViQKRkP/ef10B6oACFjtjnKErobg==}
     engines: {node: '>=22'}
 
   '@mark1russell7/rigor-statistics@0.2.19':
     resolution: {integrity: sha512-zMfirguRPEJin3H1q5Rl3kCl6b5M5QSg0ukd/damhZXPwLEUQ/oAYXoRAJA5sSZ7tHW4wZF9DhK8FidiMGsbbg==}
-    engines: {node: '>=22'}
-
-  '@mark1russell7/rigor-statistics@0.2.4':
-    resolution: {integrity: sha512-0L075rT+toD6edxEwDdZHiFzHP4+dJrI64Pw5gh9V33VwCfNRUMQY90AooDpMgVcC9cuxHNXegDLSOYU9ZMIlA==}
     engines: {node: '>=22'}
 
   '@mark1russell7/rigor-testkit@0.2.0':
@@ -384,8 +376,8 @@ packages:
       ltx:
         optional: true
 
-  '@mark1russell7/site-pages@0.8.1':
-    resolution: {integrity: sha512-R8lPPyDNAbemR2YBrivAIYkXNfQgJDUhggKiUGWHNEZTKwUpLtVGvl/lqD/bkhoSh9IluAhnz5c/5R/A/uFeVA==}
+  '@mark1russell7/site-pages@0.8.2':
+    resolution: {integrity: sha512-WMErq1NBREuaBOn28Vg+7LMJSTou8+O27qNRoaRt11h+r3j9muf4jFmuwGazDOSS+Cf32gxDT1/IpXbAz2h/Vg==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1595,32 +1587,26 @@ snapshots:
 
   '@mark1russell7/cue@2.1.4': {}
 
-  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/cee82217eb0e31e00f9140c2085329b0f7af34df': {}
+  '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/d2b4bcf44b27dfe0c77273120e8e412276eced5b': {}
 
-  '@mark1russell7/lag@0.5.1(@opentelemetry/api@1.10.0)(async-browser-context@0.3.2(@opentelemetry/api@1.10.0)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))':
+  '@mark1russell7/lag@0.5.3(@opentelemetry/api@1.10.0)(async-browser-context@0.3.2(@opentelemetry/api@1.10.0)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)))':
     dependencies:
       page-lifecycle-tracker: 0.1.1
     optionalDependencies:
       '@opentelemetry/api': 1.10.0
       async-browser-context: 0.3.2(@opentelemetry/api@1.10.0)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1))
 
-  '@mark1russell7/rigor-bench@0.3.2':
+  '@mark1russell7/rigor-bench@0.3.3':
     dependencies:
       '@mark1russell7/rigor-generators': 0.2.0
       '@mark1russell7/rigor-statistics': 0.2.19
       '@mark1russell7/text': 0.0.17
-
-  '@mark1russell7/rigor-generators@0.1.16': {}
 
   '@mark1russell7/rigor-generators@0.2.0': {}
 
   '@mark1russell7/rigor-statistics@0.2.19':
     dependencies:
       '@mark1russell7/rigor-generators': 0.2.0
-
-  '@mark1russell7/rigor-statistics@0.2.4':
-    dependencies:
-      '@mark1russell7/rigor-generators': 0.1.16
 
   '@mark1russell7/rigor-testkit@0.2.0(@mark1russell7/rigor-generators@0.2.0)(@opentelemetry/api-logs@0.223.2)(@opentelemetry/api@1.10.0)(@opentelemetry/sdk-logs@3.1.1(@opentelemetry/api@1.10.0))(@opentelemetry/sdk-metrics@3.1.1(@opentelemetry/api@1.10.0))(@opentelemetry/sdk-trace@3.1.1(@opentelemetry/api@1.10.0))':
     optionalDependencies:
@@ -1631,9 +1617,9 @@ snapshots:
       '@opentelemetry/sdk-metrics': 3.1.1(@opentelemetry/api@1.10.0)
       '@opentelemetry/sdk-trace': 3.1.1(@opentelemetry/api@1.10.0)
 
-  '@mark1russell7/site-pages@0.8.1':
+  '@mark1russell7/site-pages@0.8.2':
     dependencies:
-      '@mark1russell7/rigor-statistics': 0.2.4
+      '@mark1russell7/rigor-statistics': 0.2.19
 
   '@mark1russell7/text@0.0.17': {}
 
