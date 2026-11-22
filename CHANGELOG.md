@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.4
+
+### Added
+
+- The entry `/node/context` with `startNodeContext()`: the context of a Node service that exports nothing. It registers AsyncLocalStorage, the propagator of otel-ts and a tracer provider with the resource of the service. Each span gets a trace id. It loads no SDK of `@opentelemetry/sdk-node`, no exporter and no instrumentation. A test holds this rule.
+- `startNodeContext()` takes `spanProcessors`, so a test can capture the spans of the service. Its `shutdown()` flushes the processors before the stop of the provider: the stop of the provider alone does not wait for an export of a `SimpleSpanProcessor`.
+- The workflow `measure-memory.yml`: a memory gate in CI. Each arm is a fresh process: the bare `@opentelemetry/api`, `/node/context` and `/node` with export off. The gate holds the bytes that `/node/context` adds to the bare API. Each run uploads its raw records.
+
+### Changed
+
+- `startNodeTelemetry()` with export off starts no SDK. It registers the context with the code of `startNodeContext()`, so the two paths cannot drift. The instrumentations and the loader hook stay. Two details change with export off: the tracer provider has the default sampler of the SDK (parent-based, always on) and does not read `OTEL_TRACES_SAMPLER`, and no logger provider is registered (a log record goes nowhere, as before).
+- otel-ts depends on `@opentelemetry/context-async-hooks`, the AsyncLocalStorage context manager of the SDK.
+
 ## 0.8.3
 
 ### Fixed

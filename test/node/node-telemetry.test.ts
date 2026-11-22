@@ -18,7 +18,8 @@ import {
   PeriodicExportingMetricReader,
 } from "@opentelemetry/sdk-metrics";
 import { metrics } from "@opentelemetry/api";
-import { exporterNames, histogramAggregation, nodeResourceDetectors, otlpProtocol } from "../../src/node-exporters.js";
+import { exporterNames, histogramAggregation, otlpProtocol } from "../../src/node-exporters.js";
+import { nodeResourceDetectors } from "../../src/node-registration.js";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ExportResultCode } from "@opentelemetry/core";
 import type { SpanExporter } from "@opentelemetry/sdk-trace";

@@ -20,16 +20,21 @@
  * context keys to each span and each log record. Only one part of a program
  * registers it.
  *
+ * This entry loads the SDK and each exporter also with export off. A service
+ * that exports nothing imports the entry `/node/context`, which loads none of them.
+ *
  * @packageDocumentation
  */
 import { register } from "node:module";
 import { context, logs, metrics, propagation, trace, type Attributes } from "@opentelemetry/api";
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { NodeSDK, type NodeSDKConfiguration } from "@opentelemetry/sdk-node";
 import type { LogRecordExporter } from "@opentelemetry/sdk-logs";
 import { NoopSpanProcessor, type SpanExporter } from "@opentelemetry/sdk-trace";
 import { ContextPropagator, claimContextRegistration } from "./context-propagator.js";
 import { contextMetricViews } from "./context-processors.js";
-import { histogramAggregation, nodeLogRecordProcessors, nodeResourceDetectors, nodeSpanProcessors } from "./node-exporters.js";
+import { histogramAggregation, nodeLogRecordProcessors, nodeSpanProcessors } from "./node-exporters.js";
+import { nodeResourceDetectors, nodeServiceName, registerNodeContext } from "./node-registration.js";
 
 export { exporterNames, histogramAggregation, otlpProtocol, type ExporterName, type OtlpProtocol, type OtlpSignal } from "./node-exporters.js";
 
@@ -66,9 +71,9 @@ export interface NodeTelemetryOptions {
   metricReaders?: NodeSDKConfiguration["metricReaders"];
   /**
    * Export on or off. Default: on when `OTEL_EXPORTER_OTLP_ENDPOINT` has a
-   * value. With export off, the context is registered all the same, and each
-   * span gets a trace id. So the ids go through the service and into its own
-   * log lines.
+   * value. With export off, it starts no SDK: it registers the context as
+   * `startNodeContext()` of the entry `/node/context` does. Each span gets a
+   * trace id, so the ids go through the service and into its own log lines.
    */
   enabled?: boolean;
   /**
@@ -115,44 +120,22 @@ export interface NodeTelemetry {
 export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTelemetry {
   const env = options.env ?? process.env;
   const enabled = options.enabled ?? !!env["OTEL_EXPORTER_OTLP_ENDPOINT"];
-  const release = claimContextRegistration("startNodeTelemetry()");
-
   let esmHook = false;
-  let sdk: NodeSDK;
-  try {
-    // In the try too: a hook that does not resolve gives back the claim
+  // In the claim: a hook that does not resolve gives back the claim
+  const registerHook = (): void => {
     if (options.importMetaUrl) {
       register("@opentelemetry/instrumentation/hook.mjs", options.importMetaUrl);
       esmHook = true;
     }
-    // With export off: no exporter and no reader, so nothing leaves the process.
-    // The SDK registers its tracer provider only for a list of span processors that is not empty. Without the
-    // provider, each span is the span of the API with the trace id zero. A processor that does nothing keeps the
-    // provider, so each span gets a trace id, also with export off or with the traces exporter "none".
-    const exporting = enabled ? nodeSpanProcessors(env, options.traceExporter) : [];
-    const spanProcessors = exporting.length > 0 ? exporting : [new NoopSpanProcessor()];
-    const exports: Partial<NodeSDKConfiguration> = enabled
-      ? {
-          spanProcessors,
-          logRecordProcessors: nodeLogRecordProcessors(env, options.logExporter),
-          ...(options.metricReaders ? { metricReaders: options.metricReaders } : {}),
-        }
-      : { spanProcessors, logRecordProcessors: [], metricReaders: [] };
-    sdk = new NodeSDK({
-      serviceName: options.serviceName ?? env["OTEL_SERVICE_NAME"] ?? "node-service",
-      textMapPropagator: new ContextPropagator(),
-      // The aggregation of OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION:
-      // the views replace the preference of each reader
-      views: contextMetricViews(histogramAggregation(env)),
-      ...exports,
-      ...(options.resourceAttributes ? { resourceDetectors: nodeResourceDetectors(env, options.resourceAttributes) } : {}),
-      ...(options.instrumentations ? { instrumentations: options.instrumentations } : {}),
-    });
-    sdk.start();
-  } catch (error) {
-    release();
-    throw error;
-  }
+  };
+  // With export off: the registration of the entry /node/context, and no SDK. Thus the two paths register the
+  // same context, and nothing leaves the process. The instrumentations get the global tracer provider, as in the SDK.
+  const stop = enabled
+    ? startSdk(options, env, registerHook)
+    : registerNodeContext("startNodeTelemetry()", { serviceName: options.serviceName, resourceAttributes: options.resourceAttributes, env }, () => {
+        registerHook();
+        if (options.instrumentations) registerInstrumentations({ instrumentations: options.instrumentations });
+      }).stop;
 
   // The signal listeners of this start, removed at the stop
   const listeners: Array<[NodeJS.Signals, () => void]> = [];
@@ -167,16 +150,7 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
       process.removeListener(signal, listener);
       OWN_LISTENERS.delete(listener);
     }
-    return (stopping = sdk
-      .shutdown()
-      .catch(() => {
-        // a flush that fails at the stop loses its spans, and nothing else
-      })
-      .finally(() => {
-        // The SDK leaves its globals at the stop. Remove them, so a next start registers its own.
-        for (const api of [trace, metrics, logs, propagation, context]) api.disable();
-        release();
-      }));
+    return (stopping = stop());
   };
   if (options.stopOnSignals ?? true) {
     for (const signal of STOP_SIGNALS) {
@@ -197,4 +171,44 @@ export function startNodeTelemetry(options: NodeTelemetryOptions = {}): NodeTele
     }
   }
   return { enabled, esmHook, shutdown };
+}
+
+/** Start the SDK with export on, and give the function that stops it and removes the registration */
+function startSdk(options: NodeTelemetryOptions, env: NodeJS.ProcessEnv, registerHook: () => void): () => Promise<void> {
+  const release = claimContextRegistration("startNodeTelemetry()");
+  let sdk: NodeSDK;
+  try {
+    registerHook();
+    // The SDK registers its tracer provider only for a list of span processors that is not empty. Without the
+    // provider, each span is the span of the API with the trace id zero. A processor that does nothing keeps the
+    // provider, so each span gets a trace id, also with the traces exporter "none".
+    const exporting = nodeSpanProcessors(env, options.traceExporter);
+    sdk = new NodeSDK({
+      serviceName: nodeServiceName(options.serviceName, env),
+      textMapPropagator: new ContextPropagator(),
+      // The aggregation of OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION:
+      // the views replace the preference of each reader
+      views: contextMetricViews(histogramAggregation(env)),
+      spanProcessors: exporting.length > 0 ? exporting : [new NoopSpanProcessor()],
+      logRecordProcessors: nodeLogRecordProcessors(env, options.logExporter),
+      ...(options.metricReaders ? { metricReaders: options.metricReaders } : {}),
+      ...(options.resourceAttributes ? { resourceDetectors: nodeResourceDetectors(env, options.resourceAttributes) } : {}),
+      ...(options.instrumentations ? { instrumentations: options.instrumentations } : {}),
+    });
+    sdk.start();
+  } catch (error) {
+    release();
+    throw error;
+  }
+  return () =>
+    sdk
+      .shutdown()
+      .catch(() => {
+        // a flush that fails at the stop loses its spans, and nothing else
+      })
+      .finally(() => {
+        // The SDK leaves its globals at the stop. Remove them, so a next start registers its own.
+        for (const api of [trace, metrics, logs, propagation, context]) api.disable();
+        release();
+      });
 }

@@ -68,13 +68,25 @@ describe("the module graph of each entry", () => {
   });
 
   it("the Node entries import no browser library", () => {
-    for (const entry of ["src/node.ts", "src/node-testing.ts"]) {
+    for (const entry of ["src/node.ts", "src/node-context.ts", "src/node-testing.ts"]) {
       const packages = runtimePackages(entry);
       const browser = packages.filter(
         (name) => isAsyncBrowserContext(name) || isZone(name) || name.startsWith("@grafana/") || name.endsWith("-web"),
       );
       expect(browser, entry).toEqual([]);
     }
+  });
+
+  it("@mark1russell7/otel-ts/node/context imports no SDK of sdk-node, no exporter and no instrumentation", () => {
+    // A small service imports this entry for the context only, so it must not load the SDK and the exporters
+    expect(runtimePackages("src/node-context.ts")).toEqual([
+      "@opentelemetry/api",
+      "@opentelemetry/context-async-hooks",
+      "@opentelemetry/core",
+      "@opentelemetry/resources",
+      "@opentelemetry/sdk-trace",
+      "@opentelemetry/semantic-conventions",
+    ]);
   });
 
   it("@mark1russell7/otel-ts/context imports @opentelemetry/api only", () => {
@@ -85,7 +97,7 @@ describe("the module graph of each entry", () => {
   it("@mark1russell7/otel-ts/lag imports lag and the API only, and no other entry imports lag", () => {
     // lag is an optional peer: only an app that imports this entry installs it (decision D7)
     expect(runtimePackages("src/lag.ts")).toEqual(["@mark1russell7/lag", "@opentelemetry/api"]);
-    for (const entry of ["src/index.ts", "src/zone.ts", "src/core.ts", "src/context.ts", "src/node.ts", "src/node-testing.ts"]) {
+    for (const entry of ["src/index.ts", "src/zone.ts", "src/core.ts", "src/context.ts", "src/node.ts", "src/node-context.ts", "src/node-testing.ts"]) {
       expect(runtimePackages(entry), entry).not.toContain("@mark1russell7/lag");
     }
   });
@@ -97,6 +109,7 @@ describe("the module graph of each entry", () => {
       "./core": { types: "./dist/core.d.ts", import: "./dist/core.js" },
       "./context": { types: "./dist/context.d.ts", import: "./dist/context.js" },
       "./node": { types: "./dist/node.d.ts", import: "./dist/node.js" },
+      "./node/context": { types: "./dist/node-context.d.ts", import: "./dist/node-context.js" },
       "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
       "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js" },
     });

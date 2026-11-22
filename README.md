@@ -445,6 +445,26 @@ By default, it stops the SDK and sends the last spans at `SIGTERM` and `SIGINT`.
 
 The option `resourceAttributes` gives the attributes of the resource of the service, for example `service.version` and `service.instance.id` (the copy of the service). They win over the detected attributes and over `OTEL_RESOURCE_ATTRIBUTES`. `service.name` comes from `serviceName`. The detectors are those of the SDK, from `OTEL_NODE_RESOURCE_DETECTORS`.
 
+### A service that exports nothing
+
+The entry `/node` loads the SDK of `@opentelemetry/sdk-node` and each exporter, also with export off. In a small service, that is a large part of its memory. The entry `@mark1russell7/otel-ts/node/context` registers the same context with no SDK of `sdk-node`, no exporter and no instrumentation:
+
+```ts
+import { startNodeContext } from "@mark1russell7/otel-ts/node/context";
+
+export const telemetry = startNodeContext({
+  serviceName: "my-service",
+  resourceAttributes: { "service.version": "1.2.3", "service.instance.id": "copy-1" },
+});
+```
+
+- Each span gets a trace id, and a value of `withContext()` stays after `await`.
+- The propagator is the propagator of `/node`: `traceparent` on each call, the context keys in `baggage` only on an internal call.
+- No span leaves the process. A test gives `spanProcessors` with the exporter of its capture.
+- It adds no listener for a signal. Call `telemetry.shutdown()` in the last stage of the service.
+
+`startNodeContext()` and `startNodeTelemetry()` refuse each other: only one part of a program registers the context. To export, import `startNodeTelemetry()` from `/node` in its place.
+
 ### A service of `@mark1russell7/service`
 
 A service of [`@mark1russell7/service`](https://github.com/mark1russell7/systems/tree/main/packages/service) has a staged shutdown of its own: after the signal, it drains its requests. The stop of telemetry must come after the drain. With `stopOnSignals: true`, the stop removes the context at the signal: the log lines of the drain lose their trace ids, and the spans of the drained requests go. So:
