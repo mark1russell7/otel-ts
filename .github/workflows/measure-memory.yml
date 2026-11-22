@@ -107,12 +107,13 @@ jobs:
           path: memory/
       - name: Read the bytes of each entry over the five runs
         env:
-          # The limits in bytes: the worst of the 5 runs of the first measure plus their spread (run 45039866455,
-          # 2026-11-22, 10 rounds each). To set them again, empty the four values: the read then only reports, and it
-          # prints the limits that its runs give. A change of the limits is a change of the gate, in its own commit.
-          MEMORY_RSS_LIMIT: "6164480"
+          # The limits in bytes: the worst of the 10 runs of the two first measures plus their spread (runs
+          # 45039866455 and 45040762954, 2026-11-22, 10 rounds each). The limits of the first 5 runs alone were too
+          # tight: one round of the second measure had 7 KiB more heap. To set the limits again, empty the four
+          # values: the read then only reports, and it prints the limits that its runs give.
+          MEMORY_RSS_LIMIT: "6668288"
           MEMORY_RSS_AA: "913408"
-          MEMORY_HEAP_LIMIT: "1873904"
+          MEMORY_HEAP_LIMIT: "1885728"
           MEMORY_HEAP_AA: "1264"
         run: node bench/memory.mjs verdict "$GITHUB_WORKSPACE/memory"
 
