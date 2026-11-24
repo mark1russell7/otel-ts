@@ -102,6 +102,11 @@ describe("the module graph of each entry", () => {
     }
   });
 
+  it("@mark1russell7/otel-ts/pull imports the metrics SDK only", () => {
+    // A lab run reads its metrics with this entry, so it must not start an SDK or load an exporter
+    expect(runtimePackages("src/pull.ts")).toEqual(["@opentelemetry/sdk-metrics"]);
+  });
+
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
@@ -112,6 +117,7 @@ describe("the module graph of each entry", () => {
       "./node/context": { types: "./dist/node-context.d.ts", import: "./dist/node-context.js" },
       "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
       "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js" },
+      "./pull": { types: "./dist/pull.d.ts", import: "./dist/pull.js" },
     });
   });
 });

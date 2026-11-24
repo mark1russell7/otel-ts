@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.5
+
+### Added
+
+- The entry `/pull` reads the metrics of a process when the program asks (C26). It has `PullMetricReader`, `metricReadings` and `collectReadings`.
+- `PullMetricReader` is a metric reader with no timer and no export. Its temporality is an option, and the default is `"cumulative"`.
+- `metricReadings` gives the readings `{ series, at, value }` of one collection. Each set of attributes is a series by default. The option `attributes: "sum"` gives one sum for each metric. A histogram gives its count and its sum.
+- The entry needs only `@opentelemetry/sdk-metrics`. A test holds this rule, and a gate test runs it on the real SDK.
+
 ## 0.8.4
 
 ### Added

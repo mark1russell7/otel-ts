@@ -320,6 +320,28 @@ A shorter interval sends more samples. Each series then costs more in Mimir and 
 
 By default, the exporter requests cumulative temporality. In its default configuration, Mimir rejects delta sums and delta histograms. Keep `metricsTemporality` at `"cumulative"` for Mimir and Prometheus.
 
+## Read metrics when you ask
+
+The entry `/pull` reads the metrics of a process at the times that the program chooses. A lab run, for example, reads them after the start and after each pass. The entry starts no SDK and sends nothing.
+
+```ts
+import { MeterProvider } from "@opentelemetry/sdk-metrics";
+import { collectReadings, PullMetricReader } from "@mark1russell7/otel-ts/pull";
+
+const reader = new PullMetricReader();
+const provider = new MeterProvider({ readers: [reader] });
+provider.getMeter("app").createCounter("requests").add(1, { route: "/a" });
+
+const { readings, errors } = await collectReadings(reader, Date.now());
+// readings: [{ series: 'requests{route="/a"}', at: "2026-11-24T12:00:00.000Z", value: 1 }]
+```
+
+- `PullMetricReader` has no timer and no export. Give it to a `MeterProvider`, or to the SDK as a metric reader.
+- The option `temporality` is `"cumulative"` (the default) or `"delta"`. With `"delta"`, counters and histograms give the change after the last collection.
+- Each set of attributes is a series. With `{ attributes: "sum" }`, each metric is one series, the sum over its attributes.
+- A histogram gives the series `<name>.count` and `<name>.sum`.
+- `errors` is the count of the callbacks that failed in the collection.
+
 ## Page lifecycle
 
 The library follows the state of the page with [`page-lifecycle-tracker`](https://github.com/mark1russell7/page-lifecycle-tracker). It uses the tracker that the page shares (`getPageLifecycle()`), and it subscribes in the `export` phase:
