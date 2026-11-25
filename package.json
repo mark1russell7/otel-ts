@@ -127,5 +127,8 @@
     "happy-dom": "^21.0.4",
     "typescript": "^5.9.0",
     "vitest": "^4.1.12"
+  },
+  "sitePages": {
+    "bareErrors": "fail"
   }
 }
