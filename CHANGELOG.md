@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.6
+
+### Added
+
+- The entry `/error` makes an error record from the context manager (E1). An error that a page or a service shows as bare text loses its trace, its session and its procedure. The record keeps them.
+- `errorRecord(error, options)` gives plain JSON: the name, the message and the code, the cause chain (`cause`, then the `errors` of an `AggregateError`, with no loop and at most 8 causes), the trace and span id of the active span, the values of the context keys, the procedure with the digest of its input, and the time. It never throws.
+- Each text of the record goes through the redaction of `@mark1russell7/text/redact`. The stacks stay out unless the option `stacks` asks for them.
+- `reportError(error, options)` makes the record, emits one log record of severity ERROR in the same context, and marks the active span as failed. The view, the log line and the span thus give the same ids. `errorLogAttributes(record)` gives the attributes of that log record.
+- `errorRecordText(record)` gives the text to copy or to put in a report: the message, each id, the causes and the JSON.
+- The entry needs only `@opentelemetry/api` and `@mark1russell7/text`. A test holds this rule. otel-ts now depends on `@mark1russell7/text`.
+
 ## 0.8.5
 
 ### Added

@@ -107,6 +107,11 @@ describe("the module graph of each entry", () => {
     expect(runtimePackages("src/pull.ts")).toEqual(["@opentelemetry/sdk-metrics"]);
   });
 
+  it("@mark1russell7/otel-ts/error imports the API and the plain-text helpers only", () => {
+    // A page, a library and a service make an error record with no SDK, so it must stay light
+    expect(runtimePackages("src/error-record.ts")).toEqual(["@mark1russell7/text", "@mark1russell7/text/redact", "@opentelemetry/api"]);
+  });
+
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
@@ -118,6 +123,7 @@ describe("the module graph of each entry", () => {
       "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
       "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js" },
       "./pull": { types: "./dist/pull.d.ts", import: "./dist/pull.js" },
+      "./error": { types: "./dist/error-record.d.ts", import: "./dist/error-record.js" },
     });
   });
 });

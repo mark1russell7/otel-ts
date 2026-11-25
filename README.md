@@ -244,6 +244,28 @@ In the browser, `init()` registers the context when `tracing` is on (the default
 
 Only one part of a program registers the context. A second `init()` before the `shutdown()` of the first is an error. `shutdown()` removes the registration. With `tracing: false`, `init()` registers no context manager and no propagator.
 
+## Error records
+
+The entry `@mark1russell7/otel-ts/error` makes a record of an error with the ids of its context. A view, a copy, a report and a log line then use the same record. It depends on `@opentelemetry/api` and `@mark1russell7/text` only, and it needs no SDK.
+
+```ts
+import { reportError, errorRecordText } from "@mark1russell7/otel-ts/error";
+
+try {
+  await save(item);
+} catch (error) {
+  // One ERROR log record in this context, the span marked as failed, and the record
+  const record = reportError(error, { procedure: { name: "items.save", inputDigest } });
+  show(record); // the message, the trace id, the context keys and the causes
+  await navigator.clipboard.writeText(errorRecordText(record));
+}
+```
+
+- `errorRecord(error, options)` gives the record only. It reads the active context, or the context in `options.from`.
+- The record holds the trace and span id of the active span, the values of the context keys, the procedure, the cause chain and the time. It never holds the input: give the digest of the input, for example the SHA-256 of its canonical JSON.
+- Each text goes through the redaction of `@mark1russell7/text/redact`. A stack stays out, unless you give `stacks: true`.
+- Without an SDK, the record has no trace id, and the log record goes to the no-op logger of the API.
+
 ## Writer identity
 
 Prometheus and Mimir make the `instance` label from the `service.instance.id` resource attribute. Each SDK instance writes its own metric series. Two SDK instances with the same identity write to the same series. Then Mimir rejects samples, and `rate()` gives incorrect values.
