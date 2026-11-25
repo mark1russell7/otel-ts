@@ -40,6 +40,7 @@ vi.mock("@opentelemetry/exporter-metrics-otlp-http", async (importOriginal) => {
           },
           forceFlush: () => Promise.resolve(),
           shutdown: () => Promise.resolve(),
+          setMetrics: () => undefined,
         },
         config,
       );

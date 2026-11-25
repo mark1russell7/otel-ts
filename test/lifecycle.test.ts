@@ -70,8 +70,8 @@ describe("registerLifecycleHandlers", () => {
     hidePage(false);
 
     type Cause = { transition: { to: string; trigger: string } };
-    expect(handlers.flush.mock.calls.map(([cause]) => (cause as Cause).transition.to)).toEqual(["hidden", "frozen"]);
-    expect((handlers.shutdown.mock.calls[0]![0] as Cause).transition).toMatchObject({ to: "terminated", trigger: "pagehide" });
+    expect(handlers.flush.mock.calls.map((call) => ((call as unknown[])[0] as Cause).transition.to)).toEqual(["hidden", "frozen"]);
+    expect(((handlers.shutdown.mock.calls[0] as unknown[])[0] as Cause).transition).toMatchObject({ to: "terminated", trigger: "pagehide" });
   });
 
   it("listens through the shared tracker to visibilitychange and pagehide, never to beforeunload or unload", () => {

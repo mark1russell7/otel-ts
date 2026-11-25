@@ -88,7 +88,7 @@ describe("contextMetricViews", () => {
     counter.add(1, { "q.user.id": "u-2", "q.tenant": "acme", route: "/a" });
 
     await reader.forceFlush();
-    const points = exporter.getMetrics().flatMap((m) => m.scopeMetrics.flatMap((s) => s.metrics.flatMap((metric) => metric.dataPoints)));
+    const points = exporter.getMetrics().flatMap((m) => m.scopeMetrics.flatMap((s) => s.metrics.flatMap((metric): ReadonlyArray<{ attributes: unknown; value: unknown }> => metric.dataPoints)));
     await provider.shutdown();
     // Two user ids, one series: the user id is not a dimension
     expect(points.map((point) => [point.attributes, point.value])).toEqual([[{ "q.tenant": "acme", route: "/a" }, 2]]);

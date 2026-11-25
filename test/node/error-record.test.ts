@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { context, logs, ROOT_CONTEXT, SpanStatusCode, trace } from "@opentelemetry/api";
+import { context, logs, ROOT_CONTEXT, SpanStatusCode } from "@opentelemetry/api";
 import { InMemoryLogRecordExporter, LoggerProvider, SimpleLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { InMemorySpanExporter, SimpleSpanProcessor, TracerProvider } from "@opentelemetry/sdk-trace";
 import { AsyncContextManager } from "async-browser-context/opentelemetry";
