@@ -8,6 +8,11 @@ name: Pages
 on:
   push:
     branches: [main]
+  # After each release, so the Releases page shows the new version
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+    branches: [main]
   # One build each day, so the Status page shows the open pull requests and issues of the day
   schedule:
     - cron: "52 5 * * *"

@@ -5,16 +5,19 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
   # release.yml starts these gates before a release
   workflow_call:
 
 permissions:
   contents: read
 
+# A pull request has one group, and a newer push cancels its run. Each commit of main has its own group, so each one gets a result.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ci:
@@ -22,7 +25,7 @@ jobs:
     with:
       # build: tsc -b type-checks src and writes dist, as release.yml builds it.
       # test: the "browser runtime" project (happy-dom) and the "node" project.
-      scripts: build test
+      scripts: build typecheck test check:conventions
       # The maintained LTS lines and the current line
       node-versions: '["22", "24", "26"]'
 

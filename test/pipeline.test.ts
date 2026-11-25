@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { context, logs, propagation, trace } from "@opentelemetry/api";
+import { context, propagation, trace } from "@opentelemetry/api";
 import { reportError } from "../src/error-record.js";
 import { initializeFaro } from "@grafana/faro-web-sdk";
 import type { ReadableLogRecord } from "@opentelemetry/sdk-logs";

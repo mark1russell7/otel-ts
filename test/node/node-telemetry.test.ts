@@ -132,6 +132,7 @@ describe("startNodeTelemetry", () => {
         finished.push(...records.map((record): [unknown, unknown] => [record.body, record.attributes["n.job.id"]]));
         done({ code: ExportResultCode.SUCCESS });
       },
+      forceFlush: () => Promise.resolve(),
       shutdown: () => Promise.resolve(),
     };
     telemetry = startNodeTelemetry({ enabled: true, env: { OTEL_TRACES_EXPORTER: "none" }, logExporter, stopOnSignals: false });
