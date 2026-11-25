@@ -72,6 +72,9 @@ importers:
         specifier: ^0.1.0
         version: 0.1.1
     devDependencies:
+      '@mark1russell7/conventions':
+        specifier: ^0.52.8
+        version: 0.52.8
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra
         version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/618d1ab7042455f81a81e219af6d33022551305e
@@ -305,13 +308,18 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
+  '@mark1russell7/conventions@0.52.8':
+    resolution: {integrity: sha512-5LO7USK9u46LM/EE4pppMCSMepB8aszEyNNPUavXb4RIcE7nDgJTpZ4i9hzLhlXIh3iZykMUDisu6xJUp70vow==}
+    engines: {node: '>=22'}
+    hasBin: true
+
   '@mark1russell7/cue@2.1.4':
     resolution: {integrity: sha512-+EEUBpLrTBcJoMIOF3C5XMVpzO7eYrermtdleEvWLGNJK9/HGPT9o6GgbsW+Vl+s3/0QrXksc0qOIUlE70HI9Q==}
     engines: {node: '>=22'}
     hasBin: true
 
   '@mark1russell7/grafana-infra@https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/618d1ab7042455f81a81e219af6d33022551305e':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/618d1ab7042455f81a81e219af6d33022551305e}
+    resolution: {gitHosted: true, integrity: sha512-IkIz1abGj1xKC9KYtSPhvgKrnPd6xlJr9txGX01bFlOTD2jRAllhVatAGpnYPo8i/ysTTQivoPC1VXAx9nKOrw==, tarball: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/618d1ab7042455f81a81e219af6d33022551305e}
     version: 0.0.0
 
   '@mark1russell7/lag@0.5.4':
@@ -1587,6 +1595,11 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.6.0
 
   '@js-sdsl/ordered-map@4.4.2': {}
+
+  '@mark1russell7/conventions@0.52.8':
+    dependencies:
+      '@mark1russell7/text': 0.0.18
+      yaml: 2.9.1
 
   '@mark1russell7/cue@2.1.4': {}
 
