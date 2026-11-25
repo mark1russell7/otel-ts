@@ -10,6 +10,7 @@ import {
   errorLogAttributes,
   errorRecord,
   errorRecordText,
+  redactErrorRecord,
   reportError,
 } from "../../src/error-record.js";
 
@@ -164,6 +165,25 @@ describe("reportError", () => {
 
   it("returns the record with no SDK span, and does not throw", () => {
     expect(() => reportError(new Error("quiet"), { from: ROOT_CONTEXT, markSpan: true })).not.toThrow();
+  });
+});
+
+describe("redactErrorRecord", () => {
+  it("removes the secrets of a record from another place, and a second pass changes nothing", () => {
+    const token = "ghp_" + "c".repeat(36);
+    const raw = {
+      ...errorRecord(new Error("x"), { from: ROOT_CONTEXT, id: "r-3", at: new Date("2026-11-25T18:00:00Z") }),
+      message: `token=${token}`,
+      context: { "user.key": `Bearer ${token}` },
+    };
+
+    const clean = redactErrorRecord(raw);
+
+    expect(JSON.stringify(clean)).not.toContain(token);
+    expect(errorRecordText(raw)).not.toContain(token);
+    expect(redactErrorRecord(clean)).toEqual(clean);
+    const plain = errorRecord(new Error("plain", { cause: new Error("root") }), { from: ROOT_CONTEXT, id: "r-4", at: new Date("2026-11-25T18:00:00Z") });
+    expect(redactErrorRecord(plain)).toEqual(plain);
   });
 });
 

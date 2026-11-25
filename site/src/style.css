@@ -280,6 +280,10 @@ main {
   transform: translateY(1px);
 }
 
+.error-slot:not(:empty) {
+  margin-top: 12px;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;

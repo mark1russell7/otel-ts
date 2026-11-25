@@ -266,6 +266,30 @@ try {
 - Each text goes through the redaction of `@mark1russell7/text/redact`. A stack stays out, unless you give `stacks: true`.
 - Without an SDK, the record has no trace id, and the log record goes to the no-op logger of the API.
 
+### The view of an error
+
+The entry `@mark1russell7/otel-ts/error-view` shows an error record. It is a custom element with no framework, so each front end can use it.
+
+```ts
+import { reportError } from "@mark1russell7/otel-ts/error";
+import { errorView } from "@mark1russell7/otel-ts/error-view";
+
+const view = errorView(reportError(error, { procedure: { name: "items.save" } }), {
+  summary: "Your change was not saved.",
+  retry: true,
+  report: "Report",
+  traceUrl: "https://grafana.example/explore?trace={traceId}",
+});
+view.addEventListener("otel-error-retry", (event) => event.detail.waitUntil(save(item)));
+view.addEventListener("otel-error-report", (event) => sendReport(event.detail.text));
+slot.replaceChildren(view);
+```
+
+- In HTML, call `defineErrorView()` one time, then use `<otel-error retry report trace-url="...">` and set its property `record`.
+- The element keeps the redacted copy of the record (`redactErrorRecord`), so the view, the copy and a report hold no secret.
+- The colors follow the `color-scheme` of the page. Set `--otel-error-bg`, `--otel-error-ink`, `--otel-error-muted`, `--otel-error-rule`, `--otel-error-accent` and `--otel-error-accent-ink` to use the colors of your page.
+- With `init()`, the log record of `reportError()` goes to the export of the page, with the trace id and the session.
+
 ## Writer identity
 
 Prometheus and Mimir make the `instance` label from the `service.instance.id` resource attribute. Each SDK instance writes its own metric series. Two SDK instances with the same identity write to the same series. Then Mimir rejects samples, and `rate()` gives incorrect values.

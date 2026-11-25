@@ -246,10 +246,49 @@ export function reportError(error: unknown, options: ReportErrorOptions = {}): E
 }
 
 /**
- * The record as a text to copy or to paste in a report: the message, then each id, then the cause chain, then the
- * record as JSON. A reader with no tool reads the top, and a tool reads the JSON.
+ * A copy of `record` with each text through the redaction. `errorRecord()` already redacts. Use this function for a
+ * record from another place, for example the JSON of a server, before a view shows it or a person copies it.
+ * It is idempotent: a second pass changes nothing.
  */
-export function errorRecordText(record: ErrorRecord): string {
+export function redactErrorRecord(record: ErrorRecord): ErrorRecord {
+  const text = (value: unknown): string => redact(String(value ?? ""));
+  const strings = (values: Readonly<Record<string, unknown>> | undefined): Record<string, string> =>
+    Object.fromEntries(Object.entries(values ?? {}).map(([key, value]) => [text(key), text(value)]));
+  const causes = Array.isArray(record.causes) ? record.causes : [];
+  return {
+    format: ERROR_RECORD_FORMAT,
+    id: text(record.id),
+    at: text(record.at),
+    name: text(record.name),
+    message: text(record.message),
+    ...(record.code === undefined ? {} : { code: text(record.code) }),
+    causes: causes.slice(0, MAX_ERROR_CAUSES).map((cause) => ({
+      name: text(cause.name),
+      message: text(cause.message),
+      ...(cause.code === undefined ? {} : { code: text(cause.code) }),
+      ...(cause.stack === undefined ? {} : { stack: text(cause.stack).slice(0, MAX_STACK_LENGTH) }),
+      ...(cause.via === undefined ? {} : { via: text(cause.via) }),
+    })),
+    ...(record.traceId === undefined ? {} : { traceId: text(record.traceId) }),
+    ...(record.spanId === undefined ? {} : { spanId: text(record.spanId) }),
+    ...(record.sampled === undefined ? {} : { sampled: record.sampled === true }),
+    context: strings(record.context),
+    ...(record.procedure
+      ? { procedure: { name: text(record.procedure.name), ...(record.procedure.inputDigest === undefined ? {} : { inputDigest: text(record.procedure.inputDigest) }) } }
+      : {}),
+    ...(record.attributes
+      ? { attributes: Object.fromEntries(Object.entries(record.attributes).map(([key, value]) => [text(key), typeof value === "string" ? text(value) : typeof value === "number" || typeof value === "boolean" ? value : text(value)])) }
+      : {}),
+  };
+}
+
+/**
+ * The record as a text to copy or to paste in a report: the message, then each id, then the cause chain, then the
+ * record as JSON. A reader with no tool reads the top, and a tool reads the JSON. The record goes through
+ * `redactErrorRecord()` first, so a record from another place gives no secret either.
+ */
+export function errorRecordText(input: ErrorRecord): string {
+  const record = redactErrorRecord(input);
   const lines = [`${record.name}: ${record.message}`, ""];
   const row = (label: string, value: string | undefined): void => {
     if (value !== undefined && value !== "") lines.push(`${label}: ${value}`);

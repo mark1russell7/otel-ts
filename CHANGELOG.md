@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.7
+
+### Added
+
+- The entry `/error-view`: one view of an error record, as a custom element with no framework (E1). It shows the message in plain words, the procedure and the time. Its actions are retry, copy the whole record, report, and open the trace. Its details give each id, the context keys and the cause chain.
+- Retry and report are events (`otel-error-retry`, `otel-error-report`), so the page decides what they do. `waitUntil(promise)` keeps the retry button busy. Copy writes the text of `errorRecordText()` to the clipboard. When the clipboard refuses, the view opens the text for a manual copy.
+- The trace link comes from the attribute `trace-url`, a template with `{traceId}` and `{spanId}`. Only an `http:` or `https:` link shows. With no template or no trace id, the link stays hidden.
+- The colors follow the `color-scheme` of the page, and the custom properties `--otel-error-*` change them. The layout works from 320 px. The import registers nothing: call `defineErrorView()` or `errorView(record, options)`.
+- `redactErrorRecord(record)` in `/error` redacts a record from another place, for example the JSON of a server. The view and `errorRecordText()` use it, so no secret reaches the view, the copy or a report. A test holds this.
+- The site shows the view: "Fail a job" now gives an error view, with retry and a link that opens the trace in the page.
+
+### Changed
+
+- `init()` registers its logger provider as the global logger provider of the API, when it owns the globals (`tracing` on) and `logs` is on. `shutdown()` removes it. A library that logs through the API, for example `reportError()`, then reaches the export of the page, with the trace and the session.
+
 ## 0.8.6
 
 ### Added

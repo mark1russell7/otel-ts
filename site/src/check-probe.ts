@@ -148,8 +148,13 @@ check("the failed job has the status ERROR", job?.status?.code === 2, job?.statu
 check("the failed job has an exception event", job?.events?.some((event) => event.name === "exception"), job?.events);
 check("the failed job has the click span as its remote parent", spans().find((span) => span.spanId === job?.parentSpanId)?.name === "click", job?.parentSpanId);
 check("the waterfall marks the failed span in text", await until(() => $(`#waterfall [data-span="${job?.spanId}"] .tag-error`)?.textContent === "error"));
-const failLog = await until(() => logs().find((log) => log.body?.stringValue === "The payment job failed on purpose"), SLOW);
+const failLog = await until(() => logs().find((log) => log.body?.stringValue === "payment.charge: The payment job failed on purpose"), SLOW);
 check("the error log has the trace of the job", failLog?.traceId === job?.traceId, failLog);
+// The error view of the page shows the same record, with the trace link of the job
+const view = await until(() => document.querySelector("#error-slot otel-error")?.shadowRoot ?? undefined, SLOW);
+check("the page shows the error view, not a bare text", view?.querySelector(".title")?.textContent === "The payment did not go through.", view?.innerHTML.slice(0, 200));
+check("the error view has retry, copy and report", ["retry", "copy", "report"].every((name) => view?.querySelector(`[data-action="${name}"]`) !== null));
+check("the trace link of the error view names the trace of the job", view?.querySelector('[data-action="trace"]')?.getAttribute("href")?.endsWith(`#trace-${job?.traceId}`) === true, view?.querySelector('[data-action="trace"]')?.getAttribute("href"));
 const faroError = await until(() => lab.exports().flatMap((capture) => capture.body.exceptions ?? []).find((item) => item.value === "The payment job failed on purpose"), SLOW);
 check("Faro got the error with the IDs of the click span", faroError?.trace?.trace_id === job?.traceId && faroError?.trace?.span_id === job?.parentSpanId, faroError);
 check("the Faro list links the error to the click span", await until(() => $(`#faro [data-kind="exception"] button[data-span="${job?.parentSpanId}"]`) !== null), $("#faro")?.textContent?.slice(0, 200));

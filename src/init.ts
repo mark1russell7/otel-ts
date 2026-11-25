@@ -1,4 +1,4 @@
-import { context, propagation, trace } from "@opentelemetry/api";
+import { context, logs, propagation, trace } from "@opentelemetry/api";
 import { MeterProvider } from "@opentelemetry/sdk-metrics";
 import { LoggerProvider } from "@opentelemetry/sdk-logs";
 import type { FlushCause, OtelTsConfig, OtelTsInstance, ResolvedConfig } from "./types.js";
@@ -117,7 +117,7 @@ type Provider = { forceFlush(): Promise<void>; shutdown(): Promise<void> };
  */
 function releaseContext(releaseRegistration: (() => void) | undefined): void {
   if (!releaseRegistration) return;
-  for (const api of [trace, propagation, context]) api.disable();
+  for (const api of [trace, propagation, context, logs]) api.disable();
   releaseRegistration();
 }
 
@@ -159,6 +159,12 @@ function startInstance(
     : new LoggerProvider();
 
   providers.push(loggerProvider);
+
+  // The owner of the globals also registers its logger provider, so a library
+  // that logs through the API (for example reportError of /error) reaches it
+  if (releaseRegistration && resolved.logs) {
+    logs.setGlobalLoggerProvider(loggerProvider);
+  }
 
   // After the tracing, so Faro reads the context of otel-ts
   if (faroUrl) {
