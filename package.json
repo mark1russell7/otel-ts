@@ -74,7 +74,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "clean": "rm -rf dist .tsbuildinfo",
     "infra:up": "cd node_modules/@mark1russell7/grafana-infra && docker compose up -d",
     "infra:down": "cd node_modules/@mark1russell7/grafana-infra && docker compose down",
@@ -119,7 +119,7 @@
   },
   "devDependencies": {
     "@mark1russell7/conventions": "^0.52.8",
-    "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra",
+    "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra#618d1ab7042455f81a81e219af6d33022551305e",
     "@mark1russell7/lag": "^0.5.0",
     "@mark1russell7/rigor-bench": "^0.3.2",
     "@mark1russell7/rigor-testkit": "^0.2.0",
@@ -136,6 +136,15 @@
         "baseline": 2,
         "failFrom": "2026-12-23",
         "reason": "Wave 2 of the no-console plan: src has 2 console calls. A new call fails at once, and the last ones fail from 2026-12-23."
+      },
+      "typed-scripts": {
+        "ignore": [
+          "bench/*.mjs"
+        ],
+        "reason": "The memory bench (bench/*.mjs) moves to TypeScript with its own types and test in a later change. A new script must be TypeScript."
+      },
+      "api-report-script": {
+        "off": "The API report of the package comes in a later change: its first report needs a build and a review of each export."
       }
     }
   }

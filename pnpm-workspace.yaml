@@ -6,3 +6,10 @@ packages:
 minimumReleaseAgeExclude:
   - "@mark1russell7/*"
   - "@procedures/*"
+
+# pnpm refuses a version with less evidence of its source than an older version, for 7 days after a publish.
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 10080
+trustPolicyExclude:
+  - "@mark1russell7/*"
+  - "@procedures/*"
