@@ -791,6 +791,7 @@ tr.is-selected td {
 }
 
 .log-body {
+  font-family: inherit;
   overflow-wrap: anywhere;
 }
 
