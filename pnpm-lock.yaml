@@ -11,6 +11,9 @@ importers:
       '@grafana/faro-web-sdk':
         specifier: ^2.13.0
         version: 2.14.0
+      '@mark1russell7/text':
+        specifier: ^0.0.18
+        version: 0.0.18
       '@opentelemetry/api':
         specifier: ^1.10.0
         version: 1.10.0
