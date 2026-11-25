@@ -21,6 +21,15 @@
   --width: 1200px;
 }
 
+/* The theme button sets the color scheme too, so light-dark() (the error view) and the controls of the browser follow it */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #101219;
