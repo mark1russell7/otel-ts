@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.8
+## 0.9.1
 
 ### Changed
 
@@ -9,6 +9,14 @@
 - CI runs on each commit of `main`, on pull requests and on a manual start. A newer push cancels only the run of a pull request. The same holds for the security scans.
 - The Pages site builds again after each release.
 - `pnpm-workspace.yaml` sets the trust policy of pnpm (`no-downgrade`), and the dev dependency `@mark1russell7/grafana-infra` is pinned to a commit.
+
+## 0.9.0
+
+The release train changes the range of `@mark1russell7/text` to a version outside the old range. The public types name @mark1russell7/text, so its new version outside the old range can change them.
+
+### Breaking
+
+- The range `^0.0.18` of `@mark1russell7/text` in `dependencies` does not hold `0.0.19`, so it changes.
 
 ## 0.8.7
 
