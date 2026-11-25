@@ -22,7 +22,7 @@ jobs:
     with:
       # build: tsc -b type-checks src and writes dist, as release.yml builds it.
       # test: the "browser runtime" project (happy-dom) and the "node" project.
-      scripts: build test
+      scripts: build test check:conventions
       # The maintained LTS lines and the current line
       node-versions: '["22", "24", "26"]'
 

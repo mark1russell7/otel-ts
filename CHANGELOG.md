@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.8
+
+### Changed
+
+- CI runs the whole check of `@mark1russell7/conventions` (the script `check:conventions`). The rule `no-console` holds the 2 console calls of `src`: a new call fails at once, and the last ones fail from 2026-12-23. No API changes.
+
 ## 0.8.7
 
 ### Added
