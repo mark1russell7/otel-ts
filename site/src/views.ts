@@ -285,14 +285,14 @@ export function drawMetrics(table: HTMLElement, bars: HTMLElement, store: Store)
   bars.replaceChildren(...[caption, ...histograms.map(drawHistogram)].filter((node) => node !== null));
 }
 
-/** This function draws one log record. */
+/** This function draws one log record. The body is a record of the export, so it is program output (samp), not a message of the page. */
 function logRow(log: LogRecord): HTMLElement {
   const failed = log.severityNumber >= 17;
   return h(
     "li",
     { class: "log", "data-trace": log.traceId ?? "", "data-severity": log.severity },
     h("span", { class: `tag${failed ? " tag-error" : ""}` }, log.severity),
-    h("span", { class: "log-body" }, log.body),
+    h("samp", { class: "log-body" }, log.body),
     log.spanId === undefined ? h("span", { class: "quiet" }, "no trace") : h("button", { type: "button", class: "link-button", "data-span": log.spanId }, `span ${shortId(log.spanId)}`),
   );
 }
@@ -303,13 +303,13 @@ export function drawLogs(target: HTMLElement, store: Store): void {
   target.replaceChildren(...(logs.length === 0 ? [h("li", { class: "empty" }, "No log records yet. The buttons Write a log and Checkout make them.")] : logs.map(logRow)));
 }
 
-/** This function draws one Faro item. */
+/** This function draws one Faro item. Its text is a record of the export (samp), not a message of the page: the error view shows the failure. */
 function faroRow(item: FaroItem): HTMLElement {
   return h(
     "li",
     { class: "log", "data-trace": item.traceId ?? "", "data-kind": item.kind },
     h("span", { class: `tag${item.kind === "exception" ? " tag-error" : ""}` }, item.kind),
-    h("span", { class: "log-body" }, item.text),
+    h("samp", { class: "log-body" }, item.text),
     item.spanId === undefined ? h("span", { class: "quiet" }, "no trace") : h("button", { type: "button", class: "link-button", "data-span": item.spanId }, `span ${shortId(item.spanId)}`),
   );
 }
