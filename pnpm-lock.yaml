@@ -76,7 +76,7 @@ importers:
         specifier: ^0.52.8
         version: 0.52.8
       '@mark1russell7/grafana-infra':
-        specifier: github:mark1russell7/grafana-infra
+        specifier: github:mark1russell7/grafana-infra#618d1ab7042455f81a81e219af6d33022551305e
         version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/618d1ab7042455f81a81e219af6d33022551305e
       '@mark1russell7/lag':
         specifier: ^0.5.0
