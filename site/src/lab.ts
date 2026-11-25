@@ -6,6 +6,8 @@
  */
 import { init, runInRemoteTrace } from "@mark1russell7/otel-ts";
 import type { OtelTsConfig, OtelTsInstance } from "@mark1russell7/otel-ts";
+import { reportError } from "@mark1russell7/otel-ts/error";
+import type { ErrorRecord } from "@mark1russell7/otel-ts/error";
 import { context, propagation, SeverityNumber, trace } from "@opentelemetry/api";
 import { faro } from "@grafana/faro-web-sdk";
 import { COLLECTOR, FARO_COLLECTOR, OTHER_ORIGIN } from "./wire.ts";
@@ -93,7 +95,7 @@ function activeTraceparent(): string | undefined {
  * Each action uses timers and `then`, and no `await`. The `async` context manager keeps the span across timers and
  * `then` callbacks. It keeps the span after a native `await` only with its build transform, and this site has none.
  */
-export function startLab(config: OtelTsConfig, orderUrl: string): Lab {
+export function startLab(config: OtelTsConfig, orderUrl: string, onError: (record: ErrorRecord) => void = () => {}): Lab {
   const before = performance.now();
   const otel = init(config);
   const initMs = performance.now() - before;
@@ -128,15 +130,11 @@ export function startLab(config: OtelTsConfig, orderUrl: string): Lab {
         () => "The job ended with no error.",
         (error: unknown) => {
           const failure = error instanceof Error ? error : new Error(String(error));
-          logger.emit({
-            severityNumber: SeverityNumber.ERROR,
-            severityText: "ERROR",
-            body: failure.message,
-            attributes: { "demo.job": "payment" },
-          });
+          // One record: the log record of ERROR, the span status and the view of the page give the same ids
+          onError(reportError(failure, { procedure: { name: "payment.charge" }, logger: "otel-ts-demo", attributes: { "demo.job": "payment" } }));
           // Faro reads the active span from otel-ts, so the error has the trace of the click
           faro.api.pushError(failure);
-          return "The job failed. The page caught the error, the span has the status ERROR, and Faro got the error with the trace of the click.";
+          return "The job failed. The error view below has its record: the same trace id as the span, the log record and the Faro error.";
         },
       );
     },

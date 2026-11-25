@@ -16,6 +16,8 @@ import { createStore } from "./store.ts";
 import type { Capture } from "./store.ts";
 import { drawDetail, drawExports, drawFaro, drawLanes, drawLogs, drawMetrics, drawPayload, drawTotals, drawWaterfall, shortId } from "./views.ts";
 import { createWire } from "./wire.ts";
+import { errorView } from "@mark1russell7/otel-ts/error-view";
+import type { ErrorRecord } from "@mark1russell7/otel-ts/error";
 
 /** The time from an action to its flush. The fetch instrumentation ends a span about 300 ms after the response. */
 const FLUSH_DELAY_MS = 450;
@@ -201,7 +203,36 @@ wire.onExport((record) => {
 const config = labConfig(options, __BUILD__.version);
 byId("config").textContent = configText(config);
 const orderUrl = new URL(`${import.meta.env.BASE_URL}demo/order.json`, location.href).href;
-const started = startLab(config, orderUrl);
+const errorSlot = byId("error-slot");
+/** The error view of the last failed job. Retry runs the job again, and report shows what an app would send. */
+function showError(record: ErrorRecord): void {
+  const view = errorView(record, {
+    retry: true,
+    report: "Report",
+    summary: "The payment did not go through.",
+    traceUrl: "#trace-{traceId}",
+    traceTarget: "_self",
+  });
+  view.addEventListener("otel-error-retry", (event) => event.detail.waitUntil(started.run("failed-job")));
+  view.addEventListener("otel-error-report", (event) => {
+    byId("act-result").textContent = `The page got the report event of record ${shortId(event.detail.record.id)}. An app sends its text to its own inbox or tracker.`;
+  });
+  errorSlot.replaceChildren(view);
+}
+
+/** The link "Open the trace" of the error view selects the root span of that trace. */
+function openTraceFromHash(): void {
+  const match = /^#trace-([0-9a-f]{32})$/.exec(location.hash);
+  if (!match) return;
+  const root = store.traces().find((group) => group.traceId === match[1])?.rows[0]?.span.spanId;
+  if (root) {
+    selectSpan(root);
+    waterfall.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+}
+window.addEventListener("hashchange", openTraceFromHash);
+
+const started = startLab(config, orderUrl, showError);
 lab = started;
 
 started.otel.onBeforeFlush((cause) => {

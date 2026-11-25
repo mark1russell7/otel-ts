@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { context, propagation, trace } from "@opentelemetry/api";
+import { context, logs, propagation, trace } from "@opentelemetry/api";
+import { reportError } from "../src/error-record.js";
 import { initializeFaro } from "@grafana/faro-web-sdk";
 import type { ReadableLogRecord } from "@opentelemetry/sdk-logs";
 import type { ResourceMetrics } from "@opentelemetry/sdk-metrics";
@@ -144,6 +145,42 @@ describe("exported telemetry", () => {
     expect(instanceId).toMatch(UUID_V4);
     expect(record!.resource.attributes["service.instance.id"]).toBe(instanceId);
     expect(span!.resource.attributes["service.instance.id"]).toBe(instanceId);
+  });
+});
+
+describe("the global logger provider", () => {
+  it("gives the log record of reportError() the trace of its span and the session", async () => {
+    let ids: { traceId: string; spanId: string } | undefined;
+    const { getSessionId } = await run({ metrics: false }, () => {
+      trace.getTracer("test").startActiveSpan("save", (span) => {
+        reportError(new Error("the save failed"), { procedure: { name: "items.save" } });
+        ids = span.spanContext();
+        span.end();
+      });
+    });
+
+    const [record] = exportedTo<ReadableLogRecord>("/v1/logs");
+    expect(record!.body).toBe("items.save: the save failed");
+    expect(record!.spanContext?.traceId).toBe(ids?.traceId);
+    expect(record!.spanContext?.spanId).toBe(ids?.spanId);
+    expect(record!.attributes["session.id"]).toBe(getSessionId());
+  });
+
+  it("is not registered with logs off, and is removed by shutdown()", async () => {
+    const otelOff = init({ ...QUIET, metrics: false, logs: false });
+    reportError(new Error("nowhere"));
+    await otelOff.shutdown();
+
+    const instance = init({ ...QUIET, metrics: false });
+    await instance.shutdown();
+    // After shutdown() a second init() can register again
+    otel = init({ ...QUIET, metrics: false });
+    trace.getTracer("test").startActiveSpan("again", (span) => {
+      reportError(new Error("again"));
+      span.end();
+    });
+    await otel.forceFlush();
+    expect(exportedTo<ReadableLogRecord>("/v1/logs").map((record) => record.body)).toEqual(["again"]);
   });
 });
 

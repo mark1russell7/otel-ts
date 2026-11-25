@@ -112,6 +112,11 @@ describe("the module graph of each entry", () => {
     expect(runtimePackages("src/error-record.ts")).toEqual(["@mark1russell7/text", "@mark1russell7/text/redact", "@opentelemetry/api"]);
   });
 
+  it("@mark1russell7/otel-ts/error-view imports the same packages as /error, and no framework", () => {
+    // Each front end uses the view, so it must not bring a framework or an SDK
+    expect(runtimePackages("src/error-view.ts")).toEqual(["@mark1russell7/text", "@mark1russell7/text/redact", "@opentelemetry/api"]);
+  });
+
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
@@ -124,6 +129,7 @@ describe("the module graph of each entry", () => {
       "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js" },
       "./pull": { types: "./dist/pull.d.ts", import: "./dist/pull.js" },
       "./error": { types: "./dist/error-record.d.ts", import: "./dist/error-record.js" },
+      "./error-view": { types: "./dist/error-view.d.ts", import: "./dist/error-view.js" },
     });
   });
 });
