@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.5
+
+### Added
+
+- The entry `/node/export` has `exportSpanProcessors({ env, exporter })`. It gives the span processors of the entry `/node` for the option `spanProcessors` of `startNodeContext()`: the context processor, then a processor for each exporter of `OTEL_TRACES_EXPORTER`. With no value in `OTEL_EXPORTER_OTLP_ENDPOINT` and no exporter, it gives no processor. Thus a small service or a command line exports its spans with no SDK of `@opentelemetry/sdk-node`. The entry `/node/context` does not change, and it does not load the exporters.
+
 ## 0.10.4
 
 ### Changed

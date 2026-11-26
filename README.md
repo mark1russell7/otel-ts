@@ -551,7 +551,23 @@ export const telemetry = startNodeContext({
 - No span leaves the process. A test gives `spanProcessors` with the exporter of its capture.
 - It adds no listener for a signal. Call `telemetry.shutdown()` in the last stage of the service.
 
-`startNodeContext()` and `startNodeTelemetry()` refuse each other: only one part of a program registers the context. To export, import `startNodeTelemetry()` from `/node` in its place.
+`startNodeContext()` and `startNodeTelemetry()` refuse each other: only one part of a program registers the context.
+
+To export the spans with no SDK of `sdk-node`, give the processors of the entry `@mark1russell7/otel-ts/node/export`. The entry loads the exporters, so import it only when the program exports:
+
+```ts
+import { startNodeContext } from "@mark1russell7/otel-ts/node/context";
+
+const spanProcessors = process.env["OTEL_EXPORTER_OTLP_ENDPOINT"]
+  ? (await import("@mark1russell7/otel-ts/node/export")).exportSpanProcessors()
+  : [];
+export const telemetry = startNodeContext({ serviceName: "my-tool", spanProcessors });
+```
+
+- The processors are those of `/node`: the context processor, then one processor for each exporter of `OTEL_TRACES_EXPORTER` (`otlp`, `console` or `none`), with the protocol of `OTEL_EXPORTER_OTLP_PROTOCOL`.
+- With no value in `OTEL_EXPORTER_OTLP_ENDPOINT`, `exportSpanProcessors()` gives no processor. The option `exporter` exports to an exporter of the program.
+- `telemetry.shutdown()` flushes the spans. A command line calls it before it ends.
+- For the logs and the metrics, and for the instrumentations, import `startNodeTelemetry()` from `/node` in place of `startNodeContext()`.
 
 ### A service of `@mark1russell7/service`
 
