@@ -2,7 +2,6 @@
  * The owner of the registration of the context, for each entry. This file loads only `@opentelemetry/api`, so the
  * entry `/context` can read the owner without the SDK packages.
  */
-import { ProxyTracerProvider, trace } from "@opentelemetry/api";
 
 /*
  * The owner of the registration is on globalThis, so two copies of otel-ts in
@@ -15,23 +14,27 @@ export function contextRegistrationOwner(): string | undefined {
   return (globalThis as { [OWNER]?: string })[OWNER];
 }
 
-/** The owner that `contextOwner()` gives when an SDK outside otel-ts registered the global tracer provider */
+/** The owner that `contextOwner()` gives when a part outside otel-ts registered a global of the context */
 export const OTHER_SDK = "another SDK";
 
 /**
+ * The registry of the globals of `@opentelemetry/api` 1.x. Each copy of the API in a program uses this key, so the
+ * registry also shows a registration of another copy. The API has no public read of it.
+ */
+const API_GLOBALS = Symbol.for("opentelemetry.js.api.1");
+
+/** The globals that a start of the context registers */
+const CONTEXT_GLOBALS = ["trace", "context", "propagation"] as const;
+
+/**
  * The part of the program that registered the context: the call of otel-ts that holds it (for example
- * "startNodeContext()"), `OTHER_SDK` when an SDK outside otel-ts registered the global tracer provider, or undefined
- * when nothing did. A runner starts the context only when this gives undefined. Then it does not replace the context of
- * the program, or the capture of a test.
+ * "startNodeContext()"), `OTHER_SDK` when a part outside otel-ts registered the global tracer provider, context
+ * manager or propagator, or undefined when nothing did. A runner starts the context only when this gives undefined.
+ * Then it does not replace the context of the program, or the capture of a test.
  */
 export function contextOwner(): string | undefined {
   const owner = contextRegistrationOwner();
   if (owner !== undefined) return owner;
-  // The global of the API is its proxy. A registration sets the delegate of the proxy, and a proxy of another copy of the API
-  // is not an instance of this class.
-  const provider = trace.getTracerProvider();
-  return provider instanceof ProxyTracerProvider && provider.getDelegate() === NO_PROVIDER ? undefined : OTHER_SDK;
+  const registry = (globalThis as { [API_GLOBALS]?: Partial<Record<string, unknown>> })[API_GLOBALS];
+  return CONTEXT_GLOBALS.some((name) => registry?.[name] !== undefined) ? OTHER_SDK : undefined;
 }
-
-/** The delegate of a proxy with no registered tracer provider: the no-op provider of the API */
-const NO_PROVIDER = new ProxyTracerProvider().getDelegate();
