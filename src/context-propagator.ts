@@ -26,7 +26,6 @@ import {
 } from "@opentelemetry/api";
 import { W3CBaggagePropagator, W3CTraceContextPropagator } from "@opentelemetry/core";
 import { contextKeyRule, isInternalCall } from "./context.js";
-import { OWNER } from "./context-owner.js";
 
 /** The baggage with only the defined internal keys, each value in its maxLength; undefined when no entry stays */
 export function allowedBaggage(baggage: Baggage): Baggage | undefined {
@@ -64,6 +63,11 @@ export class ContextPropagator implements TextMapPropagator {
   }
 }
 
+/*
+ * The owner of the registration is on globalThis, so two copies of otel-ts in
+ * one program also refuse each other.
+ */
+const OWNER = Symbol.for("@mark1russell7/otel-ts/context owner");
 
 /**
  * Take the registration of the context for `caller` (for example "init()" or
@@ -87,4 +91,7 @@ export function claimContextRegistration(caller: string): () => void {
   };
 }
 
-export { contextRegistrationOwner } from "./context-owner.js";
+/** The caller that holds the registration of the context, or undefined */
+export function contextRegistrationOwner(): string | undefined {
+  return (globalThis as { [OWNER]?: string })[OWNER];
+}
