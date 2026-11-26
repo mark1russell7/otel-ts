@@ -74,8 +74,10 @@ IncomingContextOptions: dist/context.d.ts#IncomingContextOptions
 IncomingHeaderRecord: dist/context.d.ts#IncomingHeaderRecord
 IncomingHeaders: dist/context.d.ts#IncomingHeaders
 IncomingTrust: dist/context.d.ts#IncomingTrust
+OTHER_SDK: dist/context.d.ts#OTHER_SDK
 contextKeyRule: dist/context.d.ts#contextKeyRule
 contextKeyRules: dist/context.d.ts#contextKeyRules
+contextOwner: dist/context.d.ts#contextOwner
 contextValue: dist/context.d.ts#contextValue
 contextValues: dist/context.d.ts#contextValues
 contextWith: dist/context.d.ts#contextWith
@@ -264,11 +266,17 @@ export type IncomingHeaders = IncomingHeaderRecord | Headers;
 ### dist/context.d.ts#IncomingTrust
 export type IncomingTrust = "all" | "trace" | "none";
 
+### dist/context.d.ts#OTHER_SDK
+export declare const OTHER_SDK = "another SDK";
+
 ### dist/context.d.ts#contextKeyRule
 export declare function contextKeyRule(key: string): ContextKeyRule | undefined;
 
 ### dist/context.d.ts#contextKeyRules
 export declare function contextKeyRules(): readonly ContextKeyRule[];
+
+### dist/context.d.ts#contextOwner
+export declare function contextOwner(): string | undefined;
 
 ### dist/context.d.ts#contextValue
 export declare function contextValue(key: string, from?: Context): string | undefined;

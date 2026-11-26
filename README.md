@@ -276,6 +276,14 @@ In the browser, `init()` registers the context when `tracing` is on (the default
 
 Only one part of a program registers the context. A second `init()` before the `shutdown()` of the first is an error. `shutdown()` removes the registration. With `tracing: false`, `init()` registers no context manager and no propagator.
 
+`contextOwner()` of `/context` tells which part of the program registered the context. It gives the call of otel-ts that holds it, for example `"startNodeContext()"`. It gives `OTHER_SDK` (`"another SDK"`) when a part outside otel-ts registered the global tracer provider, context manager or propagator, for example the capture of a test. It gives `undefined` when nothing did. A runner that starts the context for a program does it only on `undefined`:
+
+```ts
+import { contextOwner } from "@mark1russell7/otel-ts/context";
+
+if (contextOwner() === undefined) startNodeContext({ serviceName: "api" });
+```
+
 ## Error records
 
 The entry `@mark1russell7/otel-ts/error` makes a record of an error with the ids of its context. A view, a copy, a report and a log line then use the same record. It depends on `@opentelemetry/api` and `@mark1russell7/text` only, and it needs no SDK.

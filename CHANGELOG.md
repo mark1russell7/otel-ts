@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1
+
+### Added
+
+- `contextOwner()` and `OTHER_SDK` of `/context`: the part of the program that registered the context. It gives the call of otel-ts that holds it, `OTHER_SDK` when a part outside otel-ts registered the global tracer provider, context manager or propagator, or `undefined`. A runner starts the context only on `undefined`, so it does not replace the context of the program or the capture of a test.
+
 ## 0.11.0
 
 ### Changed (breaking)
