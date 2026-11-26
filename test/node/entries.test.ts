@@ -167,3 +167,71 @@ describe("the module graph of each entry", () => {
     });
   });
 });
+
+/** The package name of an import specifier, for example `@opentelemetry/api` for `@opentelemetry/api/x`. */
+const packageOf = (specifier: string): string => specifier.split("/").slice(0, specifier.startsWith("@") ? 2 : 1).join("/");
+
+/** The packages that the module graph of the source file `entry` imports, with `import type`: a program needs each one to type-check. */
+function allPackages(entry: string): string[] {
+  const packages = new Set<string>();
+  const seen = new Set<string>();
+  const files = [resolve(root, entry)];
+  for (let file = files.pop(); file !== undefined; file = files.pop()) {
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest);
+    for (const statement of source.statements) {
+      const specifier = ts.isImportDeclaration(statement) || ts.isExportDeclaration(statement) ? statement.moduleSpecifier : undefined;
+      if (!specifier || !ts.isStringLiteral(specifier) || specifier.text.startsWith("node:")) continue;
+      if (specifier.text.startsWith(".")) files.push(resolve(dirname(file), specifier.text.replace(/\.js$/, ".ts")));
+      else packages.add(packageOf(specifier.text));
+    }
+  }
+  return [...packages].sort();
+}
+
+/** The table of the README between the marks `entry-peers`: the packages that a program installs with each entry. */
+function readmeTable(): Map<string, string[]> {
+  const readme = readFileSync(resolve(root, "README.md"), "utf8").replace(/\r\n/g, "\n");
+  const block = /<!-- entry-peers:start -->\n([\s\S]*?)<!-- entry-peers:end -->/.exec(readme)?.[1];
+  if (block === undefined) throw new Error("README.md has no table between the marks entry-peers");
+  const table = new Map<string, string[]>();
+  for (const line of block.split("\n").slice(2)) {
+    const cells = /^\| `([^`]+)` \| (.*) \|$/.exec(line);
+    if (cells === null) continue;
+    table.set(cells[1]!, cells[2] === "none" ? [] : [...cells[2]!.matchAll(/`([^`]+)`/g)].map((match) => match[1]!));
+  }
+  return table;
+}
+
+describe("the packages of each entry", () => {
+  const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
+    exports: Record<string, { import: string }>;
+    dependencies: Record<string, string>;
+    peerDependencies: Record<string, string>;
+    peerDependenciesMeta: Record<string, { optional?: boolean }>;
+  };
+  const sourceOf = (entry: string): string => packageJson.exports[entry]!.import.replace("./dist/", "src/").replace(/\.js$/, ".ts");
+
+  it("depends only on the API and the plain-text helpers, so a library that imports /context installs no SDK", () => {
+    expect(Object.keys(packageJson.dependencies).sort()).toEqual(["@mark1russell7/text", "@opentelemetry/api"]);
+  });
+
+  it("makes each other package an optional peer dependency", () => {
+    for (const name of Object.keys(packageJson.peerDependencies)) expect(packageJson.peerDependenciesMeta[name]?.optional, name).toBe(true);
+  });
+
+  it("lists in the README, for each entry, the packages that its imports need beyond the dependencies", () => {
+    const table = readmeTable();
+    const dependencies = new Set(Object.keys(packageJson.dependencies));
+    expect([...table.keys()]).toEqual(Object.keys(packageJson.exports).filter((entry) => entry !== "./package.json"));
+    for (const entry of table.keys()) {
+      expect(table.get(entry), entry).toEqual(allPackages(sourceOf(entry)).filter((name) => !dependencies.has(name)));
+    }
+  });
+
+  it("has each package of the table as a peer dependency, and no other peer", () => {
+    const peers = new Set([...readmeTable().values()].flat());
+    expect(Object.keys(packageJson.peerDependencies).sort()).toEqual([...peers].sort());
+  });
+});

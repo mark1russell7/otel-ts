@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@mark1russell7/otel-ts",
-  "version": "0.10.5",
+  "version": "0.11.0",
   "description": "Frontend observability in one init() call — OpenTelemetry + Grafana Faro for any TypeScript web app",
   "license": "MIT",
   "author": "Mark Russell (https://github.com/mark1russell7)",
@@ -110,9 +110,12 @@
     "check:api": "api-report check"
   },
   "dependencies": {
-    "@grafana/faro-web-sdk": "^2.13.0",
     "@mark1russell7/text": "^0.0.20",
-    "@opentelemetry/api": "^1.10.0",
+    "@opentelemetry/api": "^1.10.0"
+  },
+  "peerDependencies": {
+    "@grafana/faro-web-sdk": "^2.13.0",
+    "@mark1russell7/lag": ">=0.4.2 <0.6.0",
     "@opentelemetry/auto-instrumentations-web": "^0.70.1",
     "@opentelemetry/context-async-hooks": "^3.1.1",
     "@opentelemetry/context-zone": "^3.1.1",
@@ -127,34 +130,107 @@
     "@opentelemetry/resources": "^3.1.1",
     "@opentelemetry/sdk-logs": "^3.1.1",
     "@opentelemetry/sdk-metrics": "^3.1.1",
+    "@opentelemetry/sdk-node": ">=0.300.0 <0.400.0",
     "@opentelemetry/sdk-trace": "^3.1.1",
     "@opentelemetry/semantic-conventions": "^1.40.0",
     "async-browser-context": "^0.3.0",
     "page-lifecycle-tracker": "^0.1.0"
   },
-  "peerDependencies": {
-    "@mark1russell7/lag": ">=0.4.2 <0.6.0",
-    "@opentelemetry/sdk-node": ">=0.300.0 <0.400.0"
-  },
   "peerDependenciesMeta": {
+    "@grafana/faro-web-sdk": {
+      "optional": true
+    },
     "@mark1russell7/lag": {
+      "optional": true
+    },
+    "@opentelemetry/auto-instrumentations-web": {
+      "optional": true
+    },
+    "@opentelemetry/context-async-hooks": {
+      "optional": true
+    },
+    "@opentelemetry/context-zone": {
+      "optional": true
+    },
+    "@opentelemetry/core": {
+      "optional": true
+    },
+    "@opentelemetry/exporter-logs-otlp-http": {
+      "optional": true
+    },
+    "@opentelemetry/exporter-logs-otlp-proto": {
+      "optional": true
+    },
+    "@opentelemetry/exporter-metrics-otlp-http": {
+      "optional": true
+    },
+    "@opentelemetry/exporter-trace-otlp-http": {
+      "optional": true
+    },
+    "@opentelemetry/exporter-trace-otlp-proto": {
+      "optional": true
+    },
+    "@opentelemetry/instrumentation": {
+      "optional": true
+    },
+    "@opentelemetry/instrumentation-long-task": {
+      "optional": true
+    },
+    "@opentelemetry/resources": {
+      "optional": true
+    },
+    "@opentelemetry/sdk-logs": {
+      "optional": true
+    },
+    "@opentelemetry/sdk-metrics": {
       "optional": true
     },
     "@opentelemetry/sdk-node": {
       "optional": true
+    },
+    "@opentelemetry/sdk-trace": {
+      "optional": true
+    },
+    "@opentelemetry/semantic-conventions": {
+      "optional": true
+    },
+    "async-browser-context": {
+      "optional": true
+    },
+    "page-lifecycle-tracker": {
+      "optional": true
     }
   },
   "devDependencies": {
+    "@grafana/faro-web-sdk": "^2.13.0",
     "@mark1russell7/api-report": "^0.5.22",
     "@mark1russell7/conventions": "^0.52.8",
     "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra#618d1ab7042455f81a81e219af6d33022551305e",
     "@mark1russell7/lag": "^0.5.0",
     "@mark1russell7/rigor-bench": "^0.3.2",
     "@mark1russell7/rigor-testkit": "^0.2.0",
+    "@opentelemetry/auto-instrumentations-web": "^0.70.1",
+    "@opentelemetry/context-async-hooks": "^3.1.1",
+    "@opentelemetry/context-zone": "^3.1.1",
+    "@opentelemetry/core": "^3.1.1",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.301.2",
+    "@opentelemetry/exporter-logs-otlp-proto": "^0.301.2",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.301.2",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.301.2",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.301.2",
+    "@opentelemetry/instrumentation": "^0.301.2",
+    "@opentelemetry/instrumentation-long-task": "^0.69.0",
+    "@opentelemetry/resources": "^3.1.1",
+    "@opentelemetry/sdk-logs": "^3.1.1",
+    "@opentelemetry/sdk-metrics": "^3.1.1",
     "@opentelemetry/sdk-node": "~0.301.2",
+    "@opentelemetry/sdk-trace": "^3.1.1",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
     "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^4.1.12",
+    "async-browser-context": "^0.3.0",
     "happy-dom": "^21.0.4",
+    "page-lifecycle-tracker": "^0.1.0",
     "typescript": "^5.9.0",
     "vitest": "^4.1.12"
   },

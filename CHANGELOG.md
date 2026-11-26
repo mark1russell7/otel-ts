@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0
+
+### Changed (breaking)
+
+- The package depends only on `@opentelemetry/api` and `@mark1russell7/text`. Each SDK, exporter, instrumentation and browser package is an optional peer dependency. Thus a library that imports `/context` installs 3 packages, not 101 (33 MiB). A program installs the packages of each entry that it imports. The README has the table of each entry and its packages, and a test holds the table equal to the imports of each entry.
+
 ## 0.10.5
 
 ### Added

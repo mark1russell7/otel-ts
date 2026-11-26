@@ -14,6 +14,37 @@ pnpm add @mark1russell7/otel-ts
 
 The npm package contains the compiled `dist/` folder. You do not need a build step.
 
+### The packages of each entry
+
+The package depends only on `@opentelemetry/api` and `@mark1russell7/text`. Each other package is an optional peer dependency. Thus a library that imports `/context` installs no SDK, and a program chooses the SDK. Install the packages of each entry that the program imports:
+
+<!-- entry-peers:start -->
+| Entry | The packages to install with it |
+| --- | --- |
+| `.` | `@grafana/faro-web-sdk`, `@opentelemetry/auto-instrumentations-web`, `@opentelemetry/core`, `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-metrics-otlp-http`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/instrumentation`, `@opentelemetry/instrumentation-long-task`, `@opentelemetry/resources`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-trace`, `@opentelemetry/semantic-conventions`, `async-browser-context`, `page-lifecycle-tracker` |
+| `./zone` | `@grafana/faro-web-sdk`, `@opentelemetry/auto-instrumentations-web`, `@opentelemetry/context-zone`, `@opentelemetry/core`, `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-metrics-otlp-http`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/instrumentation`, `@opentelemetry/instrumentation-long-task`, `@opentelemetry/resources`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-trace`, `@opentelemetry/semantic-conventions`, `page-lifecycle-tracker` |
+| `./core` | `@grafana/faro-web-sdk`, `@opentelemetry/auto-instrumentations-web`, `@opentelemetry/core`, `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-metrics-otlp-http`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/instrumentation`, `@opentelemetry/instrumentation-long-task`, `@opentelemetry/resources`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-trace`, `@opentelemetry/semantic-conventions`, `page-lifecycle-tracker` |
+| `./context` | none |
+| `./incoming-span` | none |
+| `./node` | `@opentelemetry/context-async-hooks`, `@opentelemetry/core`, `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-logs-otlp-proto`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/exporter-trace-otlp-proto`, `@opentelemetry/instrumentation`, `@opentelemetry/resources`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-node`, `@opentelemetry/sdk-trace`, `@opentelemetry/semantic-conventions` |
+| `./node/context` | `@opentelemetry/context-async-hooks`, `@opentelemetry/core`, `@opentelemetry/resources`, `@opentelemetry/sdk-trace`, `@opentelemetry/semantic-conventions` |
+| `./node/export` | `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-logs-otlp-proto`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/exporter-trace-otlp-proto`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-trace` |
+| `./node/testing` | none |
+| `./lag` | `@mark1russell7/lag`, `page-lifecycle-tracker` |
+| `./pull` | `@opentelemetry/sdk-metrics` |
+| `./error` | none |
+| `./error-view` | none |
+| `./call-trace` | none |
+<!-- entry-peers:end -->
+
+For example, a Node service that imports `/node/context` installs these packages:
+
+```bash
+pnpm add @mark1russell7/otel-ts @opentelemetry/context-async-hooks @opentelemetry/core @opentelemetry/resources @opentelemetry/sdk-trace @opentelemetry/semantic-conventions
+```
+
+A test of the package holds this table equal to the imports of each entry.
+
 ## Quick start
 
 ```ts
@@ -180,7 +211,7 @@ const otel = init();
 
 The zone entry loads zone.js through `@opentelemetry/context-zone`. zone.js patches `Promise`, the timers and the event listeners of the page when it loads. The zone entry does not import async-browser-context.
 
-`@opentelemetry/context-zone` is a dependency of otel-ts, not a peer dependency. Thus, the zone entry needs no other install, and its version agrees with the OpenTelemetry SDK of otel-ts. The package uses only disk space: a bundle gets zone.js only through the zone entry.
+`@opentelemetry/context-zone` is an optional peer dependency of otel-ts, as each package of the browser entries. An app that imports the zone entry installs it with the other packages of the entry (see [The packages of each entry](#the-packages-of-each-entry)). A bundle gets zone.js only through the zone entry.
 
 ### Use no context library
 
@@ -490,10 +521,10 @@ The context managers also operate in a worker. In `@mark1russell7/otel-ts`, the 
 
 The entry `@mark1russell7/otel-ts/node` starts OpenTelemetry in a Node.js service. It is separate from the browser entries and imports no browser library.
 
-Install the SDK and the instrumentations in the service. The SDK is a peer dependency, so the service keeps one version line of the OpenTelemetry packages:
+Install the SDK, the packages of the entry and the instrumentations in the service. Each OpenTelemetry package is a peer dependency, so the service keeps one version line of them. [The packages of each entry](#the-packages-of-each-entry) gives the full list:
 
 ```bash
-pnpm add @opentelemetry/sdk-node @opentelemetry/instrumentation @opentelemetry/instrumentation-http
+pnpm add @opentelemetry/sdk-node @opentelemetry/context-async-hooks @opentelemetry/core @opentelemetry/exporter-logs-otlp-http @opentelemetry/exporter-logs-otlp-proto @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-trace-otlp-proto @opentelemetry/resources @opentelemetry/sdk-logs @opentelemetry/sdk-metrics @opentelemetry/sdk-trace @opentelemetry/semantic-conventions @opentelemetry/instrumentation @opentelemetry/instrumentation-http
 ```
 
 Put the start in its own module:
