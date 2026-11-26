@@ -113,7 +113,10 @@ jobs:
           # values: the read then only reports, and it prints the limits that its runs give.
           MEMORY_RSS_LIMIT: "6668288"
           MEMORY_RSS_AA: "913408"
-          MEMORY_HEAP_LIMIT: "1885728"
+          # The heap limit, set again on 2026-11-26: the worst of the 5 runs of run 45885833224 plus their spread.
+          # The default condition of each exports entry made package.json larger, and Node keeps the parsed file in
+          # the heap: about 1.5 KiB more. The old limit gave no read for 3 of the 5 jobs.
+          MEMORY_HEAP_LIMIT: "1903864"
           MEMORY_HEAP_AA: "1264"
         run: node bench/memory.ts verdict "$GITHUB_WORKSPACE/memory"
 
