@@ -555,7 +555,7 @@ export const telemetry = startNodeContext({
 
 ### A service of `@mark1russell7/service`
 
-A service of [`@mark1russell7/service`](https://github.com/mark1russell7/systems/tree/main/packages/service) has a staged shutdown of its own: after the signal, it drains its requests. The stop of telemetry must come after the drain. With `stopOnSignals: true`, the stop removes the context at the signal: the log lines of the drain lose their trace ids, and the spans of the drained requests go. So:
+A service of [`@mark1russell7/service`](https://github.com/metrograph-labs/systems/tree/main/packages/service) has a staged shutdown of its own: after the signal, it drains its requests. The stop of telemetry must come after the drain. With `stopOnSignals: true`, the stop removes the context at the signal: the log lines of the drain lose their trace ids, and the spans of the drained requests go. So:
 
 1. Start telemetry with `stopOnSignals: false`, in the module that the service loads first.
 2. Give `telemetry.shutdown` to the last stage of the shutdown, `flush the output`.
