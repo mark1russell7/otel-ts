@@ -52,7 +52,7 @@ const isZone = (name: string): boolean =>
 
 /** The package.json of otel-ts */
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
-  exports: Record<string, { types: string; import: string }>;
+  exports: Record<string, { types: string; import: string; default: string }>;
 };
 
 describe("the module graph of each entry", () => {
@@ -141,19 +141,19 @@ describe("the module graph of each entry", () => {
 
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
-      ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
-      "./zone": { types: "./dist/zone.d.ts", import: "./dist/zone.js" },
-      "./core": { types: "./dist/core.d.ts", import: "./dist/core.js" },
-      "./context": { types: "./dist/context.d.ts", import: "./dist/context.js" },
-      "./incoming-span": { types: "./dist/incoming-span.d.ts", import: "./dist/incoming-span.js" },
-      "./node": { types: "./dist/node.d.ts", import: "./dist/node.js" },
-      "./node/context": { types: "./dist/node-context.d.ts", import: "./dist/node-context.js" },
-      "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
-      "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js" },
-      "./pull": { types: "./dist/pull.d.ts", import: "./dist/pull.js" },
-      "./error": { types: "./dist/error-record.d.ts", import: "./dist/error-record.js" },
-      "./error-view": { types: "./dist/error-view.d.ts", import: "./dist/error-view.js" },
-      "./call-trace": { types: "./dist/call-trace.d.ts", import: "./dist/call-trace.js" },
+      ".": { types: "./dist/index.d.ts", import: "./dist/index.js", default: "./dist/index.js" },
+      "./zone": { types: "./dist/zone.d.ts", import: "./dist/zone.js", default: "./dist/zone.js" },
+      "./core": { types: "./dist/core.d.ts", import: "./dist/core.js", default: "./dist/core.js" },
+      "./context": { types: "./dist/context.d.ts", import: "./dist/context.js", default: "./dist/context.js" },
+      "./incoming-span": { types: "./dist/incoming-span.d.ts", import: "./dist/incoming-span.js", default: "./dist/incoming-span.js" },
+      "./node": { types: "./dist/node.d.ts", import: "./dist/node.js", default: "./dist/node.js" },
+      "./node/context": { types: "./dist/node-context.d.ts", import: "./dist/node-context.js", default: "./dist/node-context.js" },
+      "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js", default: "./dist/node-testing.js" },
+      "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js", default: "./dist/lag.js" },
+      "./pull": { types: "./dist/pull.d.ts", import: "./dist/pull.js", default: "./dist/pull.js" },
+      "./error": { types: "./dist/error-record.d.ts", import: "./dist/error-record.js", default: "./dist/error-record.js" },
+      "./error-view": { types: "./dist/error-view.d.ts", import: "./dist/error-view.js", default: "./dist/error-view.js" },
+      "./call-trace": { types: "./dist/call-trace.d.ts", import: "./dist/call-trace.js", default: "./dist/call-trace.js" },
     });
   });
 });
