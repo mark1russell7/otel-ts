@@ -78,7 +78,7 @@ describe("the module graph of each entry", () => {
   });
 
   it("the Node entries import no browser library", () => {
-    for (const entry of ["src/node.ts", "src/node-context.ts", "src/node-testing.ts"]) {
+    for (const entry of ["src/node.ts", "src/node-context.ts", "src/node-export.ts", "src/node-testing.ts"]) {
       const packages = runtimePackages(entry);
       const browser = packages.filter(
         (name) => isAsyncBrowserContext(name) || isZone(name) || name.startsWith("@grafana/") || name.endsWith("-web"),
@@ -99,6 +99,15 @@ describe("the module graph of each entry", () => {
     ]);
   });
 
+  it("@mark1russell7/otel-ts/node/export imports the exporters, and no SDK of sdk-node and no instrumentation", () => {
+    // A program that starts /node/context exports with this entry, so it must not bring the SDK that /node/context leaves out
+    const packages = runtimePackages("src/node-export.ts");
+    expect(packages).toContain("@opentelemetry/exporter-trace-otlp-proto");
+    expect(packages.filter((name) => name === "@opentelemetry/sdk-node" || name.startsWith("@opentelemetry/instrumentation"))).toEqual([]);
+    // /node/context does not load the exporters
+    expect(runtimeFiles("src/node-context.ts")).not.toContain("node-exporters.ts");
+  });
+
   it("@mark1russell7/otel-ts/context imports @opentelemetry/api only", () => {
     // The libraries and the browser bundles of apps import this entry, so it must stay light (CONTEXT-DESIGN.md, D2)
     expect(runtimePackages("src/context.ts")).toEqual(["@opentelemetry/api"]);
@@ -114,7 +123,7 @@ describe("the module graph of each entry", () => {
   it("@mark1russell7/otel-ts/lag imports lag and the API only, and no other entry imports lag", () => {
     // lag is an optional peer: only an app that imports this entry installs it (decision D7)
     expect(runtimePackages("src/lag.ts")).toEqual(["@mark1russell7/lag", "@opentelemetry/api"]);
-    for (const entry of ["src/index.ts", "src/zone.ts", "src/core.ts", "src/context.ts", "src/node.ts", "src/node-context.ts", "src/node-testing.ts"]) {
+    for (const entry of ["src/index.ts", "src/zone.ts", "src/core.ts", "src/context.ts", "src/node.ts", "src/node-context.ts", "src/node-export.ts", "src/node-testing.ts"]) {
       expect(runtimePackages(entry), entry).not.toContain("@mark1russell7/lag");
     }
   });
@@ -148,6 +157,7 @@ describe("the module graph of each entry", () => {
       "./incoming-span": { types: "./dist/incoming-span.d.ts", import: "./dist/incoming-span.js", default: "./dist/incoming-span.js" },
       "./node": { types: "./dist/node.d.ts", import: "./dist/node.js", default: "./dist/node.js" },
       "./node/context": { types: "./dist/node-context.d.ts", import: "./dist/node-context.js", default: "./dist/node-context.js" },
+      "./node/export": { types: "./dist/node-export.d.ts", import: "./dist/node-export.js", default: "./dist/node-export.js" },
       "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js", default: "./dist/node-testing.js" },
       "./lag": { types: "./dist/lag.d.ts", import: "./dist/lag.js", default: "./dist/lag.js" },
       "./pull": { types: "./dist/pull.d.ts", import: "./dist/pull.js", default: "./dist/pull.js" },

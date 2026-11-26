@@ -116,6 +116,11 @@ NodeContext: dist/node-context.d.ts#NodeContext
 NodeContextOptions: dist/node-context.d.ts#NodeContextOptions
 startNodeContext: dist/node-context.d.ts#startNodeContext
 
+## ./node/export (dist/node-export.d.ts): names
+
+ExportSpanOptions: dist/node-export.d.ts#ExportSpanOptions
+exportSpanProcessors: dist/node-export.d.ts#exportSpanProcessors
+
 ## ./node/testing (dist/node-testing.d.ts): names
 
 StubCollector: dist/node-testing.d.ts#StubCollector
@@ -491,6 +496,15 @@ export interface NodeContextOptions {
 
 ### dist/node-context.d.ts#startNodeContext
 export declare function startNodeContext(options?: NodeContextOptions): NodeContext;
+
+### dist/node-export.d.ts#ExportSpanOptions
+export interface ExportSpanOptions {
+    env?: NodeJS.ProcessEnv;
+    exporter?: SpanExporter;
+}
+
+### dist/node-export.d.ts#exportSpanProcessors
+export declare function exportSpanProcessors(options?: ExportSpanOptions): SpanProcessor[];
 
 ### dist/node-exporters.d.ts#ExporterName
 export type ExporterName = "otlp" | "console";
