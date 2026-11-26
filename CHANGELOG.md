@@ -4,7 +4,7 @@
 
 ### Added
 
-- `runInIncomingSpan(name, headers, fn, options)` of the entry `/context` starts the handler of an incoming call in a SERVER span. The parent of the span is `incomingContext(headers, { trust })`, so with the default trust "trace" the span continues the trace of the caller and takes no baggage. The options `tracer` and `attributes` are optional. An error of the handler gives the span the status ERROR and passes through.
+- The entry `/incoming-span` has `runInIncomingSpan(name, headers, fn, options)`. It starts the handler of an incoming call in a SERVER span. The parent of the span is `incomingContext(headers, { trust })`, so with the default trust "trace" the span continues the trace of the caller and takes no baggage. The options `tracer` and `attributes` are optional. An error of the handler gives the span the status ERROR and passes through. The entry depends on `@opentelemetry/api` only. It is apart from `/context`, so the memory of `/node/context` does not change.
 
 ### Changed
 

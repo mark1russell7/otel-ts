@@ -2,7 +2,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { context, propagation, SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
 import { InMemorySpanExporter, SimpleSpanProcessor, TracerProvider } from "@opentelemetry/sdk-trace";
 import { AsyncContextManager } from "async-browser-context/opentelemetry";
-import { contextValue, defineContextKeys, runInIncomingSpan } from "../../src/context.js";
+import { contextValue, defineContextKeys } from "../../src/context.js";
+import { runInIncomingSpan } from "../../src/incoming-span.js";
 import { ContextPropagator } from "../../src/context-propagator.js";
 
 defineContextKeys({ "s.tenant": { cardinality: "low", propagate: "internal" } });

@@ -37,6 +37,10 @@
       "types": "./dist/context.d.ts",
       "import": "./dist/context.js"
     },
+    "./incoming-span": {
+      "types": "./dist/incoming-span.d.ts",
+      "import": "./dist/incoming-span.js"
+    },
     "./node": {
       "types": "./dist/node.d.ts",
       "import": "./dist/node.js"

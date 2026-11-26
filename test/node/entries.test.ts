@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
@@ -11,6 +11,16 @@ const root = resolve(import.meta.dirname, "..", "..");
  * `export type`, which the compiler removes.
  */
 function runtimePackages(entry: string): string[] {
+  return runtimeGraph(entry).packages;
+}
+
+/** The names of the source files that the module graph of the source file `entry` loads at run time, with `entry`. */
+function runtimeFiles(entry: string): string[] {
+  return runtimeGraph(entry).files;
+}
+
+/** The packages and the source files of the module graph of the source file `entry` at run time. */
+function runtimeGraph(entry: string): { packages: string[]; files: string[] } {
   const packages = new Set<string>();
   const seen = new Set<string>();
   const files = [resolve(root, entry)];
@@ -32,7 +42,7 @@ function runtimePackages(entry: string): string[] {
       }
     }
   }
-  return [...packages].sort();
+  return { packages: [...packages].sort(), files: [...seen].map((file) => basename(file)).sort() };
 }
 
 const isAsyncBrowserContext = (name: string): boolean =>
@@ -94,6 +104,13 @@ describe("the module graph of each entry", () => {
     expect(runtimePackages("src/context.ts")).toEqual(["@opentelemetry/api"]);
   });
 
+  it("@mark1russell7/otel-ts/incoming-span imports @opentelemetry/api only, and /node/context does not load it", () => {
+    expect(runtimePackages("src/incoming-span.ts")).toEqual(["@opentelemetry/api"]);
+    // Each service loads /node/context, so the span of the server stays out of it and out of /context.
+    expect(runtimeFiles("src/node-context.ts")).not.toContain("incoming-span.ts");
+    expect(runtimeFiles("src/node-context.ts")).not.toContain("span-run.ts");
+  });
+
   it("@mark1russell7/otel-ts/lag imports lag and the API only, and no other entry imports lag", () => {
     // lag is an optional peer: only an app that imports this entry installs it (decision D7)
     expect(runtimePackages("src/lag.ts")).toEqual(["@mark1russell7/lag", "@opentelemetry/api"]);
@@ -123,6 +140,7 @@ describe("the module graph of each entry", () => {
       "./zone": { types: "./dist/zone.d.ts", import: "./dist/zone.js" },
       "./core": { types: "./dist/core.d.ts", import: "./dist/core.js" },
       "./context": { types: "./dist/context.d.ts", import: "./dist/context.js" },
+      "./incoming-span": { types: "./dist/incoming-span.d.ts", import: "./dist/incoming-span.js" },
       "./node": { types: "./dist/node.d.ts", import: "./dist/node.js" },
       "./node/context": { types: "./dist/node-context.d.ts", import: "./dist/node-context.js" },
       "./node/testing": { types: "./dist/node-testing.d.ts", import: "./dist/node-testing.js" },
