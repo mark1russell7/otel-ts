@@ -25,10 +25,6 @@ if (kind === "context") {
 }
 trace.getTracer("memory-gate").startSpan("one").end();
 const ms = performance.now() - at;
-// One full GC does not settle the heap: a second GC after one macrotask frees more. In CI, some children of the
-// baseline arm read about 18 KiB less heap than the others. The settled read gives each child the same chance.
-heapAfterGc();
-await new Promise((resolve) => setTimeout(resolve, 0));
 const heap = heapAfterGc();
 const { rss } = processMemory();
 console.log(JSON.stringify({ ms, heap, rss }));
