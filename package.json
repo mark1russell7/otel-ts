@@ -146,12 +146,6 @@
         "baseline": 2,
         "failFrom": "2026-12-23",
         "reason": "Wave 2 of the no-console plan: src has 2 console calls. A new call fails at once, and the last ones fail from 2026-12-23."
-      },
-      "typed-scripts": {
-        "ignore": [
-          "bench/*.mjs"
-        ],
-        "reason": "The memory bench (bench/*.mjs) moves to TypeScript with its own types and test in a later change. A new script must be TypeScript."
       }
     }
   }

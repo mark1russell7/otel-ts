@@ -6,18 +6,26 @@
  * starts `startNodeTelemetry()` with export off.
  */
 import { heapAfterGc, processMemory } from "@mark1russell7/rigor-bench/fresh";
+import { createPrinter } from "@mark1russell7/text/print";
+
+/**
+ * The built files that the child loads. The paths are values and not literals, so the typecheck does not need a build.
+ * The types come from the source of each entry.
+ */
+const NODE_CONTEXT = "../dist/node-context.js";
+const NODE = "../dist/node.js";
 
 const at = performance.now();
 const index = process.argv.indexOf("--case");
 const kind = index === -1 ? undefined : process.argv[index + 1];
 const { trace } = await import("@opentelemetry/api");
-let stop = () => Promise.resolve();
+let stop = (): Promise<void> => Promise.resolve();
 if (kind === "context") {
-  const { startNodeContext } = await import("../dist/node-context.js");
+  const { startNodeContext } = (await import(NODE_CONTEXT)) as typeof import("../src/node-context.ts");
   const started = startNodeContext({ serviceName: "memory-gate", env: {} });
   stop = () => started.shutdown();
 } else if (kind === "node") {
-  const { startNodeTelemetry } = await import("../dist/node.js");
+  const { startNodeTelemetry } = (await import(NODE)) as typeof import("../src/node.ts");
   const started = startNodeTelemetry({ serviceName: "memory-gate", enabled: false, stopOnSignals: false, env: {} });
   stop = () => started.shutdown();
 } else if (kind !== "api") {
@@ -27,5 +35,5 @@ trace.getTracer("memory-gate").startSpan("one").end();
 const ms = performance.now() - at;
 const heap = heapAfterGc();
 const { rss } = processMemory();
-console.log(JSON.stringify({ ms, heap, rss }));
+createPrinter({ out: process.stdout, err: process.stderr }).line(JSON.stringify({ ms, heap, rss }));
 await stop();

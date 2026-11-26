@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-// @ts-expect-error The bench is plain JavaScript with no declaration file.
-import { jobRounds, memoryRead } from "../../bench/memory-gate.mjs";
+import { jobRounds, memoryRead } from "../../bench/memory-gate.ts";
 
 const MIB = 1024 * 1024;
 
@@ -32,9 +31,9 @@ const LIMITS = { rss: { limit: 8 * MIB, maxDifference: 1 * MIB }, heap: { limit:
 describe("the memory gate of /node/context", () => {
   it("gives each case the measure of one arm over one api arm, in each round", () => {
     const rounds = jobRounds(children(LIGHT, 2));
-    expect(rounds.get("context rss").rounds.map((r: { value: number }) => r.value)).toEqual([6 * MIB, 6 * MIB]);
-    expect(rounds.get("context rss").aa.map((r: { value: number }) => r.value)).toEqual([6 * MIB - 10_000, 6 * MIB - 10_000]);
-    expect(rounds.get("node rss").rounds.map((r: { value: number }) => r.value)).toEqual([32 * MIB, 32 * MIB]);
+    expect(rounds.get("context rss")?.rounds.map((r: { value: number }) => r.value)).toEqual([6 * MIB, 6 * MIB]);
+    expect(rounds.get("context rss")?.aa.map((r: { value: number }) => r.value)).toEqual([6 * MIB - 10_000, 6 * MIB - 10_000]);
+    expect(rounds.get("node rss")?.rounds.map((r: { value: number }) => r.value)).toEqual([32 * MIB, 32 * MIB]);
   });
 
   it("refuses a round with no child of an arm, and a child that comes twice", () => {
@@ -46,24 +45,24 @@ describe("the memory gate of /node/context", () => {
   it("only reports without limits, and gives the limits of 5 jobs: the worst high end plus the spread", () => {
     const read = memoryRead(jobs(5), undefined);
     expect(read.gate).toBeUndefined();
-    const highs = read.reads.map((r: { cases: { case: string; high: number }[] }) => r.cases.find((c) => c.case === "context rss")!.high);
-    expect(read.derived.rss.limit.limit).toBe(Math.max(...highs) + (Math.max(...highs) - Math.min(...highs)));
+    const highs = read.reads.map((r) => r.cases.find((c) => c.case === "context rss")!.high);
+    expect(read.derived.rss?.limit.limit).toBe(Math.max(...highs) + (Math.max(...highs) - Math.min(...highs)));
     expect(memoryRead(jobs(4), undefined).derived.rss).toBeUndefined();
   });
 
   it("passes when the light entry is within the limits and the full entry is beyond them", () => {
     const read = memoryRead(jobs(5), LIMITS);
-    expect(read.gate.outcome).toBe("pass");
+    expect(read.gate?.outcome).toBe("pass");
   });
 
   it("blocks when the light entry is beyond the limit", () => {
     const heavy = { ...LIGHT, context: { rss: 12 * MIB, heap: 1 * MIB } };
-    expect(memoryRead(jobs(5, heavy), LIMITS).gate.outcome).toBe("block");
+    expect(memoryRead(jobs(5, heavy), LIMITS).gate?.outcome).toBe("block");
   });
 
   it("has no read when the gate cannot tell the full entry from the light entry, or with fewer than 5 jobs", () => {
     const same = { ...LIGHT, node: LIGHT.context };
-    expect(memoryRead(jobs(5, same), LIMITS).gate.outcome).toBe("no read");
-    expect(memoryRead(jobs(4), LIMITS).gate.outcome).toBe("no read");
+    expect(memoryRead(jobs(5, same), LIMITS).gate?.outcome).toBe("no read");
+    expect(memoryRead(jobs(4), LIMITS).gate?.outcome).toBe("no read");
   });
 });
