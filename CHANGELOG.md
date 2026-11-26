@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.2
+
+### Added
+
+- The entry `/call-trace` has `callTrace(options)`. It gives one outgoing call a trace context, also on a page with no SDK. With a valid span in the context, the call is in its trace. Else the call starts a new sampled trace with random ids, in a span that does not record. The result has `headers` (only `traceparent`) for the request, and `context` for `errorRecord()` and `reportError()`. Thus the record of a failed call has the trace id that the server got. The entry depends on `@opentelemetry/api` only.
+
 ## 0.10.1
 
 ### Added

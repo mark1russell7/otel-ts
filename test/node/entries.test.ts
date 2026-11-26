@@ -134,6 +134,11 @@ describe("the module graph of each entry", () => {
     expect(runtimePackages("src/error-view.ts")).toEqual(["@mark1russell7/text", "@mark1russell7/text/redact", "@opentelemetry/api"]);
   });
 
+  it("@mark1russell7/otel-ts/call-trace imports the API only", () => {
+    // A page with no SDK gives each call a trace context with it, so it must not bring an SDK
+    expect(runtimePackages("src/call-trace.ts")).toEqual(["@opentelemetry/api"]);
+  });
+
   it("package.json exports each entry from its build output", () => {
     expect(manifest.exports).toEqual({
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
@@ -148,6 +153,7 @@ describe("the module graph of each entry", () => {
       "./pull": { types: "./dist/pull.d.ts", import: "./dist/pull.js" },
       "./error": { types: "./dist/error-record.d.ts", import: "./dist/error-record.js" },
       "./error-view": { types: "./dist/error-view.d.ts", import: "./dist/error-view.js" },
+      "./call-trace": { types: "./dist/call-trace.d.ts", import: "./dist/call-trace.js" },
     });
   });
 });
