@@ -74,8 +74,10 @@ IncomingContextOptions: dist/context.d.ts#IncomingContextOptions
 IncomingHeaderRecord: dist/context.d.ts#IncomingHeaderRecord
 IncomingHeaders: dist/context.d.ts#IncomingHeaders
 IncomingTrust: dist/context.d.ts#IncomingTrust
+OTHER_SDK: dist/context-owner.d.ts#OTHER_SDK
 contextKeyRule: dist/context.d.ts#contextKeyRule
 contextKeyRules: dist/context.d.ts#contextKeyRules
+contextOwner: dist/context-owner.d.ts#contextOwner
 contextValue: dist/context.d.ts#contextValue
 contextValues: dist/context.d.ts#contextValues
 contextWith: dist/context.d.ts#contextWith
@@ -213,6 +215,12 @@ export declare const DEFAULT_SERVICE_NAME = "frontend-app";
 
 ### dist/constants.d.ts#DEFAULT_SERVICE_VERSION
 export declare const DEFAULT_SERVICE_VERSION = "0.0.0";
+
+### dist/context-owner.d.ts#OTHER_SDK
+export declare const OTHER_SDK = "another SDK";
+
+### dist/context-owner.d.ts#contextOwner
+export declare function contextOwner(): string | undefined;
 
 ### dist/context.d.ts#ContextKeyCardinality
 export type ContextKeyCardinality = "low" | "high";

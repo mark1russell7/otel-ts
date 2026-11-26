@@ -18,6 +18,8 @@
  */
 import { context, createContextKey, propagation, ROOT_CONTEXT, trace, type Context, type TextMapGetter } from "@opentelemetry/api";
 
+export { contextOwner, OTHER_SDK } from "./context-owner.js";
+
 /** How many distinct values a key has: "low" may become a metric attribute, "high" never does */
 export type ContextKeyCardinality = "low" | "high";
 
