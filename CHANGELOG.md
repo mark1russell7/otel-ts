@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.4
+
+### Changed
+
+- The memory bench of the entry `/node/context` is TypeScript (`bench/*.ts`), with types and a test. The API does not change.
+
 ## 0.10.3
 
 ### Changed
