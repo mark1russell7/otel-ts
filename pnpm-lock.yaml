@@ -72,6 +72,9 @@ importers:
         specifier: ^0.1.0
         version: 0.1.1
     devDependencies:
+      '@mark1russell7/api-report':
+        specifier: ^0.5.22
+        version: 0.5.22
       '@mark1russell7/conventions':
         specifier: ^0.52.8
         version: 0.52.8
@@ -308,8 +311,18 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
+  '@mark1russell7/api-report@0.5.22':
+    resolution: {integrity: sha512-tqkh8twM0NH+sE4bmYQuzryFokw/7qpzWHbvVjT2cQEipB8E5RjKrIW2cldodY996XZd2CE2Vjd8OMJOz6lYfA==}
+    engines: {node: '>=22'}
+    hasBin: true
+
   '@mark1russell7/conventions@0.52.8':
     resolution: {integrity: sha512-5LO7USK9u46LM/EE4pppMCSMepB8aszEyNNPUavXb4RIcE7nDgJTpZ4i9hzLhlXIh3iZykMUDisu6xJUp70vow==}
+    engines: {node: '>=22'}
+    hasBin: true
+
+  '@mark1russell7/conventions@0.54.0':
+    resolution: {integrity: sha512-pqdCwKE5ejF5Bf0pYvpbykFpzW8zgBh3MCRmpiOzuXgIYCnoEPAHmPFB316BohXS9HMV6o5OJsjfXJPq+gR+Vw==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1608,9 +1621,18 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
+  '@mark1russell7/api-report@0.5.22':
+    dependencies:
+      '@mark1russell7/conventions': 0.54.0
+
   '@mark1russell7/conventions@0.52.8':
     dependencies:
       '@mark1russell7/text': 0.0.18
+      yaml: 2.9.1
+
+  '@mark1russell7/conventions@0.54.0':
+    dependencies:
+      '@mark1russell7/text': 0.0.20
       yaml: 2.9.1
 
   '@mark1russell7/cue@2.1.4': {}

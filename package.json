@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@mark1russell7/otel-ts",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "description": "Frontend observability in one init() call — OpenTelemetry + Grafana Faro for any TypeScript web app",
   "license": "MIT",
   "author": "Mark Russell (https://github.com/mark1russell7)",
@@ -23,55 +23,68 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./zone": {
       "types": "./dist/zone.d.ts",
-      "import": "./dist/zone.js"
+      "import": "./dist/zone.js",
+      "default": "./dist/zone.js"
     },
     "./core": {
       "types": "./dist/core.d.ts",
-      "import": "./dist/core.js"
+      "import": "./dist/core.js",
+      "default": "./dist/core.js"
     },
     "./context": {
       "types": "./dist/context.d.ts",
-      "import": "./dist/context.js"
+      "import": "./dist/context.js",
+      "default": "./dist/context.js"
     },
     "./incoming-span": {
       "types": "./dist/incoming-span.d.ts",
-      "import": "./dist/incoming-span.js"
+      "import": "./dist/incoming-span.js",
+      "default": "./dist/incoming-span.js"
     },
     "./node": {
       "types": "./dist/node.d.ts",
-      "import": "./dist/node.js"
+      "import": "./dist/node.js",
+      "default": "./dist/node.js"
     },
     "./node/context": {
       "types": "./dist/node-context.d.ts",
-      "import": "./dist/node-context.js"
+      "import": "./dist/node-context.js",
+      "default": "./dist/node-context.js"
     },
     "./node/testing": {
       "types": "./dist/node-testing.d.ts",
-      "import": "./dist/node-testing.js"
+      "import": "./dist/node-testing.js",
+      "default": "./dist/node-testing.js"
     },
     "./lag": {
       "types": "./dist/lag.d.ts",
-      "import": "./dist/lag.js"
+      "import": "./dist/lag.js",
+      "default": "./dist/lag.js"
     },
     "./pull": {
       "types": "./dist/pull.d.ts",
-      "import": "./dist/pull.js"
+      "import": "./dist/pull.js",
+      "default": "./dist/pull.js"
     },
     "./error": {
       "types": "./dist/error-record.d.ts",
-      "import": "./dist/error-record.js"
+      "import": "./dist/error-record.js",
+      "default": "./dist/error-record.js"
     },
     "./error-view": {
       "types": "./dist/error-view.d.ts",
-      "import": "./dist/error-view.js"
+      "import": "./dist/error-view.js",
+      "default": "./dist/error-view.js"
     },
     "./call-trace": {
       "types": "./dist/call-trace.d.ts",
-      "import": "./dist/call-trace.js"
+      "import": "./dist/call-trace.js",
+      "default": "./dist/call-trace.js"
     }
   },
   "files": [
@@ -88,11 +101,12 @@
     "infra:down": "cd node_modules/@mark1russell7/grafana-infra && docker compose down",
     "infra:logs": "cd node_modules/@mark1russell7/grafana-infra && docker compose logs -f",
     "test": "vitest run",
-    "check:conventions": "conventions check"
+    "check:conventions": "conventions check",
+    "check:api": "api-report check"
   },
   "dependencies": {
-    "@mark1russell7/text": "^0.0.20",
     "@grafana/faro-web-sdk": "^2.13.0",
+    "@mark1russell7/text": "^0.0.20",
     "@opentelemetry/api": "^1.10.0",
     "@opentelemetry/auto-instrumentations-web": "^0.70.1",
     "@opentelemetry/context-async-hooks": "^3.1.1",
@@ -126,6 +140,7 @@
     }
   },
   "devDependencies": {
+    "@mark1russell7/api-report": "^0.5.22",
     "@mark1russell7/conventions": "^0.52.8",
     "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra#618d1ab7042455f81a81e219af6d33022551305e",
     "@mark1russell7/lag": "^0.5.0",
@@ -150,9 +165,6 @@
           "bench/*.mjs"
         ],
         "reason": "The memory bench (bench/*.mjs) moves to TypeScript with its own types and test in a later change. A new script must be TypeScript."
-      },
-      "api-report-script": {
-        "off": "The API report of the package comes in a later change: its first report needs a build and a review of each export."
       }
     }
   }

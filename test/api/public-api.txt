@@ -1,0 +1,655 @@
+# The public API of @mark1russell7/otel-ts
+#
+# The names of each entry of the exports field, and the declaration of each name, without comments
+# and private members. The command `api-report check` compares this file with the built .d.ts files.
+# To accept a change of the API, start the build, then `api-report update`, and review the diff.
+
+## . (dist/index.d.ts): names
+
+type ContextManagerName: dist/types.d.ts#ContextManagerName
+ContextManagerOption: dist/index.d.ts#ContextManagerOption
+DEFAULT_METRICS_EXPORT_INTERVAL_MS: dist/constants.d.ts#DEFAULT_METRICS_EXPORT_INTERVAL_MS
+DEFAULT_OTLP_ENDPOINT: dist/constants.d.ts#DEFAULT_OTLP_ENDPOINT
+DEFAULT_SERVICE_NAME: dist/constants.d.ts#DEFAULT_SERVICE_NAME
+DEFAULT_SERVICE_VERSION: dist/constants.d.ts#DEFAULT_SERVICE_VERSION
+type FlushCause: dist/types.d.ts#FlushCause
+type HistogramAggregation: dist/types.d.ts#HistogramAggregation
+type MetricsTemporality: dist/types.d.ts#MetricsTemporality
+OtelTsConfig: dist/index.d.ts#OtelTsConfig
+type OtelTsInstance: dist/types.d.ts#OtelTsInstance
+type RemoteTraceOptions: dist/trace-echo.d.ts#RemoteTraceOptions
+createInstanceId: dist/id.d.ts#createInstanceId
+getOrCreateSessionId: dist/session.d.ts#getOrCreateSessionId
+init: dist/index.d.ts#init
+runInRemoteTrace: dist/trace-echo.d.ts#runInRemoteTrace
+
+## ./zone (dist/zone.d.ts): names
+
+type ContextManagerName: dist/types.d.ts#ContextManagerName
+ContextManagerOption: dist/zone.d.ts#ContextManagerOption
+DEFAULT_METRICS_EXPORT_INTERVAL_MS: dist/constants.d.ts#DEFAULT_METRICS_EXPORT_INTERVAL_MS
+DEFAULT_OTLP_ENDPOINT: dist/constants.d.ts#DEFAULT_OTLP_ENDPOINT
+DEFAULT_SERVICE_NAME: dist/constants.d.ts#DEFAULT_SERVICE_NAME
+DEFAULT_SERVICE_VERSION: dist/constants.d.ts#DEFAULT_SERVICE_VERSION
+type FlushCause: dist/types.d.ts#FlushCause
+type HistogramAggregation: dist/types.d.ts#HistogramAggregation
+type MetricsTemporality: dist/types.d.ts#MetricsTemporality
+OtelTsConfig: dist/zone.d.ts#OtelTsConfig
+type OtelTsInstance: dist/types.d.ts#OtelTsInstance
+type RemoteTraceOptions: dist/trace-echo.d.ts#RemoteTraceOptions
+createInstanceId: dist/id.d.ts#createInstanceId
+getOrCreateSessionId: dist/session.d.ts#getOrCreateSessionId
+init: dist/zone.d.ts#init
+runInRemoteTrace: dist/trace-echo.d.ts#runInRemoteTrace
+
+## ./core (dist/core.d.ts): names
+
+type ContextManagerName: dist/types.d.ts#ContextManagerName
+ContextManagerOption: dist/core.d.ts#ContextManagerOption
+DEFAULT_METRICS_EXPORT_INTERVAL_MS: dist/constants.d.ts#DEFAULT_METRICS_EXPORT_INTERVAL_MS
+DEFAULT_OTLP_ENDPOINT: dist/constants.d.ts#DEFAULT_OTLP_ENDPOINT
+DEFAULT_SERVICE_NAME: dist/constants.d.ts#DEFAULT_SERVICE_NAME
+DEFAULT_SERVICE_VERSION: dist/constants.d.ts#DEFAULT_SERVICE_VERSION
+type FlushCause: dist/types.d.ts#FlushCause
+type HistogramAggregation: dist/types.d.ts#HistogramAggregation
+type MetricsTemporality: dist/types.d.ts#MetricsTemporality
+OtelTsConfig: dist/core.d.ts#OtelTsConfig
+type OtelTsInstance: dist/types.d.ts#OtelTsInstance
+type RemoteTraceOptions: dist/trace-echo.d.ts#RemoteTraceOptions
+createInstanceId: dist/id.d.ts#createInstanceId
+getOrCreateSessionId: dist/session.d.ts#getOrCreateSessionId
+init: dist/core.d.ts#init
+runInRemoteTrace: dist/trace-echo.d.ts#runInRemoteTrace
+
+## ./context (dist/context.d.ts): names
+
+ContextKeyCardinality: dist/context.d.ts#ContextKeyCardinality
+ContextKeyPropagation: dist/context.d.ts#ContextKeyPropagation
+ContextKeyRule: dist/context.d.ts#ContextKeyRule
+ContextKeySpec: dist/context.d.ts#ContextKeySpec
+ContextKeys: dist/context.d.ts#ContextKeys
+ContextValues: dist/context.d.ts#ContextValues
+DEFAULT_MAX_LENGTH: dist/context.d.ts#DEFAULT_MAX_LENGTH
+IncomingContextOptions: dist/context.d.ts#IncomingContextOptions
+IncomingHeaderRecord: dist/context.d.ts#IncomingHeaderRecord
+IncomingHeaders: dist/context.d.ts#IncomingHeaders
+IncomingTrust: dist/context.d.ts#IncomingTrust
+contextKeyRule: dist/context.d.ts#contextKeyRule
+contextKeyRules: dist/context.d.ts#contextKeyRules
+contextValue: dist/context.d.ts#contextValue
+contextValues: dist/context.d.ts#contextValues
+contextWith: dist/context.d.ts#contextWith
+defineContextKeys: dist/context.d.ts#defineContextKeys
+incomingContext: dist/context.d.ts#incomingContext
+isInternalCall: dist/context.d.ts#isInternalCall
+withContext: dist/context.d.ts#withContext
+withInternalCall: dist/context.d.ts#withInternalCall
+
+## ./incoming-span (dist/incoming-span.d.ts): names
+
+type IncomingContextOptions: dist/context.d.ts#IncomingContextOptions
+type IncomingHeaders: dist/context.d.ts#IncomingHeaders
+IncomingSpanOptions: dist/incoming-span.d.ts#IncomingSpanOptions
+type IncomingTrust: dist/context.d.ts#IncomingTrust
+runInIncomingSpan: dist/incoming-span.d.ts#runInIncomingSpan
+
+## ./node (dist/node.d.ts): names
+
+type ExporterName: dist/node-exporters.d.ts#ExporterName
+NodeTelemetry: dist/node.d.ts#NodeTelemetry
+NodeTelemetryOptions: dist/node.d.ts#NodeTelemetryOptions
+type OtlpProtocol: dist/node-exporters.d.ts#OtlpProtocol
+type OtlpSignal: dist/node-exporters.d.ts#OtlpSignal
+type RemoteTraceOptions: dist/trace-echo.d.ts#RemoteTraceOptions
+type TraceEcho: dist/trace-echo.d.ts#TraceEcho
+createTraceEcho: dist/trace-echo.d.ts#createTraceEcho
+exporterNames: dist/node-exporters.d.ts#exporterNames
+histogramAggregation: dist/node-exporters.d.ts#histogramAggregation
+otlpProtocol: dist/node-exporters.d.ts#otlpProtocol
+outgoingTraceparent: dist/trace-echo.d.ts#outgoingTraceparent
+runInRemoteTrace: dist/trace-echo.d.ts#runInRemoteTrace
+startNodeTelemetry: dist/node.d.ts#startNodeTelemetry
+
+## ./node/context (dist/node-context.d.ts): names
+
+NodeContext: dist/node-context.d.ts#NodeContext
+NodeContextOptions: dist/node-context.d.ts#NodeContextOptions
+startNodeContext: dist/node-context.d.ts#startNodeContext
+
+## ./node/testing (dist/node-testing.d.ts): names
+
+StubCollector: dist/node-testing.d.ts#StubCollector
+startStubCollector: dist/node-testing.d.ts#startStubCollector
+
+## ./lag (dist/lag.d.ts): names
+
+LagDeps: dist/lag.d.ts#LagDeps
+LagDepsOptions: dist/lag.d.ts#LagDepsOptions
+LagFlushTarget: dist/lag.d.ts#LagFlushTarget
+lagDeps: dist/lag.d.ts#lagDeps
+
+## ./pull (dist/pull.d.ts): names
+
+MetricReading: dist/pull.d.ts#MetricReading
+MetricReadingsOptions: dist/pull.d.ts#MetricReadingsOptions
+PullMetricReader: dist/pull.d.ts#PullMetricReader
+PullMetricReaderOptions: dist/pull.d.ts#PullMetricReaderOptions
+PullTemporality: dist/pull.d.ts#PullTemporality
+ReadingsCollection: dist/pull.d.ts#ReadingsCollection
+collectReadings: dist/pull.d.ts#collectReadings
+metricReadings: dist/pull.d.ts#metricReadings
+
+## ./error (dist/error-record.d.ts): names
+
+ERROR_RECORD_FORMAT: dist/error-record.d.ts#ERROR_RECORD_FORMAT
+ErrorCause: dist/error-record.d.ts#ErrorCause
+ErrorProcedure: dist/error-record.d.ts#ErrorProcedure
+ErrorRecord: dist/error-record.d.ts#ErrorRecord
+ErrorRecordOptions: dist/error-record.d.ts#ErrorRecordOptions
+MAX_ERROR_CAUSES: dist/error-record.d.ts#MAX_ERROR_CAUSES
+MAX_STACK_LENGTH: dist/error-record.d.ts#MAX_STACK_LENGTH
+ReportErrorOptions: dist/error-record.d.ts#ReportErrorOptions
+errorLogAttributes: dist/error-record.d.ts#errorLogAttributes
+errorRecord: dist/error-record.d.ts#errorRecord
+errorRecordText: dist/error-record.d.ts#errorRecordText
+redactErrorRecord: dist/error-record.d.ts#redactErrorRecord
+reportError: dist/error-record.d.ts#reportError
+
+## ./error-view (dist/error-view.d.ts): names
+
+ERROR_VIEW_TAG: dist/error-view.d.ts#ERROR_VIEW_TAG
+ErrorCopyDetail: dist/error-view.d.ts#ErrorCopyDetail
+ErrorRetryDetail: dist/error-view.d.ts#ErrorRetryDetail
+ErrorTextDetail: dist/error-view.d.ts#ErrorTextDetail
+ErrorViewElement: dist/error-view.d.ts#ErrorViewElement
+ErrorViewOptions: dist/error-view.d.ts#ErrorViewOptions
+defineErrorView: dist/error-view.d.ts#defineErrorView
+errorView: dist/error-view.d.ts#errorView
+traceLink: dist/error-view.d.ts#traceLink
+ambient: dist/error-view.d.ts#declare global
+
+## ./call-trace (dist/call-trace.d.ts): names
+
+CallTrace: dist/call-trace.d.ts#CallTrace
+CallTraceOptions: dist/call-trace.d.ts#CallTraceOptions
+callTrace: dist/call-trace.d.ts#callTrace
+
+## Declarations
+
+### dist/call-trace.d.ts#CallTrace
+export interface CallTrace {
+    readonly context: Context;
+    readonly traceId: string;
+    readonly spanId: string;
+    readonly sampled: boolean;
+    readonly traceparent: string;
+    readonly headers: Readonly<{
+        traceparent: string;
+    }>;
+}
+
+### dist/call-trace.d.ts#CallTraceOptions
+export interface CallTraceOptions {
+    readonly from?: Context;
+    readonly sampled?: boolean;
+}
+
+### dist/call-trace.d.ts#callTrace
+export declare function callTrace(options?: CallTraceOptions): CallTrace;
+
+### dist/constants.d.ts#DEFAULT_METRICS_EXPORT_INTERVAL_MS
+export declare const DEFAULT_METRICS_EXPORT_INTERVAL_MS = 15000;
+
+### dist/constants.d.ts#DEFAULT_OTLP_ENDPOINT
+export declare const DEFAULT_OTLP_ENDPOINT = "http://localhost:4318";
+
+### dist/constants.d.ts#DEFAULT_SERVICE_NAME
+export declare const DEFAULT_SERVICE_NAME = "frontend-app";
+
+### dist/constants.d.ts#DEFAULT_SERVICE_VERSION
+export declare const DEFAULT_SERVICE_VERSION = "0.0.0";
+
+### dist/context.d.ts#ContextKeyCardinality
+export type ContextKeyCardinality = "low" | "high";
+
+### dist/context.d.ts#ContextKeyPropagation
+export type ContextKeyPropagation = "internal" | "none";
+
+### dist/context.d.ts#ContextKeyRule
+export interface ContextKeyRule {
+    readonly key: string;
+    readonly cardinality: ContextKeyCardinality;
+    readonly propagate: ContextKeyPropagation;
+    readonly maxLength: number;
+}
+
+### dist/context.d.ts#ContextKeySpec
+export interface ContextKeySpec {
+    readonly cardinality: ContextKeyCardinality;
+    readonly propagate: ContextKeyPropagation;
+    readonly maxLength?: number;
+}
+
+### dist/context.d.ts#ContextKeys
+export interface ContextKeys<K extends string> {
+    readonly rules: ReadonlyMap<K, ContextKeyRule>;
+    with<T>(values: ContextValues<K>, fn: () => T): T;
+    get(key: K, from?: Context): string | undefined;
+}
+
+### dist/context.d.ts#ContextValues
+export type ContextValues<K extends string = string> = {
+    readonly [P in K]?: string | null | undefined;
+};
+
+### dist/context.d.ts#DEFAULT_MAX_LENGTH
+export declare const DEFAULT_MAX_LENGTH = 256;
+
+### dist/context.d.ts#IncomingContextOptions
+export interface IncomingContextOptions {
+    readonly trust?: IncomingTrust;
+}
+
+### dist/context.d.ts#IncomingHeaderRecord
+export type IncomingHeaderRecord = Readonly<Record<string, string | readonly string[] | undefined>>;
+
+### dist/context.d.ts#IncomingHeaders
+export type IncomingHeaders = IncomingHeaderRecord | Headers;
+
+### dist/context.d.ts#IncomingTrust
+export type IncomingTrust = "all" | "trace" | "none";
+
+### dist/context.d.ts#contextKeyRule
+export declare function contextKeyRule(key: string): ContextKeyRule | undefined;
+
+### dist/context.d.ts#contextKeyRules
+export declare function contextKeyRules(): readonly ContextKeyRule[];
+
+### dist/context.d.ts#contextValue
+export declare function contextValue(key: string, from?: Context): string | undefined;
+
+### dist/context.d.ts#contextValues
+export declare function contextValues(from?: Context): Readonly<Record<string, string>>;
+
+### dist/context.d.ts#contextWith
+export declare function contextWith(values: ContextValues, from?: Context): Context;
+
+### dist/context.d.ts#defineContextKeys
+export declare function defineContextKeys<K extends string>(specs: {
+    readonly [P in K]: ContextKeySpec;
+}): ContextKeys<K>;
+
+### dist/context.d.ts#incomingContext
+export declare function incomingContext(headers: IncomingHeaders, options?: IncomingContextOptions): Context;
+
+### dist/context.d.ts#isInternalCall
+export declare function isInternalCall(from?: Context): boolean;
+
+### dist/context.d.ts#withContext
+export declare function withContext<T>(values: ContextValues, fn: () => T): T;
+
+### dist/context.d.ts#withInternalCall
+export declare function withInternalCall<T>(fn: () => T): T;
+
+### dist/core.d.ts#ContextManagerOption
+export type ContextManagerOption = Types.ContextManagerOption<"stack">;
+
+### dist/core.d.ts#OtelTsConfig
+export type OtelTsConfig = Types.OtelTsConfig<"stack">;
+
+### dist/core.d.ts#init
+export declare function init(config?: OtelTsConfig): Types.OtelTsInstance;
+
+### dist/error-record.d.ts#ERROR_RECORD_FORMAT
+export declare const ERROR_RECORD_FORMAT = "otel-ts.error/1";
+
+### dist/error-record.d.ts#ErrorCause
+export interface ErrorCause {
+    readonly name: string;
+    readonly message: string;
+    readonly code?: string;
+    readonly stack?: string;
+    readonly via?: string;
+}
+
+### dist/error-record.d.ts#ErrorProcedure
+export interface ErrorProcedure {
+    readonly name: string;
+    readonly inputDigest?: string;
+}
+
+### dist/error-record.d.ts#ErrorRecord
+export interface ErrorRecord {
+    readonly format: typeof ERROR_RECORD_FORMAT;
+    readonly id: string;
+    readonly at: string;
+    readonly name: string;
+    readonly message: string;
+    readonly code?: string;
+    readonly causes: readonly ErrorCause[];
+    readonly traceId?: string;
+    readonly spanId?: string;
+    readonly sampled?: boolean;
+    readonly context: Readonly<Record<string, string>>;
+    readonly procedure?: ErrorProcedure;
+    readonly attributes?: Readonly<Record<string, string | number | boolean>>;
+}
+
+### dist/error-record.d.ts#ErrorRecordOptions
+export interface ErrorRecordOptions {
+    readonly procedure?: ErrorProcedure;
+    readonly attributes?: Readonly<Record<string, string | number | boolean>>;
+    readonly from?: Context;
+    readonly at?: Date;
+    readonly stacks?: boolean;
+    readonly id?: string;
+}
+
+### dist/error-record.d.ts#MAX_ERROR_CAUSES
+export declare const MAX_ERROR_CAUSES = 8;
+
+### dist/error-record.d.ts#MAX_STACK_LENGTH
+export declare const MAX_STACK_LENGTH = 4000;
+
+### dist/error-record.d.ts#ReportErrorOptions
+export interface ReportErrorOptions extends ErrorRecordOptions {
+    readonly logger?: string;
+    readonly markSpan?: boolean;
+}
+
+### dist/error-record.d.ts#errorLogAttributes
+export declare function errorLogAttributes(record: ErrorRecord): Attributes;
+
+### dist/error-record.d.ts#errorRecord
+export declare function errorRecord(error: unknown, options?: ErrorRecordOptions): ErrorRecord;
+
+### dist/error-record.d.ts#errorRecordText
+export declare function errorRecordText(input: ErrorRecord): string;
+
+### dist/error-record.d.ts#redactErrorRecord
+export declare function redactErrorRecord(record: ErrorRecord): ErrorRecord;
+
+### dist/error-record.d.ts#reportError
+export declare function reportError(error: unknown, options?: ReportErrorOptions): ErrorRecord;
+
+### dist/error-view.d.ts#ERROR_VIEW_TAG
+export declare const ERROR_VIEW_TAG = "otel-error";
+
+### dist/error-view.d.ts#ErrorCopyDetail
+export interface ErrorCopyDetail extends ErrorTextDetail {
+    readonly copied: boolean;
+}
+
+### dist/error-view.d.ts#ErrorRetryDetail
+export interface ErrorRetryDetail {
+    readonly record: ErrorRecord;
+    waitUntil(promise: PromiseLike<unknown>): void;
+}
+
+### dist/error-view.d.ts#ErrorTextDetail
+export interface ErrorTextDetail {
+    readonly record: ErrorRecord;
+    readonly text: string;
+}
+
+### dist/error-view.d.ts#ErrorViewElement
+export declare class ErrorViewElement extends ElementBase {
+    static get observedAttributes(): string[];
+    constructor();
+    get record(): ErrorRecord | undefined;
+    set record(record: ErrorRecord | undefined);
+    get text(): string;
+    connectedCallback(): void;
+    attributeChangedCallback(): void;
+    copy(): Promise<boolean>;
+}
+
+### dist/error-view.d.ts#ErrorViewOptions
+export interface ErrorViewOptions {
+    readonly retry?: boolean;
+    readonly report?: boolean | string;
+    readonly traceUrl?: string;
+    readonly traceTarget?: string;
+    readonly summary?: string;
+    readonly tag?: string;
+}
+
+### dist/error-view.d.ts#declare global
+declare global {
+    interface HTMLElementEventMap {
+        "otel-error-retry": CustomEvent<ErrorRetryDetail>;
+        "otel-error-report": CustomEvent<ErrorTextDetail>;
+        "otel-error-copy": CustomEvent<ErrorCopyDetail>;
+    }
+}
+
+### dist/error-view.d.ts#defineErrorView
+export declare function defineErrorView(name?: string): void;
+
+### dist/error-view.d.ts#errorView
+export declare function errorView(record: ErrorRecord, options?: ErrorViewOptions): ErrorViewElement;
+
+### dist/error-view.d.ts#traceLink
+export declare function traceLink(template: string | null | undefined, record: ErrorRecord, base?: string): string | undefined;
+
+### dist/id.d.ts#createInstanceId
+export declare function createInstanceId(): string;
+
+### dist/incoming-span.d.ts#IncomingSpanOptions
+export interface IncomingSpanOptions extends IncomingContextOptions {
+    readonly attributes?: Attributes;
+    readonly tracer?: Tracer;
+}
+
+### dist/incoming-span.d.ts#runInIncomingSpan
+export declare function runInIncomingSpan<T>(name: string, headers: IncomingHeaders, fn: () => T, options?: IncomingSpanOptions): T;
+
+### dist/index.d.ts#ContextManagerOption
+export type ContextManagerOption = Types.ContextManagerOption<"async" | "stack">;
+
+### dist/index.d.ts#OtelTsConfig
+export type OtelTsConfig = Types.OtelTsConfig<"async" | "stack">;
+
+### dist/index.d.ts#init
+export declare function init(config?: OtelTsConfig): Types.OtelTsInstance;
+
+### dist/lag.d.ts#LagDeps
+export interface LagDeps {
+    readonly meter: Meter;
+    readonly logger: Logger;
+    readonly events: EventSink;
+    readonly spans: SpanSink;
+    connect(monitors: LagFlushTarget): () => void;
+}
+
+### dist/lag.d.ts#LagDepsOptions
+export interface LagDepsOptions {
+    name?: string;
+    tracer?: Tracer;
+}
+
+### dist/lag.d.ts#LagFlushTarget
+export interface LagFlushTarget {
+    flush(): void;
+}
+
+### dist/lag.d.ts#lagDeps
+export declare function lagDeps(instance: Pick<OtelTsInstance, "getMeter" | "getLogger" | "onBeforeFlush">, options?: LagDepsOptions): LagDeps;
+
+### dist/node-context.d.ts#NodeContext
+export interface NodeContext {
+    shutdown(): Promise<void>;
+}
+
+### dist/node-context.d.ts#NodeContextOptions
+export interface NodeContextOptions {
+    serviceName?: string;
+    resourceAttributes?: Attributes;
+    spanProcessors?: readonly SpanProcessor[];
+    env?: NodeJS.ProcessEnv;
+}
+
+### dist/node-context.d.ts#startNodeContext
+export declare function startNodeContext(options?: NodeContextOptions): NodeContext;
+
+### dist/node-exporters.d.ts#ExporterName
+export type ExporterName = "otlp" | "console";
+
+### dist/node-exporters.d.ts#OtlpProtocol
+export type OtlpProtocol = "http/protobuf" | "http/json";
+
+### dist/node-exporters.d.ts#OtlpSignal
+export type OtlpSignal = "traces" | "logs";
+
+### dist/node-exporters.d.ts#exporterNames
+export declare function exporterNames(signal: OtlpSignal, env: Env): ExporterName[];
+
+### dist/node-exporters.d.ts#histogramAggregation
+export declare function histogramAggregation(env: Env): AggregationSelector;
+
+### dist/node-exporters.d.ts#otlpProtocol
+export declare function otlpProtocol(signal: OtlpSignal, env: Env): OtlpProtocol;
+
+### dist/node-testing.d.ts#StubCollector
+export interface StubCollector {
+    readonly endpoint: string;
+    readonly exports: number;
+    spansByScope(): Map<string, Set<string>>;
+    has(scopes: readonly string[]): boolean;
+    missing(scopes: readonly string[]): string[];
+    waitFor(scopes: readonly string[], options?: {
+        timeoutMs?: number;
+        intervalMs?: number;
+        poke?: () => Promise<unknown>;
+    }): Promise<string[]>;
+    close(): Promise<void>;
+}
+
+### dist/node-testing.d.ts#startStubCollector
+export declare function startStubCollector(): Promise<StubCollector>;
+
+### dist/node.d.ts#NodeTelemetry
+export interface NodeTelemetry {
+    readonly enabled: boolean;
+    readonly esmHook: boolean;
+    shutdown(): Promise<void>;
+}
+
+### dist/node.d.ts#NodeTelemetryOptions
+export interface NodeTelemetryOptions {
+    serviceName?: string;
+    resourceAttributes?: Attributes;
+    importMetaUrl?: string;
+    instrumentations?: NodeSDKConfiguration["instrumentations"];
+    traceExporter?: SpanExporter;
+    logExporter?: LogRecordExporter;
+    metricReaders?: NodeSDKConfiguration["metricReaders"];
+    enabled?: boolean;
+    stopOnSignals?: boolean;
+    env?: NodeJS.ProcessEnv;
+}
+
+### dist/node.d.ts#startNodeTelemetry
+export declare function startNodeTelemetry(options?: NodeTelemetryOptions): NodeTelemetry;
+
+### dist/pull.d.ts#MetricReading
+export interface MetricReading {
+    readonly series: string;
+    readonly at: string;
+    readonly value: number;
+}
+
+### dist/pull.d.ts#MetricReadingsOptions
+export interface MetricReadingsOptions {
+    readonly attributes?: "series" | "sum";
+}
+
+### dist/pull.d.ts#PullMetricReader
+export declare class PullMetricReader extends MetricReader {
+    constructor(options?: PullMetricReaderOptions);
+    protected onForceFlush(): Promise<void>;
+    protected onShutdown(): Promise<void>;
+}
+
+### dist/pull.d.ts#PullMetricReaderOptions
+export interface PullMetricReaderOptions {
+    readonly temporality?: PullTemporality;
+}
+
+### dist/pull.d.ts#PullTemporality
+export type PullTemporality = "cumulative" | "delta";
+
+### dist/pull.d.ts#ReadingsCollection
+export interface ReadingsCollection {
+    readonly readings: readonly MetricReading[];
+    readonly errors: number;
+}
+
+### dist/pull.d.ts#collectReadings
+export declare function collectReadings(reader: MetricReader, at: number, options?: MetricReadingsOptions): Promise<ReadingsCollection>;
+
+### dist/pull.d.ts#metricReadings
+export declare function metricReadings(metrics: ResourceMetrics, at: number, options?: MetricReadingsOptions): MetricReading[];
+
+### dist/session.d.ts#getOrCreateSessionId
+export declare function getOrCreateSessionId(ttlMs: number): string;
+
+### dist/trace-echo.d.ts#RemoteTraceOptions
+export interface RemoteTraceOptions {
+    name?: string;
+    attributes?: Attributes;
+    tracer?: Tracer;
+}
+
+### dist/trace-echo.d.ts#TraceEcho
+export interface TraceEcho {
+    remember(scope: string, id: unknown, traceparent: string | undefined, now?: number): void;
+    take(scope: string, id: unknown, now?: number): string | undefined;
+    readonly size: number;
+}
+
+### dist/trace-echo.d.ts#createTraceEcho
+export declare function createTraceEcho(options?: {
+    ttlMs?: number;
+    maxEntries?: number;
+}): TraceEcho;
+
+### dist/trace-echo.d.ts#outgoingTraceparent
+export declare function outgoingTraceparent(header: unknown): string | undefined;
+
+### dist/trace-echo.d.ts#runInRemoteTrace
+export declare function runInRemoteTrace<T>(traceparent: string | undefined, fn: () => T, options?: RemoteTraceOptions): T;
+
+### dist/types.d.ts#ContextManagerName
+export type ContextManagerName = "async" | "stack" | "zone";
+
+### dist/types.d.ts#FlushCause
+export interface FlushCause {
+    readonly transition?: StateTransition;
+    readonly event?: Event;
+}
+
+### dist/types.d.ts#HistogramAggregation
+export type HistogramAggregation = "explicit" | "exponential";
+
+### dist/types.d.ts#MetricsTemporality
+export type MetricsTemporality = "cumulative" | "delta";
+
+### dist/types.d.ts#OtelTsInstance
+export interface OtelTsInstance {
+    shutdown(): Promise<void>;
+    forceFlush(): Promise<void>;
+    onBeforeFlush(listener: (cause: FlushCause) => void): () => void;
+    getSessionId(): string;
+    getMeter(name: string): import("@opentelemetry/api").Meter;
+    getLogger(name: string): import("@opentelemetry/api").Logger;
+}
+
+### dist/zone.d.ts#ContextManagerOption
+export type ContextManagerOption = Types.ContextManagerOption<"zone" | "stack">;
+
+### dist/zone.d.ts#OtelTsConfig
+export type OtelTsConfig = Types.OtelTsConfig<"zone" | "stack">;
+
+### dist/zone.d.ts#init
+export declare function init(config?: OtelTsConfig): Types.OtelTsInstance;

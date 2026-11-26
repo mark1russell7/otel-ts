@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.3
+
+### Changed
+
+- Each entry of `exports` has the condition `default`, with the file of `import`. Thus `require()` of an entry resolves on Node 22 and later, and it does not stop with `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+- The package has an API report, `test/api/public-api.txt`, and the script `check:api` compares it with the build in CI. Thus each change of the public API shows in the diff of a pull request. The API does not change.
+
 ## 0.10.2
 
 ### Added
