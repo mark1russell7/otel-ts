@@ -267,6 +267,25 @@ try {
 - Each text goes through the redaction of `@mark1russell7/text/redact`. A stack stays out, unless you give `stacks: true`.
 - Without an SDK, the record has no trace id, and the log record goes to the no-op logger of the API.
 
+### The trace of a call with no SDK
+
+The entry `@mark1russell7/otel-ts/call-trace` gives one outgoing call a trace context. It depends on `@opentelemetry/api` only, and it needs no SDK and no context manager.
+
+```ts
+import { callTrace } from "@mark1russell7/otel-ts/call-trace";
+import { reportError } from "@mark1russell7/otel-ts/error";
+
+const call = callTrace();
+const response = await fetch("/map", { headers: call.headers });
+// The record has the trace id that the server got
+if (!response.ok) reportError(new Error(`HTTP ${response.status}`), { from: call.context, procedure: { name: "GET /map" } });
+```
+
+- With a valid span in the active context (or in `options.from`), the call is in the trace of that span.
+- Else the call starts a new trace with random ids, in a span that does not record. The trace is sampled, so a server with a parent-based sampler records its span. Give `sampled: false` to clear the flag.
+- `headers` holds only `traceparent`. The call sends no baggage.
+- Give `call.context` as `from` to the record. Without a context manager, the active context does not change.
+
 ### The view of an error
 
 The entry `@mark1russell7/otel-ts/error-view` shows an error record. It is a custom element with no framework, so each front end can use it.
