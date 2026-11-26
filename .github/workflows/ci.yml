@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: mark1russell7/template/.github/workflows/reusable-ci.yml@dc370269d67c8cdb26957ae96273dbb9e5432343 # main
+    uses: mark1russell7/template/.github/workflows/reusable-ci.yml@8ad943ea22c2a65479b648664765028cf981da78 # main
     with:
       # build: tsc -b type-checks src and writes dist, as release.yml builds it.
       # test: the "browser runtime" project (happy-dom) and the "node" project.
@@ -32,7 +32,7 @@ jobs:
   # The site of .github/site.json: the build, the site check and the probe, with no deploy (CI.md of the
   # template, "The site config"). The Pages workflow deploys the same site from main.
   site:
-    uses: mark1russell7/template/.github/workflows/reusable-pages-check.yml@9c72cddb14b618d5ab96d8fee9cb826f9087901a # main
+    uses: mark1russell7/template/.github/workflows/reusable-pages-check.yml@8ad943ea22c2a65479b648664765028cf981da78 # main
     permissions:
       contents: read
 
@@ -46,6 +46,6 @@ jobs:
     timeout-minutes: 2
     permissions: {}
     steps:
-      - uses: mark1russell7/template/.github/actions/gate-summary@dc370269d67c8cdb26957ae96273dbb9e5432343 # main
+      - uses: mark1russell7/template/.github/actions/gate-summary@8ad943ea22c2a65479b648664765028cf981da78 # main
         with:
           needs: ${{ toJSON(needs) }}
