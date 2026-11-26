@@ -1,6 +1,7 @@
 /**
  * One child of the memory gate. The child loads one entry of the built package, starts it, makes one span, and prints
- * one JSON line: its time, the live heap after a full GC and the resident set. Start it with the Node flag `--expose-gc`.
+ * one JSON line: its time, the live heap after a full GC and the resident set. Start it with the Node flags
+ * `--expose-gc` and `--single-threaded`.
  *
  * The cases: `api` loads only `@opentelemetry/api` (the baseline), `context` starts `startNodeContext()`, and `node`
  * starts `startNodeTelemetry()` with export off.
