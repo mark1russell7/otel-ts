@@ -15,13 +15,13 @@ import {
   propagation,
   ROOT_CONTEXT,
   SpanKind,
-  SpanStatusCode,
   trace,
   type Attributes,
   type Context,
   type Tracer,
 } from "@opentelemetry/api";
 import { W3CTraceContextPropagator } from "@opentelemetry/core";
+import { runInSpan } from "./span-run.js";
 
 /** The W3C propagator of this module: it reads the traceparent also when no global propagator is set. */
 const W3C = new W3CTraceContextPropagator();
@@ -133,31 +133,5 @@ export function runInRemoteTrace<T>(traceparent: string | undefined, fn: () => T
   if (!parent) return fn();
   const tracer = options.tracer ?? trace.getTracer("@mark1russell7/otel-ts");
   const span = tracer.startSpan(options.name ?? "remote.apply", { kind: SpanKind.CONSUMER, ...(options.attributes ? { attributes: options.attributes } : {}) }, parent);
-  const fail = (error: unknown): void => {
-    span.recordException(error instanceof Error ? error : String(error));
-    span.setStatus({ code: SpanStatusCode.ERROR });
-  };
-  let result: T;
-  try {
-    result = context.with(trace.setSpan(parent, span), fn);
-  } catch (error) {
-    fail(error);
-    span.end();
-    throw error;
-  }
-  if (result && typeof (result as { then?: unknown }).then === "function") {
-    return (result as unknown as Promise<unknown>).then(
-      (value) => {
-        span.end();
-        return value;
-      },
-      (error: unknown) => {
-        fail(error);
-        span.end();
-        throw error;
-      },
-    ) as T;
-  }
-  span.end();
-  return result;
+  return runInSpan(span, parent, fn);
 }

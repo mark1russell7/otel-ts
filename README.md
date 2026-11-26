@@ -234,6 +234,7 @@ The rules:
   - `"all"`: the trace and the baggage, for a caller that passed its check.
   - `"trace"` (the default): the trace only. The baggage of the caller goes, and each key that a propagator of the program read from the headers goes too.
   - `"none"`: nothing. The call starts a new trace, for a public edge.
+- `runInIncomingSpan(name, headers, fn, { trust, tracer, attributes })` of the entry `@mark1russell7/otel-ts/incoming-span` starts `fn` in a span of the kind SERVER. The parent of the span is `incomingContext(headers, { trust })`, so the span continues the trace of the caller. Use it for a route that no instrumentation covers, for example a raw route of `node:http`. The entry is apart from `/context`, so `/node/context` does not load it. The span ends when `fn` returns or its promise settles. An error of `fn` gives the span the status ERROR and passes through.
 
 In the browser, `init()` registers the context when `tracing` is on (the default):
 

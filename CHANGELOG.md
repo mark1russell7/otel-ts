@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.1
+
+### Added
+
+- The entry `/incoming-span` has `runInIncomingSpan(name, headers, fn, options)`. It starts the handler of an incoming call in a SERVER span. The parent of the span is `incomingContext(headers, { trust })`, so with the default trust "trace" the span continues the trace of the caller and takes no baggage. The options `tracer` and `attributes` are optional. An error of the handler gives the span the status ERROR and passes through. The entry depends on `@opentelemetry/api` only. It is apart from `/context`, so the memory of `/node/context` does not change.
+
+### Changed
+
+- `runInRemoteTrace` and `runInIncomingSpan` use one internal rule for the end and the status of the span. An error of `fn` also gives the status its message.
+
 ## 0.10.0
 
 The release train changes the range of `@mark1russell7/text` to a version outside the old range. The public types name @mark1russell7/text, so its new version outside the old range can change them.
