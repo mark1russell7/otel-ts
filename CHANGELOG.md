@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.3
+
+### Changed
+
+- The package has an API report, `test/api/public-api.txt`, and the script `check:api` compares it with the build in CI. Thus each change of the public API shows in the diff of a pull request. The API does not change.
+
 ## 0.10.2
 
 ### Added
