@@ -22,7 +22,8 @@ async function measure(job, rounds) {
   const run = await freshArms({
     arms: ARMS,
     aa: ["api-a", "api-b"],
-    command: [process.execPath, "--expose-gc", CHILD],
+    // One thread: else a background compile or GC task ends before the read in some children and after it in others.
+    command: [process.execPath, "--expose-gc", "--single-threaded", CHILD],
     args: (id) => ["--case", id],
     job,
     warmUp: 1,
