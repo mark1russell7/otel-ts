@@ -107,14 +107,14 @@ jobs:
           path: memory/
       - name: Read the bytes of each entry over the five runs
         env:
-          # The limits in bytes: the worst of the 10 jobs of run 45889411488 (two attempts, 2026-11-26, 10 rounds each)
-          # plus their spread. The children run on one thread since that run. Before, a background task of V8 gave some
-          # children of the api arm 18 KiB less heap, and the old limits had room for that step. To set the limits
-          # again, empty the four values: the read then only reports, and it prints the limits that its runs give.
-          MEMORY_RSS_LIMIT: "5275648"
-          MEMORY_RSS_AA: "190464"
-          MEMORY_HEAP_LIMIT: "1878504"
-          MEMORY_HEAP_AA: "136"
+          # The limits in bytes: the worst of the 10 jobs of run 45890888717 (two attempts, 2026-11-26, 10 rounds each)
+          # plus their spread. The children run on one thread, as TypeScript with the type stripping of Node. The stripping
+          # adds about 600 KB of resident memory to the context case. To set the limits again, empty the four values:
+          # the read then only reports, and it prints the limits that its runs give.
+          MEMORY_RSS_LIMIT: "5742592"
+          MEMORY_RSS_AA: "167936"
+          MEMORY_HEAP_LIMIT: "1874248"
+          MEMORY_HEAP_AA: "56"
         run: node bench/memory.ts verdict "$GITHUB_WORKSPACE/memory"
 
   measure-ok:
