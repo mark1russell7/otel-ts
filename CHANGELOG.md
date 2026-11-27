@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.0
+
+The release train changes the range of `@mark1russell7/text` to a version outside the old range. The public types name @mark1russell7/text, so its new version outside the old range can change them.
+
+### Breaking
+
+- The range `^0.0.20` of `@mark1russell7/text` in `dependencies` does not hold `0.0.21`, so it changes.
+
 ## 0.11.2
 
 ### Added
