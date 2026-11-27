@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Fixed
+
+- Version 0.1.0 has no `dist` folder, so its entry points and the command `otel-sink` do not work. The build of the repository did not start the build of this package. Use 0.1.1 or later.
+
 ## 0.1.0
 
 ### Added
