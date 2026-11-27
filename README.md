@@ -28,7 +28,7 @@ The package depends only on `@opentelemetry/api` and `@mark1russell7/text`. Each
 | `./incoming-span` | none |
 | `./node` | `@opentelemetry/context-async-hooks`, `@opentelemetry/core`, `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-logs-otlp-proto`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/exporter-trace-otlp-proto`, `@opentelemetry/instrumentation`, `@opentelemetry/resources`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-node`, `@opentelemetry/sdk-trace`, `@opentelemetry/semantic-conventions` |
 | `./node/context` | `@opentelemetry/context-async-hooks`, `@opentelemetry/core`, `@opentelemetry/resources`, `@opentelemetry/sdk-trace`, `@opentelemetry/semantic-conventions` |
-| `./node/export` | `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-logs-otlp-proto`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/exporter-trace-otlp-proto`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-trace` |
+| `./node/export` | `@opentelemetry/exporter-logs-otlp-http`, `@opentelemetry/exporter-logs-otlp-proto`, `@opentelemetry/exporter-metrics-otlp-http`, `@opentelemetry/exporter-metrics-otlp-proto`, `@opentelemetry/exporter-trace-otlp-http`, `@opentelemetry/exporter-trace-otlp-proto`, `@opentelemetry/resources`, `@opentelemetry/sdk-logs`, `@opentelemetry/sdk-metrics`, `@opentelemetry/sdk-trace` |
 | `./node/testing` | none |
 | `./lag` | `@mark1russell7/lag`, `page-lifecycle-tracker` |
 | `./pull` | `@opentelemetry/sdk-metrics` |
@@ -592,21 +592,27 @@ export const telemetry = startNodeContext({
 
 `startNodeContext()` and `startNodeTelemetry()` refuse each other: only one part of a program registers the context.
 
-To export the spans with no SDK of `sdk-node`, give the processors of the entry `@mark1russell7/otel-ts/node/export`. The entry loads the exporters, so import it only when the program exports:
+To export the spans and the metrics with no SDK of `sdk-node`, give the processors and the meter provider of the entry `@mark1russell7/otel-ts/node/export`. The entry loads the exporters, so import it only when the program exports:
 
 ```ts
 import { startNodeContext } from "@mark1russell7/otel-ts/node/context";
 
-const spanProcessors = process.env["OTEL_EXPORTER_OTLP_ENDPOINT"]
-  ? (await import("@mark1russell7/otel-ts/node/export")).exportSpanProcessors()
-  : [];
-export const telemetry = startNodeContext({ serviceName: "my-tool", spanProcessors });
+const exporting = process.env["OTEL_EXPORTER_OTLP_ENDPOINT"] ? await import("@mark1russell7/otel-ts/node/export") : undefined;
+const meterProvider = exporting?.exportMeterProvider();
+export const telemetry = startNodeContext({
+  serviceName: "my-tool",
+  spanProcessors: exporting?.exportSpanProcessors() ?? [],
+  ...(meterProvider ? { meterProvider } : {}),
+});
 ```
 
 - The processors are those of `/node`: the context processor, then one processor for each exporter of `OTEL_TRACES_EXPORTER` (`otlp`, `console` or `none`), with the protocol of `OTEL_EXPORTER_OTLP_PROTOCOL`.
 - With no value in `OTEL_EXPORTER_OTLP_ENDPOINT`, `exportSpanProcessors()` gives no processor. The option `exporter` exports to an exporter of the program.
-- `telemetry.shutdown()` flushes the spans. A command line calls it before it ends.
-- For the logs and the metrics, and for the instrumentations, import `startNodeTelemetry()` from `/node` in place of `startNodeContext()`.
+- The meter provider has the resource of the spans and the views of `/node`: a metric gets no attribute of a context key with `cardinality: "high"`. It has one periodic reader for each exporter of `OTEL_METRICS_EXPORTER`, each `OTEL_METRIC_EXPORT_INTERVAL` ms (default 60000).
+- With no value in `OTEL_EXPORTER_OTLP_ENDPOINT`, `exportMeterProvider()` gives `undefined`, and the meters of the API record nothing. The option `exporter` exports to a metric exporter of the program.
+- The meter provider takes the metrics of an instrumentation, for example the event loop and garbage collector metrics of `@opentelemetry/instrumentation-runtime-node`.
+- `telemetry.shutdown()` flushes the spans and the metrics. A command line calls it before it ends.
+- For the logs, and for the instrumentations of calls, import `startNodeTelemetry()` from `/node` in place of `startNodeContext()`.
 
 ### A service of `@mark1russell7/service`
 

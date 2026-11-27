@@ -116,11 +116,15 @@ startNodeTelemetry: dist/node.d.ts#startNodeTelemetry
 
 NodeContext: dist/node-context.d.ts#NodeContext
 NodeContextOptions: dist/node-context.d.ts#NodeContextOptions
+NodeMeterProvider: dist/node-meter.d.ts#NodeMeterProvider
+type NodeMeterProviderFactory: dist/node-meter.d.ts#NodeMeterProviderFactory
 startNodeContext: dist/node-context.d.ts#startNodeContext
 
 ## ./node/export (dist/node-export.d.ts): names
 
+ExportMetricOptions: dist/node-export.d.ts#ExportMetricOptions
 ExportSpanOptions: dist/node-export.d.ts#ExportSpanOptions
+exportMeterProvider: dist/node-export.d.ts#exportMeterProvider
 exportSpanProcessors: dist/node-export.d.ts#exportSpanProcessors
 
 ## ./node/testing (dist/node-testing.d.ts): names
@@ -499,17 +503,27 @@ export interface NodeContextOptions {
     serviceName?: string;
     resourceAttributes?: Attributes;
     spanProcessors?: readonly SpanProcessor[];
+    meterProvider?: NodeMeterProviderFactory;
     env?: NodeJS.ProcessEnv;
 }
 
 ### dist/node-context.d.ts#startNodeContext
 export declare function startNodeContext(options?: NodeContextOptions): NodeContext;
 
+### dist/node-export.d.ts#ExportMetricOptions
+export interface ExportMetricOptions {
+    env?: NodeJS.ProcessEnv;
+    exporter?: PushMetricExporter;
+}
+
 ### dist/node-export.d.ts#ExportSpanOptions
 export interface ExportSpanOptions {
     env?: NodeJS.ProcessEnv;
     exporter?: SpanExporter;
 }
+
+### dist/node-export.d.ts#exportMeterProvider
+export declare function exportMeterProvider(options?: ExportMetricOptions): NodeMeterProviderFactory | undefined;
 
 ### dist/node-export.d.ts#exportSpanProcessors
 export declare function exportSpanProcessors(options?: ExportSpanOptions): SpanProcessor[];
@@ -521,7 +535,7 @@ export type ExporterName = "otlp" | "console";
 export type OtlpProtocol = "http/protobuf" | "http/json";
 
 ### dist/node-exporters.d.ts#OtlpSignal
-export type OtlpSignal = "traces" | "logs";
+export type OtlpSignal = "traces" | "logs" | "metrics";
 
 ### dist/node-exporters.d.ts#exporterNames
 export declare function exporterNames(signal: OtlpSignal, env: Env): ExporterName[];
@@ -531,6 +545,15 @@ export declare function histogramAggregation(env: Env): AggregationSelector;
 
 ### dist/node-exporters.d.ts#otlpProtocol
 export declare function otlpProtocol(signal: OtlpSignal, env: Env): OtlpProtocol;
+
+### dist/node-meter.d.ts#NodeMeterProvider
+export interface NodeMeterProvider extends MeterProvider {
+    forceFlush(): Promise<void>;
+    shutdown(): Promise<void>;
+}
+
+### dist/node-meter.d.ts#NodeMeterProviderFactory
+export type NodeMeterProviderFactory = (resource: Resource) => NodeMeterProvider;
 
 ### dist/node-testing.d.ts#StubCollector
 export interface StubCollector {

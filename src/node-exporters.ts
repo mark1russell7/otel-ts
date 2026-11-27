@@ -23,9 +23,9 @@ import { createContextLogRecordProcessor, createContextSpanProcessor, defaultAgg
 
 type Env = Readonly<Record<string, string | undefined>>;
 
-/** A signal that has processors */
-export type OtlpSignal = "traces" | "logs";
-/** An exporter name of `OTEL_TRACES_EXPORTER` and `OTEL_LOGS_EXPORTER` that otel-ts makes */
+/** A signal that has exporters */
+export type OtlpSignal = "traces" | "logs" | "metrics";
+/** An exporter name of `OTEL_TRACES_EXPORTER`, `OTEL_LOGS_EXPORTER` and `OTEL_METRICS_EXPORTER` that otel-ts makes */
 export type ExporterName = "otlp" | "console";
 /** An OTLP protocol that otel-ts sends */
 export type OtlpProtocol = "http/protobuf" | "http/json";
