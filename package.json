@@ -236,7 +236,7 @@
     "async-browser-context": "^0.3.0",
     "happy-dom": "^21.0.4",
     "page-lifecycle-tracker": "^0.1.0",
-    "typescript": "^5.9.0",
+    "typescript": "^7.0.0",
     "vitest": "^4.1.12"
   },
   "conventions": {
