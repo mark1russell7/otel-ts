@@ -100,7 +100,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -b",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && pnpm --filter \"./packages/*\" run typecheck",
     "clean": "rm -rf dist .tsbuildinfo",
     "infra:up": "cd node_modules/@mark1russell7/grafana-infra && docker compose up -d",
     "infra:down": "cd node_modules/@mark1russell7/grafana-infra && docker compose down",
