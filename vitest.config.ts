@@ -40,6 +40,8 @@ export default defineConfig({
           include: ["test/node/**/*.test.ts"],
         },
       },
+      // Each package of the workspace is a project with its own config.
+      "packages/*",
     ],
   },
 });

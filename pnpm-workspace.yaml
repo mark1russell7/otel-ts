@@ -1,6 +1,7 @@
 # The site of GitHub Pages is a private package of the workspace. The root is the published package.
 packages:
   - "site"
+  - "packages/*"
 
 # Our own packages: the release train updates them, so the release age check of pnpm does not apply to them.
 minimumReleaseAgeExclude:
