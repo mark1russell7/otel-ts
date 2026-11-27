@@ -7,7 +7,8 @@ The sink is for a development computer or a small host with no collector. It is 
 ## Start it
 
 ```sh
-SINK_DB=~/otel-sink.db PORT=4318 node src/main.ts
+npm install --global @mark1russell7/otel-sink
+SINK_DB=~/otel-sink.db PORT=4318 otel-sink
 ```
 
 The environment gives these values. The value in parentheses is the value without the variable.
