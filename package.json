@@ -208,7 +208,7 @@
   "devDependencies": {
     "@grafana/faro-web-sdk": "^2.13.0",
     "@mark1russell7/api-report": "^0.5.22",
-    "@mark1russell7/conventions": "^0.52.8",
+    "@mark1russell7/conventions": "^0.56.0",
     "@mark1russell7/grafana-infra": "github:mark1russell7/grafana-infra#618d1ab7042455f81a81e219af6d33022551305e",
     "@mark1russell7/lag": "^0.5.0",
     "@mark1russell7/rigor-bench": "^0.3.2",

@@ -20,10 +20,10 @@ importers:
         version: 2.15.0
       '@mark1russell7/api-report':
         specifier: ^0.5.22
-        version: 0.5.24
+        version: 0.5.25
       '@mark1russell7/conventions':
-        specifier: ^0.52.8
-        version: 0.52.8
+        specifier: ^0.56.0
+        version: 0.56.0
       '@mark1russell7/grafana-infra':
         specifier: github:mark1russell7/grafana-infra#618d1ab7042455f81a81e219af6d33022551305e
         version: https://codeload.github.com/mark1russell7/grafana-infra/tar.gz/618d1ab7042455f81a81e219af6d33022551305e
@@ -393,8 +393,8 @@ packages:
       zod:
         optional: true
 
-  '@mark1russell7/api-report@0.5.24':
-    resolution: {integrity: sha512-8mMv2Nyhmlux0gWVXZgUD3nzO+XUiZ2ZxXB8hDIzB3py46VWZrTQra8J0GuJf8U+nSzZtoImLwzbVI2kyOB9VQ==}
+  '@mark1russell7/api-report@0.5.25':
+    resolution: {integrity: sha512-CCcG9TD0eIglTCH1BTPYZZGxBWs9MHpjv9C8S5m8u7nvnmcO0+Zu0tspV4K1HCqyNmsuP8MLDVn2ISMJ86uoaQ==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -406,13 +406,8 @@ packages:
     resolution: {integrity: sha512-7vYnlTkNTuPia5GXimxVildlFreRrbpZBqNEq92sNzd9e4pNRQ1r+BbAAH8x/uLzBLA3nr5oNJNp64tDs5zA8A==}
     engines: {node: '>=22.12'}
 
-  '@mark1russell7/conventions@0.52.8':
-    resolution: {integrity: sha512-5LO7USK9u46LM/EE4pppMCSMepB8aszEyNNPUavXb4RIcE7nDgJTpZ4i9hzLhlXIh3iZykMUDisu6xJUp70vow==}
-    engines: {node: '>=22'}
-    hasBin: true
-
-  '@mark1russell7/conventions@0.55.2':
-    resolution: {integrity: sha512-LUOWcKY2a/7Vs/oHtQQjF/aTcmg8iyb1F8E9omW5tH7SoB0J4W60gyktkj5MWw8kkFZhz6ReykPhCgtVrTynHQ==}
+  '@mark1russell7/conventions@0.56.0':
+    resolution: {integrity: sha512-GXx6q5GEGo8VmXrSo1vpraLT6Qbed+J9RzW1ezEOWVs/V09g+1oJ+VpwNHXBbri5h8FErg1/pdi3GRSyFMAw6w==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -640,10 +635,6 @@ packages:
   '@mark1russell7/sqlite@0.7.2':
     resolution: {integrity: sha512-tUDmEanhoJeL/mVnGvutgKkasTBk5Q4ypchxL81fKToQlE4Pgvfi1DbCTJMHCUmfjt9O63nqJI7g79SbG0QB9Q==}
     engines: {node: '>=22.13'}
-
-  '@mark1russell7/text@0.0.18':
-    resolution: {integrity: sha512-sIOsTkBOhWLSDyE4qKyiokUT84NPJgPuhLPDyh2Y+mjGnNbGhF9Q6dt9NnSBtSW8C1D0rZfx8fPJ53g0gQGWfQ==}
-    engines: {node: '>=22.12'}
 
   '@mark1russell7/text@0.0.20':
     resolution: {integrity: sha512-HrjBak4BE0fDC+bLzFi/c4NDCHqiUm7VhYR5YhJmkApRSB8mUOao4bFiO9Jy3xwpsCGJCj4echVDCUxXjV+3NA==}
@@ -1840,9 +1831,9 @@ snapshots:
       '@mark1russell7/quantity': 0.5.1
       '@mark1russell7/rigor-statistics': 0.2.32
 
-  '@mark1russell7/api-report@0.5.24':
+  '@mark1russell7/api-report@0.5.25':
     dependencies:
-      '@mark1russell7/conventions': 0.55.2
+      '@mark1russell7/conventions': 0.56.0
 
   '@mark1russell7/code-shape@0.0.1': {}
 
@@ -1854,15 +1845,10 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  '@mark1russell7/conventions@0.52.8':
-    dependencies:
-      '@mark1russell7/text': 0.0.18
-      yaml: 2.9.1
-
-  '@mark1russell7/conventions@0.55.2':
+  '@mark1russell7/conventions@0.56.0':
     dependencies:
       '@mark1russell7/code-shape': 0.0.1
-      '@mark1russell7/text': 0.0.20
+      '@mark1russell7/text': 0.0.21
       yaml: 2.9.1
 
   '@mark1russell7/cue@2.1.4': {}
@@ -1961,8 +1947,6 @@ snapshots:
       '@mark1russell7/rigor-statistics': 0.2.32
 
   '@mark1russell7/sqlite@0.7.2': {}
-
-  '@mark1russell7/text@0.0.18': {}
 
   '@mark1russell7/text@0.0.20': {}
 
