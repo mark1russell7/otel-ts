@@ -116,7 +116,7 @@ startNodeTelemetry: dist/node.d.ts#startNodeTelemetry
 
 NodeContext: dist/node-context.d.ts#NodeContext
 NodeContextOptions: dist/node-context.d.ts#NodeContextOptions
-NodeMeterProvider: dist/node-meter.d.ts#NodeMeterProvider
+type NodeMeterProvider: dist/node-meter.d.ts#NodeMeterProvider
 type NodeMeterProviderFactory: dist/node-meter.d.ts#NodeMeterProviderFactory
 startNodeContext: dist/node-context.d.ts#startNodeContext
 

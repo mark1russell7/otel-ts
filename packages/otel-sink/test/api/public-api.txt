@@ -1,0 +1,470 @@
+# The public API of @mark1russell7/otel-sink
+#
+# The names of each entry of the exports field, and the declaration of each name, without comments
+# and private members. The command `api-report check` compares this file with the built .d.ts files.
+# To accept a change of the API, start the build, then `api-report update`, and review the diff.
+
+## . (dist/index.d.ts): names
+
+AnyValue: dist/otlp.d.ts#AnyValue
+type ApiOptions: dist/api.d.ts#ApiOptions
+DEFAULT_RETENTION: dist/retention.d.ts#DEFAULT_RETENTION
+ERROR_SEVERITY: dist/query.d.ts#ERROR_SEVERITY
+HARD_LIMIT_BYTES: dist/retention.d.ts#HARD_LIMIT_BYTES
+KeyValue: dist/otlp.d.ts#KeyValue
+LogRow: dist/otlp.d.ts#LogRow
+LogView: dist/query.d.ts#LogView
+LogsExport: dist/otlp.d.ts#LogsExport
+MAX_BODY_BYTES: dist/api.d.ts#MAX_BODY_BYTES
+MAX_LIMIT: dist/query.d.ts#MAX_LIMIT
+MIGRATIONS: dist/store.d.ts#MIGRATIONS
+MetricsExport: dist/otlp.d.ts#MetricsExport
+Nanos: dist/otlp.d.ts#Nanos
+Options: dist/index.d.ts#Options
+OtlpHistogramPoint: dist/otlp.d.ts#OtlpHistogramPoint
+OtlpLogRecord: dist/otlp.d.ts#OtlpLogRecord
+OtlpMetric: dist/otlp.d.ts#OtlpMetric
+OtlpNumberPoint: dist/otlp.d.ts#OtlpNumberPoint
+OtlpResource: dist/otlp.d.ts#OtlpResource
+OtlpShapeError: dist/otlp.d.ts#OtlpShapeError
+OtlpSpan: dist/otlp.d.ts#OtlpSpan
+PROFILES: dist/index.d.ts#PROFILES
+PRUNE_BATCHES: dist/index.d.ts#PRUNE_BATCHES
+PointRow: dist/otlp.d.ts#PointRow
+Pruned: dist/store.d.ts#Pruned
+QUERY_ROUTES: dist/api.d.ts#QUERY_ROUTES
+RECEIVER_ROUTES: dist/api.d.ts#RECEIVER_ROUTES
+ROW_OVERHEAD: dist/store.d.ts#ROW_OVERHEAD
+RetentionRules: dist/retention.d.ts#RetentionRules
+Rows: dist/store.d.ts#Rows
+SIGNALS: dist/retention.d.ts#SIGNALS
+ServiceView: dist/query.d.ts#ServiceView
+Signal: dist/retention.d.ts#Signal
+SignalPrune: dist/store.d.ts#SignalPrune
+SignalRule: dist/retention.d.ts#SignalRule
+SignalSize: dist/store.d.ts#SignalSize
+SpanRow: dist/otlp.d.ts#SpanRow
+SpanView: dist/query.d.ts#SpanView
+Store: dist/store.d.ts#Store
+StoreOptions: dist/store.d.ts#StoreOptions
+TIME_COLUMN: dist/store.d.ts#TIME_COLUMN
+TRACE_ID: dist/query.d.ts#TRACE_ID
+TracesExport: dist/otlp.d.ts#TracesExport
+UNKNOWN_SERVICE: dist/otlp.d.ts#UNKNOWN_SERVICE
+Value: dist/otlp.d.ts#Value
+Window: dist/query.d.ts#Window
+attachApi: dist/api.d.ts#attachApi
+attributesOf: dist/otlp.d.ts#attributesOf
+declare: dist/index.d.ts#declare
+errors: dist/query.d.ts#errors
+isOwnEndpoint: dist/index.d.ts#isOwnEndpoint
+logRows: dist/otlp.d.ts#logRows
+openStore: dist/store.d.ts#openStore
+pointRows: dist/otlp.d.ts#pointRows
+receiver: dist/api.d.ts#receiver
+retentionProblems: dist/retention.d.ts#retentionProblems
+services: dist/query.d.ts#services
+slowest: dist/query.d.ts#slowest
+spanRows: dist/otlp.d.ts#spanRows
+trace: dist/query.d.ts#trace
+valueOf: dist/otlp.d.ts#valueOf
+windowOf: dist/api.d.ts#windowOf
+windowProblems: dist/query.d.ts#windowProblems
+
+## bin: 1 commands
+
+otel-sink: ./dist/main.js
+
+## Declarations
+
+### dist/api.d.ts#ApiOptions
+export interface ApiOptions {
+    readonly port: number;
+    readonly store: () => Store;
+    readonly now?: (() => number) | undefined;
+}
+
+### dist/api.d.ts#MAX_BODY_BYTES
+export declare const MAX_BODY_BYTES: number;
+
+### dist/api.d.ts#QUERY_ROUTES
+export declare const QUERY_ROUTES: readonly ["GET /api/slowest", "GET /api/errors", "GET /api/services", "GET /api/trace", "GET /api/stats"];
+
+### dist/api.d.ts#RECEIVER_ROUTES
+export declare const RECEIVER_ROUTES: readonly ["POST /v1/traces", "POST /v1/logs", "POST /v1/metrics"];
+
+### dist/api.d.ts#attachApi
+export declare const attachApi: (svc: ServiceBuilder, options: ApiOptions) => ServiceBuilder;
+
+### dist/api.d.ts#receiver
+export declare const receiver: (store: () => Store) => RequestHandler;
+
+### dist/api.d.ts#windowOf
+export declare const windowOf: (url: string | undefined, nowMs: number) => Window;
+
+### dist/index.d.ts#Options
+export interface Options {
+    readonly port: number;
+    readonly probePort: number;
+    readonly profile: Profile;
+    readonly path: string;
+    readonly rules?: RetentionRules | undefined;
+    readonly pruneEverySeconds?: number | undefined;
+    readonly now?: (() => number) | undefined;
+    readonly onPruneError?: ((error: unknown, failures: number) => void) | undefined;
+}
+
+### dist/index.d.ts#PROFILES
+export declare const PROFILES: Readonly<Record<string, Profile>>;
+
+### dist/index.d.ts#PRUNE_BATCHES
+export declare const PRUNE_BATCHES = 20;
+
+### dist/index.d.ts#declare
+export declare const declare: (options: Options) => ServiceBuilder;
+
+### dist/index.d.ts#isOwnEndpoint
+export declare const isOwnEndpoint: (endpoint: string | undefined, port: number) => boolean;
+
+### dist/otlp.d.ts#AnyValue
+export interface AnyValue {
+    readonly stringValue?: string;
+    readonly boolValue?: boolean;
+    readonly intValue?: string | number;
+    readonly doubleValue?: number;
+    readonly arrayValue?: {
+        readonly values?: readonly AnyValue[];
+    };
+    readonly kvlistValue?: {
+        readonly values?: readonly KeyValue[];
+    };
+    readonly bytesValue?: string;
+}
+
+### dist/otlp.d.ts#KeyValue
+export interface KeyValue {
+    readonly key: string;
+    readonly value?: AnyValue;
+}
+
+### dist/otlp.d.ts#LogRow
+export interface LogRow {
+    readonly timeNs: bigint;
+    readonly service: string;
+    readonly severity: number | null;
+    readonly body: string | null;
+    readonly traceId: string | null;
+    readonly spanId: string | null;
+    readonly attributes: string;
+}
+
+### dist/otlp.d.ts#LogsExport
+export interface LogsExport {
+    readonly resourceLogs?: readonly {
+        readonly resource?: OtlpResource;
+        readonly scopeLogs?: readonly {
+            readonly logRecords?: readonly OtlpLogRecord[];
+        }[];
+    }[];
+}
+
+### dist/otlp.d.ts#MetricsExport
+export interface MetricsExport {
+    readonly resourceMetrics?: readonly {
+        readonly resource?: OtlpResource;
+        readonly scopeMetrics?: readonly {
+            readonly metrics?: readonly OtlpMetric[];
+        }[];
+    }[];
+}
+
+### dist/otlp.d.ts#Nanos
+export type Nanos = string | number | undefined;
+
+### dist/otlp.d.ts#OtlpHistogramPoint
+export interface OtlpHistogramPoint {
+    readonly timeUnixNano?: Nanos;
+    readonly attributes?: readonly KeyValue[];
+    readonly count?: string | number;
+    readonly sum?: number;
+    readonly explicitBounds?: readonly number[];
+    readonly bucketCounts?: readonly (string | number)[];
+}
+
+### dist/otlp.d.ts#OtlpLogRecord
+export interface OtlpLogRecord {
+    readonly timeUnixNano?: Nanos;
+    readonly observedTimeUnixNano?: Nanos;
+    readonly severityNumber?: number;
+    readonly body?: AnyValue;
+    readonly traceId?: string;
+    readonly spanId?: string;
+    readonly attributes?: readonly KeyValue[];
+}
+
+### dist/otlp.d.ts#OtlpMetric
+export interface OtlpMetric {
+    readonly name: string;
+    readonly sum?: {
+        readonly dataPoints?: readonly OtlpNumberPoint[];
+    };
+    readonly gauge?: {
+        readonly dataPoints?: readonly OtlpNumberPoint[];
+    };
+    readonly histogram?: {
+        readonly dataPoints?: readonly OtlpHistogramPoint[];
+    };
+}
+
+### dist/otlp.d.ts#OtlpNumberPoint
+export interface OtlpNumberPoint {
+    readonly timeUnixNano?: Nanos;
+    readonly attributes?: readonly KeyValue[];
+    readonly asDouble?: number;
+    readonly asInt?: string | number;
+}
+
+### dist/otlp.d.ts#OtlpResource
+export interface OtlpResource {
+    readonly attributes?: readonly KeyValue[];
+}
+
+### dist/otlp.d.ts#OtlpShapeError
+export declare class OtlpShapeError extends Error {
+    readonly name = "OtlpShapeError";
+}
+
+### dist/otlp.d.ts#OtlpSpan
+export interface OtlpSpan {
+    readonly traceId: string;
+    readonly spanId: string;
+    readonly parentSpanId?: string;
+    readonly name: string;
+    readonly kind?: number;
+    readonly startTimeUnixNano?: Nanos;
+    readonly endTimeUnixNano?: Nanos;
+    readonly attributes?: readonly KeyValue[];
+    readonly status?: {
+        readonly code?: number;
+        readonly message?: string;
+    };
+}
+
+### dist/otlp.d.ts#PointRow
+export interface PointRow {
+    readonly timeNs: bigint;
+    readonly service: string;
+    readonly metric: string;
+    readonly attributes: string;
+    readonly value: number | null;
+    readonly histogram: string | null;
+}
+
+### dist/otlp.d.ts#SpanRow
+export interface SpanRow {
+    readonly traceId: string;
+    readonly spanId: string;
+    readonly parentId: string | null;
+    readonly service: string;
+    readonly name: string;
+    readonly kind: number | null;
+    readonly startNs: bigint;
+    readonly endNs: bigint;
+    readonly status: number;
+    readonly attributes: string;
+}
+
+### dist/otlp.d.ts#TracesExport
+export interface TracesExport {
+    readonly resourceSpans?: readonly {
+        readonly resource?: OtlpResource;
+        readonly scopeSpans?: readonly {
+            readonly spans?: readonly OtlpSpan[];
+        }[];
+    }[];
+}
+
+### dist/otlp.d.ts#UNKNOWN_SERVICE
+export declare const UNKNOWN_SERVICE = "unknown_service";
+
+### dist/otlp.d.ts#Value
+export type Value = string | number | boolean | null | readonly Value[] | {
+    readonly [key: string]: Value;
+};
+
+### dist/otlp.d.ts#attributesOf
+export declare const attributesOf: (list?: readonly KeyValue[]) => {
+    readonly [key: string]: Value;
+};
+
+### dist/otlp.d.ts#logRows
+export declare const logRows: (body: LogsExport) => LogRow[];
+
+### dist/otlp.d.ts#pointRows
+export declare const pointRows: (body: MetricsExport) => PointRow[];
+
+### dist/otlp.d.ts#spanRows
+export declare const spanRows: (body: TracesExport) => SpanRow[];
+
+### dist/otlp.d.ts#valueOf
+export declare const valueOf: (value: AnyValue | undefined) => Value;
+
+### dist/query.d.ts#ERROR_SEVERITY
+export declare const ERROR_SEVERITY = 17;
+
+### dist/query.d.ts#LogView
+export interface LogView {
+    readonly timeMs: number;
+    readonly service: string;
+    readonly severity: number | null;
+    readonly body: string | null;
+    readonly traceId: string | null;
+    readonly spanId: string | null;
+    readonly attributes: {
+        readonly [key: string]: Value;
+    };
+}
+
+### dist/query.d.ts#MAX_LIMIT
+export declare const MAX_LIMIT = 1000;
+
+### dist/query.d.ts#ServiceView
+export interface ServiceView {
+    readonly service: string;
+    readonly spans: number;
+    readonly failed: number;
+    readonly errorRate: number;
+    readonly slowestMs: number;
+}
+
+### dist/query.d.ts#SpanView
+export interface SpanView {
+    readonly traceId: string;
+    readonly spanId: string;
+    readonly parentId: string | null;
+    readonly service: string;
+    readonly name: string;
+    readonly kind: number | null;
+    readonly startMs: number;
+    readonly durationMs: number;
+    readonly status: number;
+    readonly attributes: {
+        readonly [key: string]: Value;
+    };
+}
+
+### dist/query.d.ts#TRACE_ID
+export declare const TRACE_ID: RegExp;
+
+### dist/query.d.ts#Window
+export interface Window {
+    readonly sinceMs: number;
+    readonly limit: number;
+    readonly service?: string | undefined;
+}
+
+### dist/query.d.ts#errors
+export declare const errors: (db: DatabaseSync, window: Window) => {
+    readonly spans: SpanView[];
+    readonly logs: LogView[];
+};
+
+### dist/query.d.ts#services
+export declare const services: (db: DatabaseSync, window: Window) => ServiceView[];
+
+### dist/query.d.ts#slowest
+export declare const slowest: (db: DatabaseSync, window: Window) => SpanView[];
+
+### dist/query.d.ts#trace
+export declare const trace: (db: DatabaseSync, traceId: string) => {
+    readonly spans: SpanView[];
+    readonly logs: LogView[];
+};
+
+### dist/query.d.ts#windowProblems
+export declare const windowProblems: (window: Window) => string[];
+
+### dist/retention.d.ts#DEFAULT_RETENTION
+export declare const DEFAULT_RETENTION: RetentionRules;
+
+### dist/retention.d.ts#HARD_LIMIT_BYTES
+export declare const HARD_LIMIT_BYTES: number;
+
+### dist/retention.d.ts#RetentionRules
+export type RetentionRules = {
+    readonly [signal in Signal]: SignalRule;
+};
+
+### dist/retention.d.ts#SIGNALS
+export declare const SIGNALS: readonly Signal[];
+
+### dist/retention.d.ts#Signal
+export type Signal = "spans" | "logs" | "points";
+
+### dist/retention.d.ts#SignalRule
+export interface SignalRule {
+    readonly maxAgeMs: number;
+    readonly maxBytes: number;
+}
+
+### dist/retention.d.ts#retentionProblems
+export declare const retentionProblems: (rules: RetentionRules) => string[];
+
+### dist/store.d.ts#MIGRATIONS
+export declare const MIGRATIONS: readonly Migration[];
+
+### dist/store.d.ts#Pruned
+export type Pruned = {
+    readonly [signal in Signal]: SignalPrune;
+} & {
+    readonly done: boolean;
+};
+
+### dist/store.d.ts#ROW_OVERHEAD
+export declare const ROW_OVERHEAD = 32;
+
+### dist/store.d.ts#Rows
+export interface Rows {
+    readonly spans?: readonly SpanRow[];
+    readonly logs?: readonly LogRow[];
+    readonly points?: readonly PointRow[];
+}
+
+### dist/store.d.ts#SignalPrune
+export interface SignalPrune {
+    readonly aged: number;
+    readonly capped: number;
+}
+
+### dist/store.d.ts#SignalSize
+export interface SignalSize {
+    readonly rows: number;
+    readonly bytes: number;
+}
+
+### dist/store.d.ts#Store
+export interface Store {
+    readonly db: DatabaseSync;
+    readonly rules: RetentionRules;
+    insert(rows: Rows): void;
+    prune(nowMs: number, batches?: number): Pruned;
+    sizes(): {
+        readonly [signal in Signal]: SignalSize;
+    };
+    fileBytes(): number;
+    close(): void;
+}
+
+### dist/store.d.ts#StoreOptions
+export interface StoreOptions {
+    readonly rules?: RetentionRules | undefined;
+    readonly batch?: number | undefined;
+}
+
+### dist/store.d.ts#TIME_COLUMN
+export declare const TIME_COLUMN: {
+    readonly [signal in Signal]: string;
+};
+
+### dist/store.d.ts#openStore
+export declare const openStore: (path: string, options?: StoreOptions) => Store;
