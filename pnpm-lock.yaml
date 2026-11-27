@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@mark1russell7/text':
-        specifier: ^0.0.20
-        version: 0.0.20
+        specifier: ^0.0.21
+        version: 0.0.21
       '@opentelemetry/api':
         specifier: ^1.10.0
         version: 1.10.0
@@ -122,7 +122,7 @@ importers:
         version: 0.13.1(@grpc/grpc-js@1.14.7)(@mark1russell7/otel-ts@0.11.2(5a98240c6d8dc543da5404e7c83ede84))(@opentelemetry/api@1.10.0)(ws@8.23.0)
       '@mark1russell7/sqlite':
         specifier: ^0.7.1
-        version: 0.7.1
+        version: 0.7.2
       '@opentelemetry/api':
         specifier: ^1.10.0
         version: 1.10.0
@@ -637,8 +637,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@mark1russell7/sqlite@0.7.1':
-    resolution: {integrity: sha512-A2x/fWB8G4KPCK5pNUUaNc7s61xFA/WvZkkJJK8uggmW5wqD6uxnLujt97Y7gBjM4JXkxoHb3AR4eJAJOkIdZg==}
+  '@mark1russell7/sqlite@0.7.2':
+    resolution: {integrity: sha512-tUDmEanhoJeL/mVnGvutgKkasTBk5Q4ypchxL81fKToQlE4Pgvfi1DbCTJMHCUmfjt9O63nqJI7g79SbG0QB9Q==}
     engines: {node: '>=22.13'}
 
   '@mark1russell7/text@0.0.18':
@@ -647,6 +647,10 @@ packages:
 
   '@mark1russell7/text@0.0.20':
     resolution: {integrity: sha512-HrjBak4BE0fDC+bLzFi/c4NDCHqiUm7VhYR5YhJmkApRSB8mUOao4bFiO9Jy3xwpsCGJCj4echVDCUxXjV+3NA==}
+    engines: {node: '>=22.12'}
+
+  '@mark1russell7/text@0.0.21':
+    resolution: {integrity: sha512-Y0ZNBrHHeIo9LPJc0dWJrhjQUoK+PQHgotitEaJo3J6xppYPIBqJ0AXQBHjzpdoL7xUWYCqriFNe+WA/4S15KQ==}
     engines: {node: '>=22.12'}
 
   '@mark1russell7/text@0.0.6':
@@ -1956,11 +1960,13 @@ snapshots:
     dependencies:
       '@mark1russell7/rigor-statistics': 0.2.32
 
-  '@mark1russell7/sqlite@0.7.1': {}
+  '@mark1russell7/sqlite@0.7.2': {}
 
   '@mark1russell7/text@0.0.18': {}
 
   '@mark1russell7/text@0.0.20': {}
+
+  '@mark1russell7/text@0.0.21': {}
 
   '@mark1russell7/text@0.0.6': {}
 
