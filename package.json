@@ -99,7 +99,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && pnpm --filter \"./packages/*\" --if-present run build",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && pnpm --filter \"./packages/*\" run typecheck",
     "clean": "rm -rf dist .tsbuildinfo",
     "infra:up": "cd node_modules/@mark1russell7/grafana-infra && docker compose up -d",
