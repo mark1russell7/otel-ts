@@ -114,9 +114,12 @@ jobs:
           # values: the read then only reports, and it prints the limits that its runs give.
           # The heap limit moved from 1874248 in 0.11.1: contextOwner() adds about 2.4 KB of source and code to /context,
           # which /node/context loads. The new limit is the worst of the 5 jobs of run 45902888632 plus their spread.
+          # The heap limit moved from 1876800 in 0.11.2: the option meterProvider of startNodeContext() adds about 1 KB
+          # of source and code to the registration of the context. The metric packages stay out of /node/context. The
+          # new limit is the worst of the 5 jobs of run 45915989971 plus their spread.
           MEMORY_RSS_LIMIT: "5763072"
           MEMORY_RSS_AA: "167936"
-          MEMORY_HEAP_LIMIT: "1876800"
+          MEMORY_HEAP_LIMIT: "1877992"
           MEMORY_HEAP_AA: "144"
         run: node bench/memory.ts verdict "$GITHUB_WORKSPACE/memory"
 
