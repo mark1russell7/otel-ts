@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.2
+
+### Changed
+
+- The OTLP/HTTP receiver and the checks of the query parameters go through the request tracking of the service, as the queries do. Thus the drain of a shutdown waits for each export. Before the start of the server, an export gets a 503 that the sender can send again.
+- A refusal (400, 413 or 415) is a reply of the route with its status, and the request tracking records it as done, not as a failure.
+
+### Added
+
+- `RECEIVER_ROUTES`: the three routes of the receiver, on the controller `receiver`.
+
 ## 0.1.1
 
 ### Fixed
