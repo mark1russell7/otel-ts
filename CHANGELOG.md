@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.2
+
+### Added
+
+- The option `meterProvider` of `startNodeContext()`: a function that makes the meter provider of the service from the resource of the service. The context registers it as the global meter provider, and `shutdown()` flushes and stops it. A part of the program that set the global meter provider first keeps it. With no option, the entry `/node/context` does not change, and it loads no metric package.
+- `exportMeterProvider({ env, exporter })` of the entry `/node/export` gives that function. The meter provider has the views of the entry `/node` and one periodic reader for each exporter of `OTEL_METRICS_EXPORTER`, with `OTEL_METRIC_EXPORT_INTERVAL` and `OTEL_METRIC_EXPORT_TIMEOUT`. With no value in `OTEL_EXPORTER_OTLP_ENDPOINT` and no exporter, it gives `undefined`. Thus a service of `/node/context` exports its metrics, for example the runtime metrics of `@opentelemetry/instrumentation-runtime-node`, with no SDK of `@opentelemetry/sdk-node`.
+- The new types are `NodeMeterProvider`, `NodeMeterProviderFactory` and `ExportMetricOptions`. The type `OtlpSignal` has `"metrics"`.
+- The new optional peer dependency `@opentelemetry/exporter-metrics-otlp-proto`, for the entry `/node/export`.
+
 ## 0.11.1
 
 ### Added

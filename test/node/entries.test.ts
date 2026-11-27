@@ -103,9 +103,13 @@ describe("the module graph of each entry", () => {
     // A program that starts /node/context exports with this entry, so it must not bring the SDK that /node/context leaves out
     const packages = runtimePackages("src/node-export.ts");
     expect(packages).toContain("@opentelemetry/exporter-trace-otlp-proto");
+    expect(packages).toContain("@opentelemetry/exporter-metrics-otlp-proto");
     expect(packages.filter((name) => name === "@opentelemetry/sdk-node" || name.startsWith("@opentelemetry/instrumentation"))).toEqual([]);
     // /node/context does not load the exporters
     expect(runtimeFiles("src/node-context.ts")).not.toContain("node-exporters.ts");
+    // /node/context and /node do not load the metric exporters: the NodeSDK of /node takes the readers of the program
+    expect(runtimeFiles("src/node-context.ts")).not.toContain("node-metric-exporters.ts");
+    expect(runtimeFiles("src/node.ts")).not.toContain("node-metric-exporters.ts");
   });
 
   it("@mark1russell7/otel-ts/context imports @opentelemetry/api only", () => {
