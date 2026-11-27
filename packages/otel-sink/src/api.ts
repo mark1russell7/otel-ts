@@ -1,4 +1,4 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createServer, type IncomingMessage } from "node:http";
 import { gunzip } from "node:zlib";
 import { promisify } from "node:util";
 import type { ServiceBuilder } from "@mark1russell7/service";
@@ -39,11 +39,15 @@ export const QUERY_ROUTES = ["GET /api/slowest", "GET /api/errors", "GET /api/se
 
 const s = (value: number) => ({ value, unit: "s" });
 
-const reply = (res: ServerResponse, status: number, body: unknown): true => {
-  const text = JSON.stringify(body);
-  res.writeHead(status, { "content-type": "application/json", "content-length": Buffer.byteLength(text) });
-  res.end(text);
-  return true;
+/** A JSON reply is the status and the JSON body of one response. */
+interface JsonReply {
+  readonly status: number;
+  readonly body: unknown;
+}
+
+/** These options of `handle` write a JSON reply with its status. A 4xx is a reply, not a failure of the work. */
+const asJson = {
+  done: (reply: JsonReply) => ({ status: reply.status, headers: { "content-type": "application/json" }, body: JSON.stringify(reply.body) }),
 };
 
 class TooLargeError extends Error {}
@@ -95,43 +99,58 @@ const readBody = (req: IncomingMessage): Promise<Buffer> =>
     req.once("error", reject);
   });
 
+/** The routes of the OTLP/HTTP receiver. A retry of an export can add the same rows again, so no route is idempotent. */
+export const RECEIVER_ROUTES = ["POST /v1/traces", "POST /v1/logs", "POST /v1/metrics"] as const;
+
+const refusal = (status: number, error: string): JsonReply => ({ status, body: { error } });
+
+/** This function gives the name of the receiver route of a request, or null for a request of another handler. */
+const receiverRouteOf = (req: IncomingMessage): string | null => {
+  const name = `${req.method ?? "GET"} ${pathOf(req.url)}`;
+  return (RECEIVER_ROUTES as readonly string[]).includes(name) ? name : null;
+};
+
+/**
+ * This function reads one export and stores its rows. A refusal is a reply with its status, not a failure of the
+ * work: a 4xx is an error of the client, thus the request tracking records it as done.
+ */
+const receive = async (req: IncomingMessage, store: () => Store): Promise<JsonReply> => {
+  const toRows = RECEIVERS[pathOf(req.url)];
+  if (toRows === undefined) throw new Error(`no receiver for ${pathOf(req.url)}`);
+  const type = String(req.headers["content-type"] ?? "").split(";")[0]?.trim().toLowerCase();
+  if (type !== "application/json") {
+    await discard(req);
+    return refusal(415, "the sink takes only OTLP JSON. Set OTEL_EXPORTER_OTLP_PROTOCOL=http/json in the sender.");
+  }
+  const encoding = String(req.headers["content-encoding"] ?? "identity").toLowerCase();
+  if (encoding !== "identity" && encoding !== "gzip") {
+    await discard(req);
+    return refusal(415, `the sink takes no content encoding ${encoding}: only gzip or none`);
+  }
+  let rows: Rows;
+  try {
+    const raw = await readBody(req);
+    const text = encoding === "gzip" ? await unzip(raw, { maxOutputLength: MAX_BODY_BYTES }) : raw;
+    rows = toRows(JSON.parse(text.toString("utf8")) as unknown);
+  } catch (error) {
+    if (error instanceof TooLargeError || (error as { code?: unknown }).code === "ERR_BUFFER_TOO_LARGE")
+      return refusal(413, `the body is larger than ${MAX_BODY_BYTES} bytes`);
+    if (error instanceof SyntaxError || error instanceof OtlpShapeError || (error as { code?: unknown }).code === "Z_DATA_ERROR")
+      return refusal(400, error instanceof Error ? error.message : String(error));
+    throw error;
+  }
+  store().insert(rows);
+  // The success of OTLP/HTTP JSON: an empty response message, thus no partial success
+  return { status: 200, body: {} };
+};
+
 /**
  * This function gives the handler of the OTLP/HTTP receiver: `POST /v1/traces`, `/v1/logs` and `/v1/metrics` with a
  * body of OTLP JSON, with gzip or without it. It answers 415 to another type, 413 to a large body and 400 to a body
- * that is not OTLP JSON. The handler writes its own status, so it is a mount of the transport, not a route of `handle`.
+ * that is not OTLP JSON. Each export goes through the service, as each query does. Thus the drain waits for it.
  */
-export const receiver = (store: () => Store): RequestHandler => {
-  const handler = async (req: IncomingMessage, res: ServerResponse): Promise<boolean> => {
-    const toRows = req.method === "POST" ? RECEIVERS[pathOf(req.url)] : undefined;
-    if (toRows === undefined) return false;
-    const type = String(req.headers["content-type"] ?? "").split(";")[0]?.trim().toLowerCase();
-    if (type !== "application/json") {
-      await discard(req);
-      return reply(res, 415, { error: "the sink takes only OTLP JSON. Set OTEL_EXPORTER_OTLP_PROTOCOL=http/json in the sender." });
-    }
-    const encoding = String(req.headers["content-encoding"] ?? "identity").toLowerCase();
-    if (encoding !== "identity" && encoding !== "gzip") {
-      await discard(req);
-      return reply(res, 415, { error: `the sink takes no content encoding ${encoding}: only gzip or none` });
-    }
-    let rows: Rows;
-    try {
-      const raw = await readBody(req);
-      const text = encoding === "gzip" ? await unzip(raw, { maxOutputLength: MAX_BODY_BYTES }) : raw;
-      rows = toRows(JSON.parse(text.toString("utf8")) as unknown);
-    } catch (error) {
-      if (error instanceof TooLargeError || (error as { code?: unknown }).code === "ERR_BUFFER_TOO_LARGE")
-        return reply(res, 413, { error: `the body is larger than ${MAX_BODY_BYTES} bytes` });
-      if (error instanceof SyntaxError || error instanceof OtlpShapeError || (error as { code?: unknown }).code === "Z_DATA_ERROR")
-        return reply(res, 400, { error: error instanceof Error ? error.message : String(error) });
-      throw error;
-    }
-    store().insert(rows);
-    // The success of OTLP/HTTP JSON: an empty response message, thus no partial success
-    return reply(res, 200, {});
-  };
-  return handler;
-};
+export const receiver = (store: () => Store): RequestHandler =>
+  handle<JsonReply>("receiver", receiverRouteOf, (req) => receive(req, store), asJson);
 
 /** This function gives the window of a query from the query string of its target. */
 export const windowOf = (url: string | undefined, nowMs: number): Window => {
@@ -149,19 +168,21 @@ export const windowOf = (url: string | undefined, nowMs: number): Window => {
 const traceIdOf = (url: string | undefined): string => new URL(url ?? "/", "http://sink").searchParams.get("id")?.toLowerCase() ?? "";
 
 /**
- * This function gives the handler that answers 400 to a query with bad parameters. It gives false for each other
- * request, so the next handler gets it.
+ * This function gives the handler of one query route. It answers 400 with the problems of bad parameters, and else
+ * 200 with the answer as JSON. Each query goes through the service. Thus the drain waits for it, and the shutdown can
+ * cut it.
  */
-const queryCheck = (now: () => number): RequestHandler => {
-  const handler = (req: IncomingMessage, res: ServerResponse): boolean => {
-    if (req.method !== "GET") return false;
-    const path = pathOf(req.url);
-    if (!QUERY_ROUTES.includes(`GET ${path}` as (typeof QUERY_ROUTES)[number])) return false;
-    const problems = path === "/api/trace" ? (TRACE_ID.test(traceIdOf(req.url)) ? [] : ["id must be a trace id of 32 hex digits"]) : windowProblems(windowOf(req.url, now()));
-    return problems.length === 0 ? false : reply(res, 400, { problems });
-  };
-  return handler;
-};
+const query = (route: (typeof QUERY_ROUTES)[number], answer: (window: Window, req: IncomingMessage) => unknown, now: () => number): RequestHandler =>
+  handle<JsonReply>(
+    "api",
+    route,
+    (req) => {
+      const window = windowOf(req.url, now());
+      const problems = route === "GET /api/trace" ? (TRACE_ID.test(traceIdOf(req.url)) ? [] : ["id must be a trace id of 32 hex digits"]) : windowProblems(window);
+      return problems.length === 0 ? { status: 200, body: answer(window, req) } : { status: 400, body: { problems } };
+    },
+    asJson,
+  );
 
 /**
  * This function gives the API to the service of the entry: an HTTP server with the OTLP/HTTP receiver and the
@@ -176,19 +197,24 @@ export const attachApi = (svc: ServiceBuilder, options: ApiOptions): ServiceBuil
     { server_idle_close: s(65), server_idle_sweep_interval: s(1), server_retry_after: s(1) },
     { listen: { port: options.port } },
   );
+  // Each export and each query goes through the service, with its own status. No handler writes a raw response.
   http.mount(receiver(store));
-  http.mount(queryCheck(now));
-  // Each query goes through the service. Thus the drain waits for it, and the shutdown can cut it.
-  http.mount(handle("api", "GET /api/slowest", (req) => slowest(store().db, windowOf(req.url, now()))));
-  http.mount(handle("api", "GET /api/errors", (req) => errors(store().db, windowOf(req.url, now()))));
-  http.mount(handle("api", "GET /api/services", (req) => services(store().db, windowOf(req.url, now()))));
-  http.mount(handle("api", "GET /api/trace", (req) => trace(store().db, traceIdOf(req.url))));
+  http.mount(query("GET /api/slowest", (window) => slowest(store().db, window), now));
+  http.mount(query("GET /api/errors", (window) => errors(store().db, window), now));
+  http.mount(query("GET /api/services", (window) => services(store().db, window), now));
+  http.mount(query("GET /api/trace", (_window, req) => trace(store().db, traceIdOf(req.url)), now));
   http.mount(
-    handle("api", "GET /api/stats", () => {
-      const opened = store();
-      return { sizes: opened.sizes(), fileBytes: opened.fileBytes(), rules: opened.rules };
-    }),
+    query(
+      "GET /api/stats",
+      () => {
+        const opened = store();
+        return { sizes: opened.sizes(), fileBytes: opened.fileBytes(), rules: opened.rules };
+      },
+      now,
+    ),
   );
+  const received = svc.controller("receiver").requires("store");
+  for (const route of RECEIVER_ROUTES) received.route(route, { idempotent: false });
   const api = svc.controller("api").requires("store");
   for (const route of QUERY_ROUTES) api.route(route, { idempotent: true });
   return svc.server("http", http.knobs, http);

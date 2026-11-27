@@ -5,7 +5,7 @@ import { attachApi } from "./api.ts";
 import type { RetentionRules } from "./retention.ts";
 import { openStore, type Store } from "./store.ts";
 
-export { attachApi, receiver, windowOf, MAX_BODY_BYTES, QUERY_ROUTES, type ApiOptions } from "./api.ts";
+export { attachApi, receiver, windowOf, MAX_BODY_BYTES, QUERY_ROUTES, RECEIVER_ROUTES, type ApiOptions } from "./api.ts";
 export * from "./otlp.ts";
 export * from "./query.ts";
 export * from "./retention.ts";
