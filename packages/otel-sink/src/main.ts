@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * This file is the entry of the process, and the only file that uses `run()`. The lifecycle owns the
  * signals of the process. After SIGTERM or Ctrl-C, the service stops in its phases, and the process

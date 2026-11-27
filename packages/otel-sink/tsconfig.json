@@ -3,9 +3,22 @@
   "extends": "@mark1russell7/cue/ts/config/node.json",
   "compilerOptions": {
     "noEmit": false,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "allowImportingTsExtensions": true,
     "composite": false,
-    "incremental": false
-  }
+    "incremental": false,
+    "declaration": true,
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.test-util.ts"
+  ]
 }
